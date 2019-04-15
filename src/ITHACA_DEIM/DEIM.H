@@ -214,4 +214,3 @@ class DEIM
         void check3D_indices(int& ind_rowA, int& xyz_rowA);
 
 };
-

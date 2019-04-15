@@ -36,6 +36,7 @@
 #include "viscosityModel.H"
 
 // * * * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * * * //
+
 // Constructor
 steadyNS::steadyNS() {}
 steadyNS::steadyNS(int argc, char* argv[])
@@ -353,6 +354,7 @@ void steadyNS::projectPPE(fileName folder, label NU, label NP, label NSUP)
     NPmodes = NP;
     NSUPmodes = 0;
     L_U_SUPmodes.resize(0);
+    surfaceScalarField& phi = _phi();
 
     if (liftfield.size() != 0)
     {
@@ -400,6 +402,9 @@ void steadyNS::projectSUP(fileName folder, label NU, label NP, label NSUP)
     {
         for (label k = 0; k < liftfield.size(); k++)
         {
+            surfaceScalarField phi2(_phi());
+            phi2 = linearInterpolate(liftfield[k]) & liftfield[k].mesh().Sf();
+            L_U_SUPmodesPhi.append(phi2);
             L_U_SUPmodes.append(liftfield[k]);
         }
     }
@@ -408,6 +413,7 @@ void steadyNS::projectSUP(fileName folder, label NU, label NP, label NSUP)
     {
         for (label k = 0; k < NUmodes; k++)
         {
+            L_U_SUPmodesPhi.append(phiModes[k]);
             L_U_SUPmodes.append(Umodes[k]);
         }
     }
@@ -416,6 +422,9 @@ void steadyNS::projectSUP(fileName folder, label NU, label NP, label NSUP)
     {
         for (label k = 0; k < NSUPmodes; k++)
         {
+            surfaceScalarField phi2(_phi());
+            phi2 = linearInterpolate(supmodes[k]) & supmodes[k].mesh().Sf();
+            L_U_SUPmodesPhi.append(phi2);
             L_U_SUPmodes.append(supmodes[k]);
         }
     }
@@ -665,6 +674,38 @@ Eigen::Tensor<double, 3> steadyNS::convective_term_tens(label NUmodes,
     return C_tensor;
 }
 
+Eigen::Tensor<double, 3> steadyNS::convective_term_tens_phi(label NUmodes,
+        label NPmodes,
+        label NSUPmodes)
+{
+    label Csize = NUmodes + NSUPmodes + liftfield.size();
+    Eigen::Tensor<double, 3> C_tensor;
+    C_tensor.resize(Csize, Csize, Csize);
+
+    for (label i = 0; i < Csize; i++)
+    {
+        for (label j = 0; j < Csize; j++)
+        {
+            for (label k = 0; k < Csize; k++)
+            {
+                C_tensor(i, j, k) = fvc::domainIntegrate(L_U_SUPmodes[i] & fvc::div(L_U_SUPmodesPhi[j],
+                                        L_U_SUPmodes[k])).value();
+            }
+        }
+    }
+
+    if (Pstream::parRun())
+    {
+        reduce(C_tensor, sumOp<Eigen::Tensor<double, 3>>());
+    }
+
+    // Export the tensor
+    ITHACAstream::SaveDenseTensor(C_tensor, "./ITHACAoutput/Matrices/",
+                                  "C_" + name(liftfield.size()) + "_" + name(NUmodes) + "_" + name(
+                                      NSUPmodes) + "_t");
+    return C_tensor;
+}
+
 Eigen::MatrixXd steadyNS::mass_term(label NUmodes, label NPmodes,
                                     label NSUPmodes)
 {
@@ -707,6 +748,34 @@ Eigen::MatrixXd steadyNS::divergence_term(label NUmodes, label NPmodes,
         {
             P_matrix(i, j) = fvc::domainIntegrate(Pmodes[i] * fvc::div (
                     L_U_SUPmodes[j])).value();
+        }
+    }
+
+    if (Pstream::parRun())
+    {
+        reduce(P_matrix, sumOp<Eigen::MatrixXd>());
+    }
+
+    ITHACAstream::SaveDenseMatrix(P_matrix, "./ITHACAoutput/Matrices/",
+                                  "P_" + name(liftfield.size()) + "_" + name(NUmodes) + "_" + name(
+                                      NSUPmodes) + "_" + name(NPmodes));
+    return P_matrix;
+}
+
+Eigen::MatrixXd steadyNS::divergence_term_phi(label NUmodes, label NPmodes,
+        label NSUPmodes)
+{
+    label P1size = NPmodes;
+    label P2size = NUmodes + NSUPmodes + liftfield.size();
+    Eigen::MatrixXd P_matrix(P1size, P2size);
+
+    // Project everything
+    for (label i = 0; i < P1size; i++)
+    {
+        for (label j = 0; j < P2size; j++)
+        {
+            P_matrix(i, j) = fvc::domainIntegrate(Pmodes[i] * fvc::div (
+                    L_U_SUPmodesPhi[j])).value();
         }
     }
 
@@ -1057,7 +1126,9 @@ void steadyNS::forcesMatrices(label NUmodes, label NPmodes, label NSUPmodes)
     for (label i = 0; i < L_U_SUPmodes.size(); i++)
     {
         U = L_U_SUPmodes[i];
+        U.rename("U");
         p = Pmodes[0];
+        p.rename("p");
         mesh.readUpdate();
         f.write();
         f.calcForcesMoment();
@@ -1126,7 +1197,4 @@ void steadyNS::restart()
     p = p0;
     U = U0;
     phi = phi0;
-    turbulence.reset(
-        (incompressible::turbulenceModel::New(U, phi, _laminarTransport())).ptr()
-    );
 }

@@ -221,7 +221,6 @@ class reducedSteadyNS: public reducedProblem
         /// @return     The rescaled velocity vector
         ///
         Eigen::MatrixXd setOnlineVelocity(Eigen::MatrixXd vel);
-
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

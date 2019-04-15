@@ -145,71 +145,56 @@ class ITHACAstream
                                  word tipo = "python", word folder = "./Matrices");
 
 
-        //--------------------------------------------------------------------------
-        /// Funtion to read a list of volVectorField from name of the field and casename
+        //----------------------------------------------------------------------
+        /// Funtion to read a list of volVectorField from name of the field and
+        /// casename
         ///
-        /// @param[in]  Lfield      a PtrList of volVectorField where you want to store the field.
+        /// @param[in]  Lfield      a PtrList of OpenFOAM fields where you want
+        ///                         to store the field.
         /// @param[in]  Name        The name of the field you want to read.
         /// @param[in]  casename    The folder where the field is stored.
-        /// @param[in]  first_snap  The first snapshots from which you want to start reading the field.
+        /// @param[in]  first_snap  The first snapshots from which you want to
+        ///                         start reading the field.
         /// @param[in]  n_snap      The number of snapshots you want to read.
         ///
-        static void read_fields(PtrList<volVectorField>& Lfield, word Name,
+        /// @tparam     fieldType   Type of field can be volVectorField, volScalarField, surfaceScalarField
+        ///
+        template<typename fieldType>
+        static void read_fields(PtrList<fieldType>& Lfield, word Name,
                                 fileName casename, label first_snap = 0, label n_snap = 0);
 
-        //--------------------------------------------------------------------------
-        /// Funtion to read a list of volScalarField from name of the field and folder name
+
+
+        //----------------------------------------------------------------------
+        /// Funtion to read a list of volVectorField from name of the field a
+        /// volVectorField if it is already existing
         ///
-        /// @param[in]  Lfield      a PtrList of volScalarField where you want to store the field.
-        /// @param[in]  Name        The name of the field you want to read.
+        /// @param[in]  Lfield      a PtrList of OpenFOAM fields where you want
+        ///                         to store the field.
+        /// @param[in]  field       The field used as template to read other
+        ///                         fields.
         /// @param[in]  casename    The folder where the field is stored.
-        /// @param[in]  first_snap  The first snapshots from which you want to start reading the field.
+        /// @param[in]  first_snap  The first snapshots from which you want to
+        ///                         start reading the field.
         /// @param[in]  n_snap      The number of snapshots you want to read.
         ///
-        static void read_fields(PtrList<volScalarField>& Lfield, word Name,
+        /// @tparam     fieldType   Type of field can be volVectorField, volScalarField, surfaceScalarField
+        ///
+        template<typename fieldType>
+        static void read_fields(PtrList<fieldType>& Lfield, fieldType& field,
                                 fileName casename, label first_snap = 0, label n_snap = 0);
 
-        //--------------------------------------------------------------------------
-        /// Funtion to read a list of volVectorField from name of the field a volVectorField if it is already existing
-        ///
-        /// @param[in]  Lfield      a PtrList of volVectorField where you want to store the field.
-        /// @param[in]  field       The field used as template to read other fields.
-        /// @param[in]  casename    The folder where the field is stored.
-        /// @param[in]  first_snap  The first snapshots from which you want to start reading the field.
-        /// @param[in]  n_snap      The number of snapshots you want to read.
-        ///
-        static void read_fields(PtrList<volVectorField>& Lfield, volVectorField& field,
-                                fileName casename, label first_snap = 0, label n_snap = 0);
-
-        //--------------------------------------------------------------------------
-        /// Funtion to read a list of volScalarField from casename and a list of volScalarField with the same name
-        ///
-        /// @param[in]  Lfield      a PtrList of volScalarField where you want to store the field.
-        /// @param[in]  field       The field used as template to read other fields.
-        /// @param[in]  casename    The folder where the field is stored.
-        /// @param[in]  first_snap  The first snapshots from which you want to start reading the field.
-        /// @param[in]  n_snap      The number of snapshots you want to read.
-        static void read_fields(PtrList<volScalarField>& Lfield, volScalarField& field,
-                                fileName casename, label first_snap = 0, label n_snap = 0);
-
-        //--------------------------------------------------------------------------
-        /// Function to export volVectorFields
+        //----------------------------------------------------------------------
+        /// Function to export a list of OpenFOAM Fields
         ///
         /// @param[in]  field      The field you want to export.
         /// @param[in]  folder     The folder where you want to save the field.
         /// @param[in]  fieldname  The name you want to give to the file.
         ///
-        static void exportFields(PtrList<volVectorField>& field, word folder,
-                                 word fieldname);
-
-        //--------------------------------------------------------------------------
-        /// Function to export volScalarFields
+        /// @tparam     fieldType  Type of Field can be volScalar, volVector, surfaceScalar, surfaceVector
         ///
-        /// @param[in]  field      The field you want to export.
-        /// @param[in]  folder     The folder where you want to save the field.
-        /// @param[in]  fieldname  The name you want to give to the file.
-        ///
-        static void exportFields(PtrList<volScalarField>& field, word folder,
+        template<typename fieldType>
+        static void exportFields(PtrList<fieldType>& field, word folder,
                                  word fieldname);
 
         //--------------------------------------------------------------------------
@@ -506,59 +491,6 @@ void ITHACAstream::exportFvMatrix(fvMatrix<T>& Matrix, word folder,
     SaveSparseMatrix(A, folder + "/", "A_" + MatrixName);
     SaveDenseMatrix(b, folder + "/", "B_" + MatrixName);
 }
-
-template<typename T>
-void ITHACAstream::exportSolution(T& s, fileName subfolder, fileName folder,
-                                  word fieldName)
-{
-    if (!Pstream::parRun())
-    {
-        mkDir(folder + "/" + subfolder);
-        ITHACAutilities::createSymLink(folder);
-        T act(fieldName, s);
-        fileName fieldname = folder + "/" + subfolder + "/" + fieldName;
-        OFstream os(fieldname);
-        act.writeHeader(os);
-        os << act << endl;
-    }
-    else
-    {
-        mkDir(folder + "/processor" + name(Pstream::myProcNo()) + "/" + subfolder);
-        ITHACAutilities::createSymLink(folder);
-        T act(fieldName, s);
-        fileName fieldname = folder + "/processor" + name(Pstream::myProcNo()) + "/" +
-                             subfolder + "/" + fieldName;
-        std::cout << fieldname << std::endl;
-        OFstream os(fieldname);
-        act.writeHeader(os);
-        os << act << endl;
-    }
-}
-
-template<typename T>
-void ITHACAstream::exportSolution(T& s, fileName subfolder, fileName folder)
-{
-    if (!Pstream::parRun())
-    {
-        mkDir(folder + "/" + subfolder);
-        ITHACAutilities::createSymLink(folder);
-        fileName fieldname = folder + "/" + subfolder + "/" + s.name();
-        OFstream os(fieldname);
-        s.writeHeader(os);
-        os << s << endl;
-    }
-    else
-    {
-        mkDir(folder + "/processor" + name(Pstream::myProcNo()) + "/" + subfolder);
-        ITHACAutilities::createSymLink(folder);
-        fileName fieldname = folder + "/processor" + name(Pstream::myProcNo()) + "/" +
-                             subfolder + "/" + s.name();
-        OFstream os(fieldname);
-        s.writeHeader(os);
-        os << s << endl;
-    }
-}
-
 
 template<typename T>
 void ITHACAstream::exportList(T& list, word folder, word filename)

@@ -129,6 +129,8 @@ int main(int argc, char* argv[])
     ITHACAPOD::getModes(example.supfield, example.supmodes, example.podex,
                         example.supex, 1, NmodesSUPout);
     example.projectSUP("./Matrices", NmodesUproj, NmodesPproj, NmodesSUPproj);
+    //example.forcesMatrices(NmodesUproj, NmodesPproj, NmodesSUPproj);
+
     reducedUnsteadyNS reduced(example);
     // Set values of the reduced stuff
     reduced.nu = 0.005;

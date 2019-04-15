@@ -40,8 +40,60 @@ License
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
+template<typename T>
+void ITHACAstream::exportSolution(T& s, fileName subfolder, fileName folder,
+                                  word fieldName)
+{
+    if (!Pstream::parRun())
+    {
+        mkDir(folder + "/" + subfolder);
+        ITHACAutilities::createSymLink(folder);
+        T act(fieldName, s);
+        fileName fieldname = folder + "/" + subfolder + "/" + fieldName;
+        OFstream os(fieldname);
+        act.writeHeader(os);
+        os << act << endl;
+    }
+    else
+    {
+        mkDir(folder + "/processor" + name(Pstream::myProcNo()) + "/" + subfolder);
+        ITHACAutilities::createSymLink(folder);
+        T act(fieldName, s);
+        fileName fieldname = folder + "/processor" + name(Pstream::myProcNo()) + "/" +
+                             subfolder + "/" + fieldName;
+        std::cout << fieldname << std::endl;
+        OFstream os(fieldname);
+        act.writeHeader(os);
+        os << act << endl;
+    }
+}
 
-void ITHACAstream::exportFields(PtrList<volVectorField>& field, word folder,
+template<typename T>
+void ITHACAstream::exportSolution(T& s, fileName subfolder, fileName folder)
+{
+    if (!Pstream::parRun())
+    {
+        mkDir(folder + "/" + subfolder);
+        ITHACAutilities::createSymLink(folder);
+        fileName fieldname = folder + "/" + subfolder + "/" + s.name();
+        OFstream os(fieldname);
+        s.writeHeader(os);
+        os << s << endl;
+    }
+    else
+    {
+        mkDir(folder + "/processor" + name(Pstream::myProcNo()) + "/" + subfolder);
+        ITHACAutilities::createSymLink(folder);
+        fileName fieldname = folder + "/processor" + name(Pstream::myProcNo()) + "/" +
+                             subfolder + "/" + s.name();
+        OFstream os(fieldname);
+        s.writeHeader(os);
+        os << s << endl;
+    }
+}
+
+template<typename fieldType>
+void ITHACAstream::exportFields(PtrList<fieldType>& field, word folder,
                                 word fieldname)
 {
     ITHACAutilities::createSymLink(folder);
@@ -57,21 +109,6 @@ void ITHACAstream::exportFields(PtrList<volVectorField>& field, word folder,
     std::cout << std::endl;
 }
 
-void ITHACAstream::exportFields(PtrList<volScalarField>& field, word folder,
-                                word fieldname)
-{
-    ITHACAutilities::createSymLink(folder);
-    Info << "######### Exporting the Data for " << fieldname << " #########" <<
-         endl;
-
-    for (label j = 0; j < field.size() ; j++)
-    {
-        exportSolution(field[j], name(j + 1), folder, fieldname);
-        printProgress(double(j + 1) / field.size());
-    }
-
-    std::cout << std::endl;
-}
 template <typename T>
 void ITHACAstream::exportMatrix(Eigen::Matrix < T, -1, -1 > & matrix,
                                 word Name, word tipo,
@@ -428,7 +465,8 @@ Eigen::MatrixXd ITHACAstream::readMatrix(word filename)
     return result;
 }
 
-void ITHACAstream::read_fields(PtrList<volVectorField>& Lfield, word Name,
+template<typename fieldType>
+void ITHACAstream::read_fields(PtrList<fieldType>& Lfield, word Name,
                                fileName casename, label first_snap, label n_snap)
 {
     if (!Pstream::parRun())
@@ -467,7 +505,7 @@ void ITHACAstream::read_fields(PtrList<volVectorField>& Lfield, word Name,
         for (label i = 2 + first_snap; i < last_s; i++)
         {
             //Info << "Reading " << Name << " number " << i - 1 << endl;
-            volVectorField tmp_field(
+            fieldType tmp_field(
                 IOobject
                 (
                     Name,
@@ -489,69 +527,9 @@ void ITHACAstream::read_fields(PtrList<volVectorField>& Lfield, word Name,
     }
 }
 
-void ITHACAstream::read_fields(PtrList<volScalarField>& Lfield, word Name,
-                               fileName casename, label first_snap, label n_snap)
-{
-    if (!Pstream::parRun())
-    {
-        Info << " ######### Reading the Data for " << Name << " #########" << endl;
-        fileName rootpath(".");
-        Foam::Time runTime2(Foam::Time::controlDictName, rootpath, casename);
-        label last_s;
-        fvMesh mesh
-        (
-            Foam::IOobject
-            (
-                Foam::fvMesh::defaultRegion,
-                casename + runTime2.timeName(),
-                runTime2,
-                Foam::IOobject::MUST_READ
-            )
-        );
-
-        if (first_snap >= runTime2.times().size())
-        {
-            Info << "Error the index of the first snapshot must be smaller than the number of snapshots"
-                 << endl;
-            exit(0);
-        }
-
-        if (n_snap == 0)
-        {
-            last_s = runTime2.times().size();
-        }
-        else
-        {
-            last_s = min(runTime2.times().size(), n_snap + 2);
-        }
-
-        for (label i = 2 + first_snap; i < last_s; i++)
-        {
-            //Info << "Reading " << Name << " number " << i - 1 << endl;
-            volScalarField tmp_field(
-                IOobject
-                (
-                    Name,
-                    runTime2.times()[i].name(),
-                    mesh,
-                    IOobject::MUST_READ
-                ),
-                mesh
-            );
-            Lfield.append(tmp_field);
-            printProgress(double(i + 1) / last_s);
-        }
-
-        std::cout << std::endl;
-    }
-    else
-    {
-        std::cerr << "File: ITHACAstream.C, Line: 403" << std::endl;
-    }
-}
-
-void ITHACAstream::read_fields(PtrList<volScalarField>& Lfield,
-                               volScalarField& field, fileName casename, label first_snap, label n_snap)
+template<typename fieldType>
+void ITHACAstream::read_fields(PtrList<fieldType>& Lfield,
+                               fieldType& field, fileName casename, label first_snap, label n_snap)
 {
     if (!Pstream::parRun())
     {
@@ -580,7 +558,7 @@ void ITHACAstream::read_fields(PtrList<volScalarField>& Lfield,
         for (label i = 2 + first_snap; i < last_s; i++)
         {
             //Info << "Reading " << field.name() << " number " << i - 1 << endl;
-            volScalarField tmp_field(
+            fieldType tmp_field(
                 IOobject
                 (
                     field.name(),
@@ -625,100 +603,7 @@ void ITHACAstream::read_fields(PtrList<volScalarField>& Lfield,
         for (label i = first_snap + 1; i < last_s; i++)
         {
             //Info << "Reading " << field.name() << " number " << i << endl;
-            volScalarField tmp_field(
-                IOobject
-                (
-                    field.name(),
-                    timename + "/" + name(i),
-                    field.mesh(),
-                    IOobject::MUST_READ
-                ),
-                field.mesh()
-            );
-            Lfield.append(tmp_field);
-            printProgress(double(i + 1) / last_s);
-        }
-
-        Info << endl;
-    }
-}
-
-void ITHACAstream::read_fields(PtrList<volVectorField>& Lfield,
-                               volVectorField& field, fileName casename, label first_snap, label n_snap)
-{
-    if (!Pstream::parRun())
-    {
-        Info << "######### Reading the Data for " << field.name() << " #########" <<
-             endl;
-        fileName rootpath(".");
-        Foam::Time runTime2(Foam::Time::controlDictName, rootpath, casename);
-        label last_s;
-
-        if (first_snap >= runTime2.times().size())
-        {
-            Info << "Error the index of the first snapshot must be smaller than the number of snapshots"
-                 << endl;
-            exit(0);
-        }
-
-        if (n_snap == 0)
-        {
-            last_s = runTime2.times().size();
-        }
-        else
-        {
-            last_s = min(runTime2.times().size(), n_snap + 1);
-        }
-
-        for (label i = 2 + first_snap; i < last_s; i++)
-        {
-            //Info << "Reading " << field.name() << " number " << i - 1 << endl;
-            volVectorField tmp_field(
-                IOobject
-                (
-                    field.name(),
-                    casename + runTime2.times()[i].name(),
-                    field.mesh(),
-                    IOobject::MUST_READ
-                ),
-                field.mesh()
-            );
-            Lfield.append(tmp_field);
-            printProgress(double(i + 1) / last_s);
-        }
-
-        std::cout << std::endl;
-    }
-    else
-    {
-        Info << "######### Reading the Data for " << field.name() << " #########" <<
-             endl;
-        word timename(field.mesh().time().rootPath() + "/" +
-                      field.mesh().time().caseName() );
-        timename = timename.substr(0, timename.find_last_of("\\/"));
-        timename = timename + "/" + casename + "processor" + name(Pstream::myProcNo());
-        label last_s = numberOfFiles(casename,
-                                     "processor" + name(Pstream::myProcNo()) + "/");
-
-        if (first_snap > last_s)
-        {
-            Info << "Error the index of the first snapshot must be smaller than the number of snapshots"
-                 << endl;
-            exit(0);
-        }
-
-        if (n_snap == 0)
-        {
-        }
-        else
-        {
-            last_s = min(last_s, n_snap + 1);
-        }
-
-        for (label i = first_snap + 1; i < last_s; i++)
-        {
-            //Info << "Reading " << field.name() << " number " << i << endl;
-            volVectorField tmp_field(
+            fieldType tmp_field(
                 IOobject
                 (
                     field.name(),
@@ -778,3 +663,56 @@ void ITHACAstream::printProgress(double percentage)
         fflush (stdout);
     }
 }
+
+template void ITHACAstream::exportSolution(volScalarField& s,
+        fileName subfolder, fileName folder,
+        word fieldName);
+template void ITHACAstream::exportSolution(volVectorField& s,
+        fileName subfolder, fileName folder,
+        word fieldName);
+template void ITHACAstream::exportSolution(surfaceScalarField& s,
+        fileName subfolder, fileName folder,
+        word fieldName);
+template void ITHACAstream::exportSolution(surfaceVectorField& s,
+        fileName subfolder, fileName folder,
+        word fieldName);
+template void ITHACAstream::exportSolution(volScalarField& s,
+        fileName subfolder, fileName folder);
+template void ITHACAstream::exportSolution(volVectorField& s,
+        fileName subfolder, fileName folder);
+template void ITHACAstream::exportSolution(surfaceScalarField& s,
+        fileName subfolder, fileName folder);
+template void ITHACAstream::exportSolution(surfaceVectorField& s,
+        fileName subfolder, fileName folder);
+template void ITHACAstream::exportFields(PtrList<volScalarField>& field,
+        word folder,
+        word fieldname);
+template void ITHACAstream::exportFields(PtrList<volVectorField>& field,
+        word folder,
+        word fieldname);
+template void ITHACAstream::exportFields(PtrList<surfaceScalarField>& field,
+        word folder,
+        word fieldname);
+template void ITHACAstream::exportFields(PtrList<surfaceVectorField>& field,
+        word folder,
+        word fieldname);
+template void ITHACAstream::read_fields(PtrList<volScalarField>& Lfield,
+                                        word Name,
+                                        fileName casename, label first_snap, label n_snap);
+template void ITHACAstream::read_fields(PtrList<volVectorField>& Lfield,
+                                        word Name,
+                                        fileName casename, label first_snap, label n_snap);
+template void ITHACAstream::read_fields(PtrList<surfaceScalarField>& Lfield,
+                                        word Name,
+                                        fileName casename, label first_snap, label n_snap);
+template void ITHACAstream::read_fields(PtrList<surfaceVectorField>& Lfield,
+                                        word Name,
+                                        fileName casename, label first_snap, label n_snap);
+template void ITHACAstream::read_fields(PtrList<volScalarField>& Lfield,
+                                        volScalarField& field, fileName casename, label first_snap, label n_snap);
+template void ITHACAstream::read_fields(PtrList<volVectorField>& Lfield,
+                                        volVectorField& field, fileName casename, label first_snap, label n_snap);
+template void ITHACAstream::read_fields(PtrList<surfaceScalarField>& Lfield,
+                                        surfaceScalarField& field, fileName casename, label first_snap, label n_snap);
+template void ITHACAstream::read_fields(PtrList<surfaceVectorField>& Lfield,
+                                        surfaceVectorField& field, fileName casename, label first_snap, label n_snap);
