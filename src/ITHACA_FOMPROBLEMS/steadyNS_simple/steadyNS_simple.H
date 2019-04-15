@@ -76,8 +76,13 @@ class steadyNS_simple: public steadyNS
         // Variables
         /// Initialization for the full velocity linear system.
         fvVectorMatrix* Ueqn_global;
+        PtrList<fvVectorMatrix> UEqnList;
+        PtrList<fvScalarMatrix> PEqnList;
+
         /// Initialization for the full pressure linear system.
         fvScalarMatrix* Peqn_global;
+        /// Initialization for the fluxes;
+        autoPtr<surfaceScalarField> phiHbyA_global;
 
         //Functions
         ///
@@ -89,7 +94,7 @@ class steadyNS_simple: public steadyNS
         ///
         /// @return     The velocity matrix.
         ///
-        fvVectorMatrix get_Umatrix(volVectorField& U, volScalarField& p);
+        fvVectorMatrix get_Umatrix(volVectorField& U, surfaceScalarField& phi, volScalarField& p);
         ///
         /// @brief      Gets the offline pressure matrix, solve the system and updates the residual for pressure.
         /// Procedure of the SIMPLE algorithm implemented in openFOAM is followed with same corrections and iterations.
@@ -99,14 +104,16 @@ class steadyNS_simple: public steadyNS
         ///
         /// @return     The velocity matrix.
         ///
-        fvScalarMatrix get_Pmatrix(volVectorField& U, volScalarField& p,
-                                   scalar& presidual);
+        fvScalarMatrix get_Pmatrix(volScalarField& p, fvVectorMatrix& Ueqn, surfaceScalarField& phi);
+
+        volVectorField get_gradP(volScalarField& p);
+
         ///
         /// @brief      Offline solver for the whole Navier-Stokes problem.
         ///
         /// @param[in]  mu_now  Viscosity (parametrized) we want to solve the problem with.
         ///
-        void truthSolve2(List<scalar> mu_now);
+        void truthSolve2(List<scalar> mu_now, word Folder = "./ITHACAoutput/Offline/");
 };
 
 #endif

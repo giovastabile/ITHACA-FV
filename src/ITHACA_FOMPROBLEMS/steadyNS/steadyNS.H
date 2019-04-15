@@ -91,6 +91,9 @@ class steadyNS: public reductionProblem
         /// List of pointers used to form the supremizer snapshots matrix
         PtrList<volVectorField> supfield;
 
+        /// List of pointers used to form the supremizer snapshots matrix
+        PtrList<surfaceScalarField> phiField;
+
         /// List of pointers used to form the pressure modes
         Modes<scalar> Pmodes;
 
@@ -100,6 +103,9 @@ class steadyNS: public reductionProblem
         /// List of pointers used to form the supremizer modes
         Modes<vector> supmodes;
 
+        /// List of pointers used to form the flux modes
+        PtrList<surfaceScalarField> phiModes;
+
         /// List of pointers used to form the list of lifting functions
         PtrList<volVectorField> liftfield;
 
@@ -108,6 +114,9 @@ class steadyNS: public reductionProblem
 
         /// List of pointers containing the total number of lift, supremizer and velocity modes
         Modes<vector> L_U_SUPmodes;
+
+        /// List of pointers containing the total number of lift, supremizer and velocity modes for the fluxes
+        PtrList<surfaceScalarField> L_U_SUPmodesPhi;
 
         /// Tolerance for the residual of the stationary problems, there is the same tolerance for velocity and pressure
         scalar tolerance;
@@ -219,6 +228,8 @@ class steadyNS: public reductionProblem
 
         /// Laminar transport (used by turbulence model)
         autoPtr<singlePhaseTransportModel> _laminarTransport;
+        /// Laminar transport 0 (used by turbulence model)
+        autoPtr<singlePhaseTransportModel> _laminarTransport0;
 
         /// MRF variable
         autoPtr<IOMRFZoneList> _MRF;
@@ -339,6 +350,17 @@ class steadyNS: public reductionProblem
         Eigen::MatrixXd divergence_term(label NUmodes, label NPmodes, label NSUPmodes);
 
         //--------------------------------------------------------------------------
+        /// Divergence Term (supremizer approach)
+        ///
+        /// @param[in]  NUmodes    The number of velocity modes.
+        /// @param[in]  NPmodes    The number of pressure modes.
+        /// @param[in]  NSUPmodes  The number of supremizer modes.
+        ///
+        /// @return     reduced matrix in Eigen::MatrixXd format for the divergence term.
+        ///
+        Eigen::MatrixXd divergence_term_phi(label NUmodes, label NPmodes, label NSUPmodes);
+
+        //--------------------------------------------------------------------------
         /// Divergence of convective term (PPE approach)
         ///
         /// @param[in]  NUmodes    The number of velocity modes.
@@ -433,6 +455,19 @@ class steadyNS: public reductionProblem
         /// @return     tensor_C
         ///
         Eigen::Tensor<double, 3 > convective_term_tens(label NUmodes,
+                label NPmodes,
+                label NSUPmodes);
+
+        //--------------------------------------------------------------------------
+        /// @brief      Export convective term as a tensor using the fluxes
+        ///
+        /// @param[in]  NUmodes    The N of velocity modes
+        /// @param[in]  NPmodes    The N of pressure modes
+        /// @param[in]  NSUPmodes  The N of supremizer modes
+        ///
+        /// @return     tensor_C
+        ///
+        Eigen::Tensor<double, 3 > convective_term_tens_phi(label NUmodes,
                 label NPmodes,
                 label NSUPmodes);
 

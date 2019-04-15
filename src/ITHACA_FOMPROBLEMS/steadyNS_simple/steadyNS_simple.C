@@ -45,109 +45,103 @@ steadyNS_simple::steadyNS_simple(int argc, char* argv[])
     steadyNS(argc, argv)
 {
     Info << offline << endl;
+    phiHbyA_global = autoPtr<surfaceScalarField>(new surfaceScalarField("phiHbyA",
+                     fvc::flux(_U())));
 }
 
 fvVectorMatrix steadyNS_simple::get_Umatrix(volVectorField& U,
-        volScalarField& p)
+        surfaceScalarField& phi, volScalarField& p)
 {
-    IOMRFZoneList& MRF = _MRF();
-    surfaceScalarField& phi = _phi();
-    fv::options& fvOptions = _fvOptions();
-    MRF.correctBoundaryVelocity(U);
     fvVectorMatrix Ueqn
     (
         fvm::div(phi, U)
-        + MRF.DDt(U)
-        + turbulence->divDevReff(U)
-        ==
-        fvOptions(U)
+        + turbulence->divDevReff(U) == - fvc::grad(p)
     );
-    Ueqn.relax();
-    fvOptions.constrain(Ueqn);
-    Ueqn_global = &Ueqn;
     return Ueqn;
 }
 
-fvScalarMatrix steadyNS_simple::get_Pmatrix(volVectorField& U,
-        volScalarField& p, scalar& presidual)
+volVectorField steadyNS_simple::get_gradP(volScalarField& p)
 {
-    IOMRFZoneList& MRF = _MRF();
-    surfaceScalarField& phi = _phi();
-    simpleControl& simple = _simple();
-    fv::options& fvOptions = _fvOptions();
-    MRF.correctBoundaryVelocity(U);
-    fvMesh& mesh = _mesh();
-    volScalarField rAU(1.0 / Ueqn_global->A());
-    volVectorField HbyA(constrainHbyA(rAU * Ueqn_global->H(), U, p));
-    surfaceScalarField phiHbyA("phiHbyA", fvc::flux(HbyA));
-    MRF.makeRelative(phiHbyA);
-    adjustPhi(phiHbyA, U, p);
-    tmp<volScalarField> rAtU(rAU);
+    volVectorField gradP("gradP", fvc::grad(p));
+    return gradP;
+}
 
-    if (simple.consistent())
-    {
-        rAtU = 1.0 / (1.0 / rAU - Ueqn_global->H1());
-        phiHbyA +=
-            fvc::interpolate(rAtU() - rAU) * fvc::snGrad(p) * mesh.magSf();
-        HbyA -= (rAU - rAtU()) * fvc::grad(p);
-    }
 
-    constrainPressure(p, U, phiHbyA, rAtU(), MRF);
-    int i = 0;
-
-    while (simple.correctNonOrthogonal())
-    {
-        fvScalarMatrix pEqn
-        (
-            fvm::laplacian(rAtU(), p) == fvc::div(phiHbyA)
-        );
-        pEqn.setReference(pRefCell, pRefValue);
-
-        if (i == 0)
-        {
-            presidual = pEqn.solve().initialResidual();
-        }
-        else
-        {
-            pEqn.solve().initialResidual();
-        }
-
-        if (simple.finalNonOrthogonalIter())
-        {
-            phi = phiHbyA - pEqn.flux();
-        }
-
-        i++;
-    }
-
-    //p.storePrevIter(); // Perché ho dovuto metterlo se nel solver non c'è???
-    p.relax();
-    U = HbyA - rAtU() * fvc::grad(p);
-    U.correctBoundaryConditions();
-    fvOptions.correct(U);
+fvScalarMatrix steadyNS_simple::get_Pmatrix(volScalarField& p,
+        fvVectorMatrix& Ueqn, surfaceScalarField& phi)
+{
+    phi = fvc::flux(1 / Ueqn.A() * Ueqn.H());
     fvScalarMatrix pEqn
     (
-        fvm::laplacian(rAtU(), p) == fvc::div(phiHbyA)
+        fvm::laplacian(1 / Ueqn.A(), p) == fvc::div(phi)
     );
     return pEqn;
 }
 
-void steadyNS_simple::truthSolve2(List<scalar> mu_now)
+void steadyNS_simple::truthSolve2(List<scalar> mu_now, word Folder)
 {
     Time& runTime = _runTime();
     volScalarField& p = _p();
     volVectorField& U = _U();
+    surfaceScalarField& phi = _phi();
     fv::options& fvOptions = _fvOptions();
     simpleControl& simple = _simple();
     singlePhaseTransportModel& laminarTransport = _laminarTransport();
-#include "NLsolve.H"
-    ITHACAstream::exportSolution(U, name(counter), "./ITHACAoutput/Offline/");
-    ITHACAstream::exportSolution(p, name(counter), "./ITHACAoutput/Offline/");
+    scalar residual = 1;
+    scalar uresidual = 1;
+    Vector<double> uresidual_v(0, 0, 0);
+    scalar presidual = 1;
+    scalar csolve = 0;
+    // Variable that can be changed
+    turbulence->read();
+    std::ofstream res_os;
+    res_os.open("./ITHACAoutput/Offline/residuals", std::ios_base::app);
+    fvVectorMatrix UEqn(U, dimensionSet(0, 4, -2, 0, 0, 0, 0));
+    fvScalarMatrix pEqn(p, dimensionSet(0, 3, -1, 0, 0, 0, 0));
+
+#if OFVER == 6
+
+    while (simple.loop(runTime) && residual > tolerance && csolve < maxIter )
+#else
+    while (simple.loop() && residual > tolerance && csolve < maxIter )
+#endif
+    {
+        UEqn = get_Umatrix(U, phi, p);
+        UEqn.relax();
+        Vector<double> uresidual_v = UEqn.solve().initialResidual();
+        
+        scalar C = 0;
+
+        for (label i = 0; i < 3; i++)
+        {
+            if (C < uresidual_v[i])
+            {
+                C = uresidual_v[i];
+            }
+        }
+
+        uresidual = C;
+        pEqn = get_Pmatrix(p, UEqn, phi);
+        presidual = pEqn.solve().initialResidual();
+        phi -= pEqn.flux();
+        p.relax();
+        residual = max(presidual, uresidual);
+    }
+
+    UEqnList.append(UEqn);
+    PEqnList.append(pEqn);
+    res_os << residual << std::endl;
+    res_os.close();
+    runTime.setTime(runTime.startTime(), 0);
+    ITHACAstream::exportSolution(U, name(counter), Folder);
+    ITHACAstream::exportSolution(p, name(counter), Folder);
+    ITHACAstream::exportSolution(phi, name(counter), Folder);
     Ufield.append(U);
     Pfield.append(p);
+    phiField.append(phi);
     counter++;
     writeMu(mu_now);
-    // --- Fill in the mu_samples with parameters (mu) to be used for the POD sample points
+    // Fill in the mu_samples with parameters (mu) to be used for the POD sample points
     mu_samples.conservativeResize(mu_samples.rows() + 1, mu_now.size());
 
     for (int i = 0; i < mu_now.size(); i++)
@@ -164,6 +158,6 @@ void steadyNS_simple::truthSolve2(List<scalar> mu_now)
     if (mu_samples.rows() == mu.cols())
     {
         ITHACAstream::exportMatrix(mu_samples, "mu_samples", "eigen",
-                                   "./ITHACAoutput/Offline");
+                                   Folder);
     }
 }
