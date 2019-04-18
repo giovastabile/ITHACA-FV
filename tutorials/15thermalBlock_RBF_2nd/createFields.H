@@ -27,21 +27,21 @@
   along with ITHACA-FV. If not, see <http://www.gnu.org/licenses/>.
 
  \*---------------------------------------------------------------------------*/
-// _T = autoPtr<volScalarField>
-//      (
-//          new volScalarField
-//          (
-//              IOobject
-//              (
-//                  "T",
-//                  runTime.timeName(),
-//                  mesh,
-//                  IOobject::MUST_READ,
-//                  IOobject::AUTO_WRITE
-//              ),
-//              mesh
-//          )
-//      );
+_T = autoPtr<volScalarField>
+     (
+         new volScalarField
+         (
+             IOobject
+             (
+                 "T",
+                 runTime.timeName(),
+                 mesh,
+                 IOobject::MUST_READ,
+                 IOobject::AUTO_WRITE
+             ),
+             mesh
+         )
+     );
 
 volScalarField& T = _T();
 

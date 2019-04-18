@@ -93,13 +93,19 @@ class ThermalGeo : public laplacianProblem
 {
 public:
     explicit ThermalGeo(int argc, char *argv[])
-        :
-        laplacianProblem(argc, argv),
-        T(_T()),
-        NonOrtho(_NonOrtho())
     {
-        Time& runTime = _runTime();
-        fvMesh& mesh = _mesh();
+    _args = autoPtr<argList>
+            (
+                new argList(argc, argv)
+            );
+
+    if (!_args->checkRootCase())
+    {
+        Foam::FatalError.exit();
+    }
+    argList& args = _args();
+#include "createTime.H"
+#include "createMesh.H"
 #include "createFields.H"
         ITHACAdict = new IOdictionary
         (
@@ -138,6 +144,8 @@ public:
         NTmodes = readInt(ITHACAdict->lookup("N_modes_T"));
         NmodesDEIMA = readInt(ITHACAdict->lookup("N_modes_DEIM_A"));
         NmodesDEIMB = readInt(ITHACAdict->lookup("N_modes_DEIM_B"));
+        offline = ITHACAutilities::check_off();
+        podex = ITHACAutilities::check_pod();
     }
 
     int NTmodes;
@@ -148,9 +156,6 @@ public:
     std::chrono::duration<double> elapsedON;
     std::chrono::duration<double> elapsedOFF;
 
-/// Temperature field
-    volScalarField& T;
-    volScalarField& NonOrtho;
     autoPtr<RBFMotionSolver> RBFmotionPtr;
     autoPtr<volScalarField> _cv;
     autoPtr<dimensionedScalar> _DT;
@@ -290,6 +295,7 @@ public:
 
     void PODDEIM(int NmodesT, int NmodesDEIMA, int NmodesDEIMB)
     {
+        volScalarField& T = _T();
         DEIMmatrice = new DEIM_function(Mlist, NmodesDEIMA, NmodesDEIMB, "T_matrix");
         fvMesh& mesh  =  const_cast<fvMesh&>(T.mesh());
         DEIMmatrice->generateSubmeshesMatrix(2, mesh, T);
@@ -307,6 +313,7 @@ public:
 
     void OnlineSolve(Eigen::MatrixXd par_new, word Folder)
     {
+        volScalarField& T = _T();
         dimensionedScalar& DT = _DT();
         fvMesh& mesh  =  const_cast<fvMesh&>(T.mesh());
         std::ofstream myfileON;
@@ -342,10 +349,6 @@ public:
 
 int main(int argc, char *argv[])
 {
-#include "setRootCase.H"
-#include "createTime.H"
-#include "createMesh.H"
-
     ThermalGeo example(argc, argv);
 
     Eigen::MatrixXd parx = ITHACAutilities::rand(100, 1, -0.32, 0.32);
