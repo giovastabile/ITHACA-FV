@@ -30,16 +30,16 @@ Info << "Create mesh for time = "
 
 _mesh = autoPtr<fvMesh>
         (
-            new fvMesh
+          new fvMesh
+          (
+            IOobject
             (
-                IOobject
-                (
-                    fvMesh::defaultRegion,
-                    runTime.timeName(),
-                    runTime,
-                    IOobject::MUST_READ
-                )
+              fvMesh::defaultRegion,
+              runTime.timeName(),
+              runTime,
+              IOobject::MUST_READ
             )
+          )
         );
 
 Foam::fvMesh& mesh = _mesh();
