@@ -51,7 +51,8 @@ public:
 
 	using DEIM::DEIM;
 
-	static fvScalarMatrix evaluate_expression(volScalarField& T, dimensionedScalar& DT)
+	static fvScalarMatrix evaluate_expression(volScalarField& T,
+	        dimensionedScalar& DT)
 	{
 		fvScalarMatrix TiEqn22
 		(
@@ -68,8 +69,10 @@ public:
 			Eigen::SparseMatrix<double> Mr;
 			fvScalarMatrix Aof = evaluate_expression(fieldsA[i], DT);
 			Foam2Eigen::fvMatrix2EigenM(Aof, Mr);
-			int ind_row = localMagicPointsA[i].first() + xyz_A[i].first() * fieldsA[i].size();
-			int ind_col = localMagicPointsA[i].second() + xyz_A[i].second() * fieldsA[i].size();
+			int ind_row = localMagicPointsA[i].first() + xyz_A[i].first() *
+			              fieldsA[i].size();
+			int ind_col = localMagicPointsA[i].second() + xyz_A[i].second() *
+			              fieldsA[i].size();
 			theta(i) = Mr.coeffRef(ind_row, ind_col);
 		}
 		return theta;
@@ -88,6 +91,17 @@ public:
 		}
 		return theta;
 	}
+};
+
+class DEIM_function_geom : public DEIM<PtrList<fvVectorMatrix>, volVectorField>
+{
+	using DEIM::DEIM;
+
+	static fvVectorMatrix evaluate_expression(volVectorField& cellD)
+	{
+
+	}
+
 };
 
 
@@ -143,7 +157,8 @@ public:
 		P0 = mesh.points();
 		offline = ITHACAutilities::check_off();
 		podex = ITHACAutilities::check_pod();
-		autoPtr<motionDiffusivity> diffusivityPtr = autoPtr<motionDiffusivity> (motionDiffusivity::New(mesh, DynDict->lookup("diffusivity")));
+		autoPtr<motionDiffusivity> diffusivityPtr = autoPtr<motionDiffusivity>
+		        (motionDiffusivity::New(mesh, DynDict->lookup("diffusivity")));
 		autoPtr<motionInterpolation> interpolationPtr = autoPtr<motionInterpolation>
 		        (
 		            DynDict->found("interpolation")
@@ -176,6 +191,13 @@ public:
 		                                              )
 		                                      );
 
+		vector x_l(0, 0, 0);
+		vector x_u(0, 1, 0);
+		vector x_0(0.0, 0, 0);
+		ITHACAutilities::displacePoint(x_0, x_l, x_u, 0.5, 0.0, 0.5, 0.0);
+		exit(0);
+
+		/*
 		List<vector> disL = ITHACAutilities::displacedSegment(x0left, 0.1, 0.1, -0.2, 0.2);
 		List<vector> disR = ITHACAutilities::displacedSegment(x0right, 0, 0, 0, 0);
 		List<vector> disT = ITHACAutilities::displacedSegment(x0top, 0.1, 0, 0.2, 0);
@@ -227,9 +249,6 @@ public:
 		    PointDisplacement
 		);
 
-
-
-
 		fvVectorMatrix TEqn
 		(
 		    fvm::laplacian
@@ -245,9 +264,7 @@ public:
 
 		TEqn.solveSegregatedOrCoupled(TEqn.solverDict());
 		ITHACAstream::exportSolution(cellDisplacement,name(1), "./ITHACAoutput/Offline");
-		Eigen::VectorXd br;
-		Foam2Eigen::fvMatrix2EigenV(TEqn, br);
-		std::cout << br << std::endl;
+		*/
 
 
 
@@ -268,7 +285,6 @@ public:
 		//displacementLaplacianFvMotionSolver pippo(mesh, *DynDict);
 		//inverseDistanceDiffusivity diffu(mesh, DynDict->lookup("diffusivity"));
 		//diffu.correct();
-		exit(0);
 		//         fvVectorMatrix TEqn
 		// (
 		//     fvm::laplacian
@@ -340,7 +356,8 @@ public:
 		{
 			Volumes.setSize(pars.rows());
 			std::ofstream myfile;
-			myfile.open("timeGEO" + name(NTmodes) + "_" + name(NmodesDEIMA) + "_" + name(NmodesDEIMB) + "_lapl2nd" + ".txt");
+			myfile.open("timeGEO" + name(NTmodes) + "_" + name(NmodesDEIMA) + "_" + name(
+			                NmodesDEIMB) + "_lapl2nd" + ".txt");
 			for (int k = 0; k < pars.rows(); k++)
 			{
 				auto start = std::chrono::high_resolution_clock::now();
@@ -373,7 +390,8 @@ public:
 		volScalarField& T = _T();
 		volScalarField& cv = _cv();
 		std::ofstream myfileOFF;
-		myfileOFF.open("timeOFF" + name(NTmodes) + "_" + name(NmodesDEIMA) + "_" + name(NmodesDEIMB) + "_lapl2nd" + ".txt");
+		myfileOFF.open("timeOFF" + name(NTmodes) + "_" + name(NmodesDEIMA) + "_" + name(
+		                   NmodesDEIMB) + "_lapl2nd" + ".txt");
 		for (int k = 0; k < pars.rows(); k++)
 		{
 			updateMesh(pars.row(k));
@@ -408,10 +426,13 @@ public:
 		                                                      "pointDisplacement"
 		                                              )
 		                                      );
-		List<vector> disL = ITHACAutilities::displacedSegment(x0left, pars(0, 0), pars(0, 0), -pars(0, 1), pars(0, 1));
+		List<vector> disL = ITHACAutilities::displacedSegment(x0left, pars(0, 0),
+		                    pars(0, 0), -pars(0, 1), pars(0, 1));
 		List<vector> disR = ITHACAutilities::displacedSegment(x0right, 0, 0, 0, 0);
-		List<vector> disT = ITHACAutilities::displacedSegment(x0top, pars(0, 0), 0, pars(0, 1), 0);
-		List<vector> disB = ITHACAutilities::displacedSegment(x0bot, pars(0, 0), 0, -pars(0, 1), 0);
+		List<vector> disT = ITHACAutilities::displacedSegment(x0top, pars(0, 0), 0,
+		                    pars(0, 1), 0);
+		List<vector> disB = ITHACAutilities::displacedSegment(x0bot, pars(0, 0), 0,
+		                    -pars(0, 1), 0);
 		vectorField Left;
 		vectorField Right;
 		vectorField Top;
@@ -476,7 +497,8 @@ public:
 		ReducedMatricesA.resize(NmodesDEIMA);
 		for (int i = 0; i < NmodesDEIMA; i++)
 		{
-			ReducedMatricesA[i] = ModesTEig.transpose() * DEIMmatrice->MatrixOnlineA[i] * ModesTEig;
+			ReducedMatricesA[i] = ModesTEig.transpose() * DEIMmatrice->MatrixOnlineA[i] *
+			                      ModesTEig;
 		}
 		ReducedVectorsB = ModesTEig.transpose() * DEIMmatrice->MatrixOnlineB;
 	};
@@ -487,7 +509,8 @@ public:
 		dimensionedScalar& DT = _DT();
 		fvMesh& mesh  =  const_cast<fvMesh&>(T.mesh());
 		std::ofstream myfileON;
-		myfileON.open ("timeON" + name(NTmodes) + "_" + name(NmodesDEIMA) + "_" + name(NmodesDEIMB) + "_lapl2nd" + ".txt");
+		myfileON.open ("timeON" + name(NTmodes) + "_" + name(NmodesDEIMA) + "_" + name(
+		                   NmodesDEIMB) + "_lapl2nd" + ".txt");
 		for (int i = 0; i < par_new.rows(); i++)
 		{
 			updateMesh(par_new.row(i));
@@ -506,7 +529,8 @@ public:
 			volScalarField Tred("Tred", T);
 			Tred = Foam2Eigen::Eigen2field(Tred, full);
 			ITHACAstream::exportSolution(Tred, name(i + 1), "./ITHACAoutput/" + Folder);
-			ITHACAstream::writePoints(mesh.points(), "./ITHACAoutput/" + Folder, name(i + 1) + "/polyMesh/");
+			ITHACAstream::writePoints(mesh.points(), "./ITHACAoutput/" + Folder,
+			                          name(i + 1) + "/polyMesh/");
 			Tonline.append(Tred);
 		}
 		myfileON << elapsedON.count() << std::endl;
@@ -527,7 +551,8 @@ int main(int argc, char *argv[])
 	example.OfflineSolve(pars, "./ITHACAoutput/Offline/");
 
 	/// Compute the POD modes
-	ITHACAPOD::getModes(example.Tfield, example.Tmodes, example.Volumes, example.podex);
+	ITHACAPOD::getModes(example.Tfield, example.Tmodes, example.Volumes,
+	                    example.podex);
 
 	//ITHACAPOD::getModes(example.Tfield, example.Tmodes, example.podex);//, 0, 0, 20);
 
@@ -543,9 +568,12 @@ int main(int argc, char *argv[])
 	///
 	example.OfflineSolveNew(par_new1, "./ITHACAoutput/comparison/");
 
-	Eigen::MatrixXd error = ITHACAutilities::error_listfields(example.Tfield_new, example.Tonline);
+	Eigen::MatrixXd error = ITHACAutilities::error_listfields(example.Tfield_new,
+	                        example.Tonline);
 
-	ITHACAstream::exportMatrix(error, "error_" + name(example.NTmodes) + "_" + name(example.NmodesDEIMA) + "_" + name(example.NmodesDEIMA), "python", ".");
+	ITHACAstream::exportMatrix(error,
+	                           "error_" + name(example.NTmodes) + "_" + name(example.NmodesDEIMA) + "_" + name(
+	                               example.NmodesDEIMA), "python", ".");
 
 	std::cout << error.mean() << std::endl;
 
