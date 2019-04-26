@@ -19,7 +19,7 @@ dynamicFvMesh   dynamicMotionSolverFvMesh;
 motionSolverLibs ("libfvMotionSolvers.so");
 twoDMotion yes;
 solver displacementLaplacian;
-frozenDiffusion yes; 
+frozenDiffusion no; 
 diffusivity quadratic inverseDistance (left_in top_in right_in bot_in);
 
 
