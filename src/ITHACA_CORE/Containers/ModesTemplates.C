@@ -101,3 +101,18 @@ GeometricField<T, fvPatchField, volMesh> Modes<T>::reconstruct(
 
     return field;
 }
+
+template<class T>
+PtrList<GeometricField<T, fvPatchField, volMesh>> Modes<T>::projectSnapshots(
+            PtrList<GeometricField<T, fvPatchField, volMesh>> snapshots, int numberOfModes,
+            word innerProduct)
+{
+    if (numberOfModes == 0)
+    {
+        numberOfModes == this->size();
+    }
+
+    M_Assert(numberOfModes <= this->size();
+             "The number of Modes used for the projection cannot be bigger than the number of available modes cannot be bigger");
+    Eigen::MatrixXd M = ITHACAutilities::get_mass_matrix_Eigen()
+}

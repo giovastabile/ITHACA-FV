@@ -34,6 +34,7 @@ Description
 #include "IOmanip.H"
 #include "laplacianProblem.H"
 #include "reducedLaplacian.H"
+#include "reducedProblem.H"
 #include "ITHACAPOD.H"
 #include "ITHACAutilities.H"
 #include <Eigen/Dense>
@@ -45,7 +46,7 @@ Description
 #include "pointFields.H" //Perhaps not needed..?
 #include "pointPatchField.H"
 
-class DEIM_function : public DEIM<PtrList<fvScalarMatrix>, volScalarField >
+class DEIM_function : public DEIM<PtrList<fvScalarMatrix>, volScalarField>
 {
     public:
 
@@ -54,10 +55,12 @@ class DEIM_function : public DEIM<PtrList<fvScalarMatrix>, volScalarField >
         static fvScalarMatrix evaluate_expression(volScalarField& T,
                 dimensionedScalar& DT)
         {
+            std::cout.setstate(std::ios_base::failbit);
             fvScalarMatrix TiEqn22
             (
                 fvm::laplacian(DT, T)
             );
+            std::cout.clear();
             return TiEqn22;
         }
 
@@ -68,7 +71,9 @@ class DEIM_function : public DEIM<PtrList<fvScalarMatrix>, volScalarField >
             for (int i = 0; i < fieldsA.size(); i++)
             {
                 Eigen::SparseMatrix<double> Mr;
+                std::cout.setstate(std::ios_base::failbit);
                 fvScalarMatrix Aof = evaluate_expression(fieldsA[i], DT);
+                std::cout.clear();
                 Foam2Eigen::fvMatrix2EigenM(Aof, Mr);
                 int ind_row = localMagicPointsA[i].first() + xyz_A[i].first() *
                               fieldsA[i].size();
@@ -105,6 +110,7 @@ class DEIM_function_geom : public DEIM<PtrList<fvVectorMatrix>, volVectorField>
         static fvVectorMatrix evaluate_expression(volVectorField& cellDisplacement,
                 const surfaceScalarField& faceDiffusivity)
         {
+            std::cout.setstate(std::ios_base::failbit);
             fvVectorMatrix TEqn
             (
                 fvm::laplacian
@@ -115,6 +121,7 @@ class DEIM_function_geom : public DEIM<PtrList<fvVectorMatrix>, volVectorField>
                     "laplacian(diffusivity,cellDisplacement)"
                 )
             );
+            std::cout.clear();
             return TEqn;
         }
 
@@ -176,12 +183,6 @@ class ThermalGeo : public laplacianProblem
             podex = ITHACAutilities::check_pod();
             diffusivityPtr = autoPtr<motionDiffusivity>
                              (motionDiffusivity::New(mesh, DynDict->lookup("diffusivity")));
-            // interpolationPtr = autoPtr<motionInterpolation>
-            // (
-            // DynDict->found("interpolation")
-            // ? motionInterpolation::New(mesh, DynDict->lookup("interpolation"))
-            // : motionInterpolation::New(mesh)
-            // );
             volVectorField& cellDisplacement = const_cast<volVectorField&>
                                                (
                                                    mesh.objectRegistry::lookupObject<volVectorField>
@@ -214,99 +215,6 @@ class ThermalGeo : public laplacianProblem
             x_low_bot = min(x0bot);
             x_up_top = max(x0top);
             x_low_top = min(x0top);
-            // vector x_l(0, 0, 0);
-            // vector x_u(0, 1, 0);
-            // vector x_0(0.0, 0, 0);
-            // ITHACAutilities::displacePoint(x_0, x_l, x_u, 0.5, 0.0, 0.5, 0.0);
-            // exit(0);
-            /*
-            List<vector> disL = ITHACAutilities::displacedSegment(x0left, 0.1, 0.1, -0.2, 0.2);
-            List<vector> disR = ITHACAutilities::displacedSegment(x0right, 0, 0, 0, 0);
-            List<vector> disT = ITHACAutilities::displacedSegment(x0top, 0.1, 0, 0.2, 0);
-            List<vector> disB = ITHACAutilities::displacedSegment(x0bot, 0.1, 0, -0.2, 0);
-            vectorField Left;
-            vectorField Right;
-            vectorField Top;
-            vectorField Bot;
-            Left.resize(PointDisplacement.boundaryFieldRef()[1].size());
-            Right.resize(PointDisplacement.boundaryFieldRef()[3].size());
-            Top.resize(PointDisplacement.boundaryFieldRef()[5].size());
-            Bot.resize(PointDisplacement.boundaryFieldRef()[7].size());
-            for (int i = 0; i < Left.size(); i++)
-            {
-                for (int k = 0; k < 3; k++)
-                {
-                    Left[i][k] = disL[i][k];
-                }
-            }
-            for (int i = 0; i < Right.size(); i++)
-            {
-                for (int k = 0; k < 3; k++)
-                {
-                    Right[i][k] = disR[i][k];
-                }
-            }
-            for (int i = 0; i < Top.size(); i++)
-            {
-                for (int k = 0; k < 3; k++)
-                {
-                    Top[i][k] = disT[i][k];
-                }
-            }
-            for (int i = 0; i < Bot.size(); i++)
-            {
-                for (int k = 0; k < 3; k++)
-                {
-                    Bot[i][k] = disB[i][k];
-                }
-            }
-            PointDisplacement.boundaryFieldRef()[1] == Left;
-            PointDisplacement.boundaryFieldRef()[3] == Right;
-            PointDisplacement.boundaryFieldRef()[5] == Top;
-            PointDisplacement.boundaryFieldRef()[7] == Bot;
-
-            interpolationPtr->interpolate
-            (
-                cellDisplacement,
-                PointDisplacement
-            );
-
-            fvVectorMatrix TEqn
-            (
-                fvm::laplacian
-                (
-                    dimensionedScalar("viscosity", dimViscosity, 1.0)
-                    *faceDiffusivity,
-                    cellDisplacement,
-                    "laplacian(diffusivity,cellDisplacement)"
-                )
-            );
-
-
-
-            TEqn.solveSegregatedOrCoupled(TEqn.solverDict());
-            ITHACAstream::exportSolution(cellDisplacement,name(1), "./ITHACAoutput/Offline");
-            */
-            // Info << diffu.operator()() << endl;
-            // Info << PointDisplacement << endl;
-            // pointVectorField& PointDisplacement = _pointDisplacement();
-            //Info << diffu.operator()() << endl;
-            //displacementLaplacianFvMotionSolver pippo(mesh, *DynDict);
-            //inverseDistanceDiffusivity diffu(mesh, DynDict->lookup("diffusivity"));
-            //diffu.correct();
-            //         fvVectorMatrix TEqn
-            // (
-            //     fvm::laplacian
-            //     (
-            //         dimensionedScalar("viscosity", dimViscosity, 1.0)
-            //        *pippo.diffusivity().operator()(),
-            //         pippo.cellDisplacement()),
-            //         "laplacian(diffusivity,cellDisplacement)"
-            //     );
-            //motionDiffusivity& a = pippo.diffusivity();
-            //a.correct();
-            // Info << a.operator()() << endl;
-            // Info << dimensionedScalar("viscosity", dimViscosity, 1.0)*pippo.diffusivity().operator()() << endl;
         }
 
         int NTmodes;
@@ -347,8 +255,11 @@ class ThermalGeo : public laplacianProblem
 
         PtrList<fvScalarMatrix> Mlist;
         PtrList<fvVectorMatrix> GeoList;
-        PtrList<volVectorField> GoeField;
+        PtrList<volVectorField> GeoField;
         PtrList<volScalarField> Volumes;
+        /// Lifted velocity modes.
+        Modes<vector> DisModes;
+
         Eigen::MatrixXd ModesTEig;
         std::vector<Eigen::MatrixXd> ReducedMatricesA;
         Eigen::MatrixXd ReducedVectorsB;
@@ -534,10 +445,121 @@ class ThermalGeo : public laplacianProblem
                 cellDisplacement,
                 PointDisplacement
             );
-            // TEqn.solveSegregatedOrCoupled(TEqn.solverDict());
+            GeoField.append(cellDisplacement);
             mesh.movePoints(P0 + PointDisplacement.primitiveField());
-            // mesh.movePoints(motionPtr->newPoints());
             ITHACAutilities::meshNonOrtho(mesh, NonOrtho);
+        }
+
+        void updateMeshOnline(Eigen::MatrixXd pars)
+        {
+            fvMesh& mesh = _mesh();
+            mesh.movePoints(P0);
+            volScalarField& NonOrtho = _NonOrtho();
+            pointVectorField& PointDisplacement = const_cast<pointVectorField&>
+                                                  (
+                                                          mesh.objectRegistry::lookupObject<pointVectorField>
+                                                          (
+                                                                  "pointDisplacement"
+                                                          )
+                                                  );
+            surfaceScalarField& faceDiffusivity = const_cast<surfaceScalarField&>
+                                                  (
+                                                          mesh.objectRegistry::lookupObject<surfaceScalarField>
+                                                          (
+                                                                  "faceDiffusivity"
+                                                          )
+                                                  );
+            PointDisplacement = PointDisplacement * 0;
+            List<vector> disL = ITHACAutilities::displacedSegment(x0left, pars(0, 0),
+                                pars(0, 0), -pars(0, 1), pars(0, 1));
+            List<vector> disR = ITHACAutilities::displacedSegment(x0right, 0, 0, 0, 0);
+            List<vector> disT = ITHACAutilities::displacedSegment(x0top, pars(0, 0), 0,
+                                pars(0, 1), 0);
+            List<vector> disB = ITHACAutilities::displacedSegment(x0bot, pars(0, 0), 0,
+                                -pars(0, 1), 0);
+            vectorField Left;
+            vectorField Right;
+            vectorField Top;
+            vectorField Bot;
+            Left.resize(PointDisplacement.boundaryFieldRef()[1].size());
+            Right.resize(PointDisplacement.boundaryFieldRef()[3].size());
+            Top.resize(PointDisplacement.boundaryFieldRef()[5].size());
+            Bot.resize(PointDisplacement.boundaryFieldRef()[7].size());
+
+            for (int i = 0; i < Left.size(); i++)
+            {
+                for (int k = 0; k < 3; k++)
+                {
+                    Left[i][k] = disL[i][k];
+                }
+            }
+
+            for (int i = 0; i < Right.size(); i++)
+            {
+                for (int k = 0; k < 3; k++)
+                {
+                    Right[i][k] = disR[i][k];
+                }
+            }
+
+            for (int i = 0; i < Top.size(); i++)
+            {
+                for (int k = 0; k < 3; k++)
+                {
+                    Top[i][k] = disT[i][k];
+                }
+            }
+
+            for (int i = 0; i < Bot.size(); i++)
+            {
+                for (int k = 0; k < 3; k++)
+                {
+                    Bot[i][k] = disB[i][k];
+                }
+            }
+
+            PointDisplacement.boundaryFieldRef()[1] == Left;
+            PointDisplacement.boundaryFieldRef()[3] == Right;
+            PointDisplacement.boundaryFieldRef()[5] == Top;
+            PointDisplacement.boundaryFieldRef()[7] == Bot;
+            volVectorField& cellDisplacement = const_cast<volVectorField&>
+                                               (
+                                                   mesh.objectRegistry::lookupObject<volVectorField>
+                                                   (
+                                                           "cellDisplacement"
+                                                   )
+                                               );
+            volPointInterpolation::New(mesh).interpolate
+            (
+                cellDisplacement,
+                PointDisplacement
+            );
+            motionDiffusivity & diffu = diffusivityPtr();
+            diffu.correct();
+            fvVectorMatrix* TEqn = new fvVectorMatrix
+            (
+                fvm::laplacian
+                (
+                    dimensionedScalar("viscosity", dimViscosity, 1.0)
+                    *faceDiffusivity,
+                    cellDisplacement
+                )
+            );
+            TEqn->solve();
+            Eigen::MatrixXd a = Eigen::VectorXd::Zero(DisModes.size());
+            List<Eigen::MatrixXd> RedLinSysP = DisModes.project(*TEqn);
+            Eigen::VectorXd residual;
+            a = reducedProblem::solveLinearSys(RedLinSysP, a, residual);
+            std::cout << a << std::endl;
+            cellDisplacement = DisModes.reconstruct(a, "cellDisplacement");
+            volPointInterpolation::New(mesh).interpolate
+            (
+                cellDisplacement,
+                PointDisplacement
+            );
+            mesh.movePoints(P0 + PointDisplacement.primitiveField());
+            ITHACAutilities::meshNonOrtho(mesh, NonOrtho);
+            delete(TEqn);
         }
 
 
@@ -555,7 +577,7 @@ class ThermalGeo : public laplacianProblem
             DEIMmatrice->generateSubmeshesVector(2, mesh, T);
             ModesTEig = Foam2Eigen::PtrList2Eigen(Tmodes);
             ModesTEig.conservativeResize(ModesTEig.rows(), NmodesT);
-            ITHACAPOD::GrammSchmidt(ModesTEig);
+            //ITHACAPOD::GrammSchmidt(ModesTEig);
             ReducedMatricesA.resize(NmodesDEIMA);
 
             for (int i = 0; i < NmodesDEIMA; i++)
@@ -578,7 +600,7 @@ class ThermalGeo : public laplacianProblem
 
             for (int i = 0; i < par_new.rows(); i++)
             {
-                updateMesh(par_new.row(i));
+                updateMeshOnline(par_new.row(i));
                 DEIMmatrice->generateSubmeshesMatrix(2, mesh, T, 1);
                 DEIMmatrice->generateSubmeshesVector(2, mesh, T, 1);
                 auto start = std::chrono::high_resolution_clock::now();
@@ -606,29 +628,52 @@ class ThermalGeo : public laplacianProblem
 int main(int argc, char *argv[])
 {
     ThermalGeo example(argc, argv);
-    Eigen::MatrixXd parx = ITHACAutilities::rand(100, 1, -0.32, 0.32);
-    Eigen::MatrixXd pary = ITHACAutilities::rand(100, 1, -0.32, 0.32);
-    Eigen::MatrixXd pars(100, 2);
-    pars << parx, pary;
+    // Eigen::MatrixXd parx = ITHACAutilities::rand(100, 1, -0.32, 0.32);
+    // Eigen::MatrixXd pary = ITHACAutilities::rand(100, 1, -0.32, 0.32);
+    Eigen::MatrixXd pars = ITHACAstream::readMatrix("./Matrices/pars_mat.txt");
+    // pars << parx, pary;
+    // ITHACAstream::exportMatrix(pars, "pars", "eigen");
     example.OfflineSolve(pars, "./ITHACAoutput/Offline/");
     /// Compute the POD modes
+    Modes<scalar> Tmodes_weighted;
+    Modes<scalar> Tmodes;
+    PtrList<volScalarField> vol1 = example.Volumes;
+    double a = 1;
+
+    for (int i = 0; i < vol1.size(); i++)
+    {
+        ITHACAutilities::assignIF(vol1[i], a);
+    }
+
     ITHACAPOD::getModes(example.Tfield, example.Tmodes, example.Volumes,
                         example.podex);
+    ITHACAPOD::getModes(example.Tfield, Tmodes, vol1,
+                        example.podex);
+    ITHACAPOD::getModes(example.Tfield, Tmodes_weighted, example.Volumes,
+                        example.podex);
+    ITHACAPOD::getModes(example.GeoField, example.DisModes, example.podex, 0, 0,
+                        10);
+    Tmodes.projectSnapshots(example.Tfield);
+    exit(0);
     //ITHACAPOD::getModes(example.Tfield, example.Tmodes, example.podex);//, 0, 0, 20);
     /// Compute the offline part of the DEIM procedure
     example.PODDEIM();
     /// Construct a new set of parameters
-    Eigen::MatrixXd par_new1 = ITHACAutilities::rand(100, 2, -0.28, 0.28);
+    // Eigen::MatrixXd par_new1 = ITHACAutilities::rand(100, 2, -0.28, 0.28);
+    // ITHACAstream::exportMatrix(par_new1, "par_online", "eigen");
+    Eigen::MatrixXd par_new1 =
+        ITHACAstream::readMatrix("./Matrices/par_online_mat.txt");
     /// Solve the online problem with the new parameters
-    example.OnlineSolve(par_new1, "comparison");
+    example.OnlineSolve(par_new1, "Online");
     ///
-    example.OfflineSolveNew(par_new1, "./ITHACAoutput/comparison/");
+    example.OfflineSolveNew(par_new1, "./ITHACAoutput/OnlineFull/");
     Eigen::MatrixXd error = ITHACAutilities::error_listfields(example.Tfield_new,
                             example.Tonline);
-    ITHACAstream::exportMatrix(error,
-                               "error_" + name(example.NTmodes) + "_" + name(example.NmodesDEIMA) + "_" + name(
-                                   example.NmodesDEIMA), "python", ".");
+    ITHACAstream::exportMatrix(error, "error_weighted", "eigen");
+    //ITHACAstream::exportMatrix(error,
+    //                           "error_" + name(example.NTmodes) + "_" + name(example.NmodesDEIMA) + "_" + name(
+    //                               example.NmodesDEIMA), "python", ".");
     std::cout << error.mean() << std::endl;
-    Info << "End\n" << endl;
+    //Info << "End\n" << endl;
     return 0;
 }

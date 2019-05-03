@@ -503,17 +503,18 @@ public:
 	                          double value);
 #pragma GCC diagnostic pop
 
-	//--------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------
 	/// @brief      Gets the mass matrix using the eigen routine
 	///
-	/// @param      fields  The openFoam fields
+	/// @param[in]  fields            The openFoam fields
+	/// @param[in]  consider_volumes  True if you want to consider the volumes
 	///
-	/// @tparam     T       type of field
+	/// @tparam     T                 type of field
 	///
 	/// @return     The mass matrix eigen.
 	///
 	template<typename T>
-	static Eigen::MatrixXd get_mass_matrix_Eigen(PtrList<T>& fields);
+	static Eigen::MatrixXd get_mass_matrix_Eigen(PtrList<T>& fields, bool consider_volumes = true);
 
 	//--------------------------------------------------------------------------
 	/// @brief      Change the boundary condition type for a GeometricField
@@ -613,12 +614,20 @@ void ITHACAutilities::assignIF(T& s, G& value)
 }
 
 template<typename T>
-Eigen::MatrixXd ITHACAutilities::get_mass_matrix_Eigen(PtrList<T>& fields)
+Eigen::MatrixXd ITHACAutilities::get_mass_matrix_Eigen(PtrList<T>& fields, bool consider_volumes)
 {
 	Eigen::MatrixXd F = Foam2Eigen::PtrList2Eigen(fields);
 	Eigen::VectorXd V = Foam2Eigen::field2Eigen(fields[0].mesh().V());
 	Eigen::MatrixXd VM = V.asDiagonal();
-	Eigen::MatrixXd M = F.transpose() * VM * F;
+	Eigen::MatrixXd M;
+	if (consider_volumes)
+	{
+		M = F.transpose() * VM * F;
+	}
+	else
+	{
+		M = F.transpose() * F;
+	}
 	return M;
 }
 

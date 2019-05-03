@@ -112,6 +112,10 @@ class Modes : public PtrList<GeometricField<T, fvPatchField, volMesh>>
         ///
         GeometricField<T, fvPatchField, volMesh> reconstruct(Eigen::MatrixXd& Coeff,
                 word Name);
+
+        PtrList<GeometricField<T, fvPatchField, volMesh>> projectSnapshots(
+                    PtrList<GeometricField<T, fvPatchField, volMesh>> snapshots,
+                    int numberOfModes = 0, word innerProduct = "L2");
 };
 
 #ifdef NoRepository
