@@ -114,5 +114,14 @@ PtrList<GeometricField<T, fvPatchField, volMesh>> Modes<T>::projectSnapshots(
 
     M_Assert(numberOfModes <= this->size();
              "The number of Modes used for the projection cannot be bigger than the number of available modes cannot be bigger");
-    Eigen::MatrixXd M = ITHACAutilities::get_mass_matrix_Eigen()
+    Eigen::MatrixXd M;
+
+    if (innerProduct == "L2")
+    {
+        M = ITHACAutilities::get_mass_matrix_Eigen();
+    }
+
+    if (innerProduct == "Frobenius")
+    {
+    }
 }

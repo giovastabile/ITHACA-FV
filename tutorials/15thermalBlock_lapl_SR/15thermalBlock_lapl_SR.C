@@ -645,12 +645,16 @@ int main(int argc, char *argv[])
         ITHACAutilities::assignIF(vol1[i], a);
     }
 
+    // don't touch
     ITHACAPOD::getModes(example.Tfield, example.Tmodes, example.Volumes,
                         example.podex);
+    // Non weighted modes
     ITHACAPOD::getModes(example.Tfield, Tmodes, vol1,
                         example.podex);
+    // Weighted modes
     ITHACAPOD::getModes(example.Tfield, Tmodes_weighted, example.Volumes,
                         example.podex);
+    // Displacement modes
     ITHACAPOD::getModes(example.GeoField, example.DisModes, example.podex, 0, 0,
                         10);
     Tmodes.projectSnapshots(example.Tfield);
