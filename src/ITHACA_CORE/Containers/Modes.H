@@ -46,6 +46,8 @@ SourceFiles
 #include "fvCFD.H"
 #include "Foam2Eigen.H"
 #include "ITHACAutilities.H"
+#include "ITHACAstream.H"
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -117,6 +119,18 @@ class Modes : public PtrList<GeometricField<T, fvPatchField, volMesh>>
                     PtrList<GeometricField<T, fvPatchField, volMesh>> snapshots,
                     int numberOfModes = 0, word innerProduct = "L2");
 };
+
+template<>
+PtrList<GeometricField<scalar, fvPatchField, volMesh>>
+        Modes<scalar>::projectSnapshots(
+            PtrList<GeometricField<scalar, fvPatchField, volMesh>> snapshots,
+            int numberOfModes, word innerProduct);
+
+template<>
+PtrList<GeometricField<vector, fvPatchField, volMesh>>
+        Modes<vector>::projectSnapshots(
+            PtrList<GeometricField<vector, fvPatchField, volMesh>> snapshots,
+            int numberOfModes, word innerProduct);
 
 #ifdef NoRepository
 #   include "ModesTemplates.C"
