@@ -106,22 +106,50 @@ template<class T>
 PtrList<GeometricField<T, fvPatchField, volMesh>> Modes<T>::projectSnapshots(
             PtrList<GeometricField<T, fvPatchField, volMesh>> snapshots, int numberOfModes,
             word innerProduct)
-{
+{   
     if (numberOfModes == 0)
     {
         numberOfModes == this->size();
     }
 
-    M_Assert(numberOfModes <= this->size();
-             "The number of Modes used for the projection cannot be bigger than the number of available modes cannot be bigger");
+    M_Assert(numberOfModes <= this->size(),
+             "The number of Modes used for the projection cannot be bigger than the number of available modes");
+    
+    Eigen::MatrixXd M_vol;
     Eigen::MatrixXd M;
 
-    if (innerProduct == "L2")
+    PtrList<GeometricField<T, fvPatchField, volMesh>> projSnap = snapshots;
+
+    Eigen::MatrixXd projSnapI;
+    Eigen::MatrixXd projSnapCoeff;
+
+    for (int i = 0; i < snapshots.size(); i++)
+
     {
-        M = ITHACAutilities::get_mass_matrix_Eigen();
+        if (innerProduct == "L2")
+        {
+            M_vol = ITHACAutilities::get_mass_matrix_Eigen(snapshots[i]);
+        }
+
+        else if (innerProduct == "Frobenius")
+        {
+            M_vol =  Eigen::MatrixXd::Identity(snapshots[i].size(),snapshots[i].size());
+        }
+
+        else
+        {
+            std::cout<<"Inner product not defined"<<endl;
+            exit(0);
+        }
+
+        //projSnapI(j,0) = modes[j].transpose()*M*(Foam2Eigen::field2Eigen(snapshots[i]));
+        M = EigenModes[0].transpose()*M_vol*EigenModes[0];
+        projSnapI = EigenModes[0].transpose()*(Foam2Eigen::field2Eigen(snapshots[i]));
+
+        projSnapCoeff = M.fullPivLu().solve(projSnapI);
+
+        projSnap.append(reconstruct(projSnapCoeff,"projSnap"));
     }
 
-    if (innerProduct == "Frobenius")
-    {
-    }
+    return projSnap;
 }

@@ -508,6 +508,22 @@ Eigen::MatrixXd ITHACAutilities::get_mass_matrix(PtrList<volScalarField> modes,
     return M_matrix;
 }
 
+Eigen::MatrixXd get_mass_matrix(GeometricField<volVectorField, fvPatchField, volMesh> snapshot)
+
+{
+    Eigen::VectorXd volumes = Foam2Eigen::field2Eigen(snapshot.mesh().V());
+
+    return (volumes.transpose())*(Eigen::MatrixXd::Identity(volumes.size(),volumes.size()));
+}
+
+Eigen::MatrixXd get_mass_matrix(GeometricField<volScalarField, fvPatchField, volMesh> snapshot)
+
+{
+    Eigen::VectorXd volumes = Foam2Eigen::field2Eigen(snapshot.mesh().V());
+
+    return (volumes.transpose())*(Eigen::MatrixXd::Identity(volumes.size(),volumes.size()));
+}
+
 Eigen::VectorXd ITHACAutilities::get_coeffs(volVectorField snapshot,
         PtrList<volVectorField>& modes, int Nmodes)
 {

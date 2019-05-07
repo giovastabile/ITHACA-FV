@@ -260,7 +260,7 @@ public:
 	//--------------------------------------------------------------------------
 	/// Function to compute a Mass Matrix from a list of Basis Functions (vectorial) for L2 projection
 	///
-	/// @param[in]  modes  The modes in PtrList form
+	/// @param[in]  modes  The modes in PtrList form.
 	///
 	/// @return     The mass matrix in Eigen::MatrixXd form.
 	///
@@ -270,7 +270,7 @@ public:
 	//--------------------------------------------------------------------------
 	/// Function to compute a Mass Matrix from a list of Basis Functions (scalar) for L2 projection
 	///
-	/// @param[in]  modes  The modes in PtrList form
+	/// @param[in]  modes  The modes in PtrList form.
 	///
 	/// @return     The mass matrix in Eigen::MatrixXd form.
 	///
@@ -284,6 +284,24 @@ public:
 	/// @param[in]  modes     The modes.
 	///
 	/// @return     The coefficients of the projection.
+	///
+	static Eigen::MatrixXd get_mass_matrix(GeometricField<volVectorField, fvPatchField, volMesh> snapshot);
+
+	//--------------------------------------------------------------------------
+	/// Function to compute a Mass Matrix from a geometric field for L2 projection
+	///
+	/// @param[in]  snapshot  A snapshot in GeometricField form.
+	///
+	/// @return     The mass matrix in Eigen::MatrixXd form.
+	///
+	static Eigen::MatrixXd get_mass_matrix(GeometricField<volScalarField, fvPatchField, volMesh> snapshot);
+
+	//--------------------------------------------------------------------------
+	/// Function to compute a Mass Matrix from a geometric field for L2 projection
+	///
+	/// @param[in]  snapshot  A snapshot in GeometricField form.
+	///
+	/// @return     The mass matrix in Eigen::MatrixXd form.
 	///
 	static Eigen::MatrixXd get_coeffs(PtrList<volScalarField> snapshots,
 	                                  PtrList<volScalarField> modes,  int Nmodes = 0);
