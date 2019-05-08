@@ -29,68 +29,68 @@
  \*---------------------------------------------------------------------------*/
 _T = autoPtr<volScalarField>
      (
-       new volScalarField
-       (
-         IOobject
+         new volScalarField
          (
-           "T",
-           runTime.timeName(),
-           mesh,
-           IOobject::MUST_READ,
-           IOobject::AUTO_WRITE
-         ),
-         mesh
-       )
+             IOobject
+             (
+                 "T",
+                 runTime.timeName(),
+                 mesh,
+                 IOobject::MUST_READ,
+                 IOobject::AUTO_WRITE
+             ),
+             mesh
+         )
      );
 
 volScalarField& T = _T();
 
 _cv = autoPtr<volScalarField>
       (
-        new volScalarField
-        (
-          IOobject
+          new volScalarField
           (
-            "cv",
-            runTime.timeName(),
-            mesh,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-          ),
-          mesh,
-          dimensionedScalar("zero", dimVolume, 0.0)
-        )
-      );
-
-_NonOrtho = autoPtr<volScalarField>
-            (
-              new volScalarField
+              IOobject
               (
-                IOobject
-                (
-                  "NonOrtho",
+                  "cv",
                   runTime.timeName(),
                   mesh,
                   IOobject::NO_READ,
                   IOobject::AUTO_WRITE
-                ),
-                mesh,
-                dimensionedScalar("zero", dimArea, 0.0)
-              )
+              ),
+              mesh,
+              dimensionedScalar("zero", dimVolume, 0.0)
+          )
+      );
+
+_NonOrtho = autoPtr<volScalarField>
+            (
+                new volScalarField
+                (
+                    IOobject
+                    (
+                        "NonOrtho",
+                        runTime.timeName(),
+                        mesh,
+                        IOobject::NO_READ,
+                        IOobject::AUTO_WRITE
+                    ),
+                    mesh,
+                    dimensionedScalar("zero", dimArea, 0.0)
+                )
             );
 
 volScalarField& NonOrtho = _NonOrtho();
 
 IOdictionary transportProperties
 (
-  IOobject
-  (
-    "transportProperties",
-    runTime.constant(),
-    mesh,
-    IOobject::MUST_READ_IF_MODIFIED,
-    IOobject::NO_WRITE
-  )
+    IOobject
+    (
+        "transportProperties",
+        runTime.constant(),
+        mesh,
+        IOobject::MUST_READ_IF_MODIFIED,
+        IOobject::NO_WRITE
+    )
 );
 
 
@@ -98,10 +98,10 @@ Info << "Reading diffusivity DT\n" << endl;
 
 _DT = autoPtr<dimensionedScalar>
       (
-        new dimensionedScalar
-        (
-          transportProperties.lookup("DT")
-        )
+          new dimensionedScalar
+          (
+              transportProperties.lookup("DT")
+          )
       );
 
 

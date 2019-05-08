@@ -63,21 +63,21 @@ _cv = autoPtr<volScalarField>
       );
 
 _NonOrtho = autoPtr<volScalarField>
-      (
-          new volScalarField
-          (
-              IOobject
-              (
-                  "NonOrtho",
-                  runTime.timeName(),
-                  mesh,
-                  IOobject::NO_READ,
-                  IOobject::AUTO_WRITE
-              ),
-              mesh,
-              dimensionedScalar("zero", dimArea, 0.0)
-          )
-      );
+            (
+                new volScalarField
+                (
+                    IOobject
+                    (
+                        "NonOrtho",
+                        runTime.timeName(),
+                        mesh,
+                        IOobject::NO_READ,
+                        IOobject::AUTO_WRITE
+                    ),
+                    mesh,
+                    dimensionedScalar("zero", dimArea, 0.0)
+                )
+            );
 
 volScalarField& NonOrtho = _NonOrtho();
 

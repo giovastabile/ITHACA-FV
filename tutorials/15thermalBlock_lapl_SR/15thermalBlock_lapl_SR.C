@@ -131,7 +131,7 @@ class DEIM_function_geom : public DEIM<PtrList<fvVectorMatrix>, volVectorField>
 class ThermalGeo : public laplacianProblem
 {
     public:
-        explicit ThermalGeo(int argc, char *argv[])
+        explicit ThermalGeo(int argc, char* argv[])
         {
             _args = autoPtr<argList>
                     (
@@ -283,7 +283,6 @@ class ThermalGeo : public laplacianProblem
             {
                 ITHACAstream::read_fields(Tfield, T, "./ITHACAoutput/Offline/");
             }
-
             else
             {
                 Volumes.setSize(pars.rows());
@@ -434,7 +433,7 @@ class ThermalGeo : public laplacianProblem
                 cellDisplacement,
                 PointDisplacement
             );
-            motionDiffusivity & diffu = diffusivityPtr();
+            motionDiffusivity& diffu = diffusivityPtr();
             diffu.correct();
             fvVectorMatrix TEqn(DEIM_function_geom::evaluate_expression(cellDisplacement,
                                 diffu().operator()()));
@@ -534,7 +533,7 @@ class ThermalGeo : public laplacianProblem
                 cellDisplacement,
                 PointDisplacement
             );
-            motionDiffusivity & diffu = diffusivityPtr();
+            motionDiffusivity& diffu = diffusivityPtr();
             diffu.correct();
             fvVectorMatrix* TEqn = new fvVectorMatrix
             (
@@ -559,7 +558,7 @@ class ThermalGeo : public laplacianProblem
             );
             mesh.movePoints(P0 + PointDisplacement.primitiveField());
             ITHACAutilities::meshNonOrtho(mesh, NonOrtho);
-            delete(TEqn);
+            delete (TEqn);
         }
 
 
@@ -625,7 +624,7 @@ class ThermalGeo : public laplacianProblem
 };
 
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     ThermalGeo example(argc, argv);
     // Eigen::MatrixXd parx = ITHACAutilities::rand(100, 1, -0.32, 0.32);

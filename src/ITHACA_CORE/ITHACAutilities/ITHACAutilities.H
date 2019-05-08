@@ -285,25 +285,17 @@ class ITHACAutilities
         ///
         /// @return     The coefficients of the projection.
         ///
-        static Eigen::MatrixXd get_mass_matrix(
-            GeometricField<volVectorField, fvPatchField, volMesh> snapshot);
+        template<class type_f>
+        static Eigen::MatrixXd get_mass_matrix_FV(
+            GeometricField<type_f, fvPatchField, volMesh>& snapshot);
 
         //--------------------------------------------------------------------------
-        /// Function to compute a Mass Matrix from a geometric field for L2 projection
+        /// Project a snapshot scalar field on a non-orthogonal basis function and get the coefficients of the projection
         ///
-        /// @param[in]  snapshot  A snapshot in GeometricField form.
+        /// @param[in]  snapshots  The snapshots matrix.
+        /// @param[in]  modes     The modes.
         ///
-        /// @return     The mass matrix in Eigen::MatrixXd form.
-        ///
-        static Eigen::MatrixXd get_mass_matrix(
-            GeometricField<volScalarField, fvPatchField, volMesh> snapshot);
-
-        //--------------------------------------------------------------------------
-        /// Function to compute a Mass Matrix from a geometric field for L2 projection
-        ///
-        /// @param[in]  snapshot  A snapshot in GeometricField form.
-        ///
-        /// @return     The mass matrix in Eigen::MatrixXd form.
+        /// @return     The coefficients of the projection.
         ///
         static Eigen::MatrixXd get_coeffs(PtrList<volScalarField> snapshots,
                                           PtrList<volScalarField> modes,  int Nmodes = 0);
@@ -648,7 +640,6 @@ Eigen::MatrixXd ITHACAutilities::get_mass_matrix_Eigen(PtrList<T>& fields,
     {
         M = F.transpose() * VM * F;
     }
-
     else
     {
         M = F.transpose() * F;
@@ -656,6 +647,11 @@ Eigen::MatrixXd ITHACAutilities::get_mass_matrix_Eigen(PtrList<T>& fields,
 
     return M;
 }
+
+template<>
+Eigen::MatrixXd ITHACAutilities::get_mass_matrix_FV(
+    GeometricField<scalar, fvPatchField, volMesh>& snapshot);
+
 
 template<>
 PtrList<volVectorField> ITHACAutilities::reconstruct_from_coeff(

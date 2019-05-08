@@ -508,20 +508,22 @@ Eigen::MatrixXd ITHACAutilities::get_mass_matrix(PtrList<volScalarField> modes,
     return M_matrix;
 }
 
-Eigen::MatrixXd get_mass_matrix(GeometricField<volVectorField, fvPatchField, volMesh> snapshot)
-
+template<>
+Eigen::MatrixXd ITHACAutilities::get_mass_matrix_FV(
+    GeometricField<vector, fvPatchField, volMesh>& snapshot)
 {
     Eigen::VectorXd volumes = Foam2Eigen::field2Eigen(snapshot.mesh().V());
-
-    return (volumes.transpose())*(Eigen::MatrixXd::Identity(volumes.size(),volumes.size()));
+    Eigen::MatrixXd M = (volumes.replicate(3, 1)).asDiagonal();
+    return M;
 }
 
-Eigen::MatrixXd get_mass_matrix(GeometricField<volScalarField, fvPatchField, volMesh> snapshot)
-
+template<>
+Eigen::MatrixXd ITHACAutilities::get_mass_matrix_FV(
+    GeometricField<scalar, fvPatchField, volMesh>& snapshot)
 {
     Eigen::VectorXd volumes = Foam2Eigen::field2Eigen(snapshot.mesh().V());
-
-    return (volumes.transpose())*(Eigen::MatrixXd::Identity(volumes.size(),volumes.size()));
+    Eigen::MatrixXd M = volumes.asDiagonal();
+    return M;
 }
 
 Eigen::VectorXd ITHACAutilities::get_coeffs(volVectorField snapshot,
@@ -1162,7 +1164,6 @@ vector ITHACAutilities::displacePoint(vector x0, vector x_low, vector x_up,
     double t0;
     double t1;
     double t2;
-
     vector x_low_def(x_low[0] + mux_low, x_low[1] + muy_low, x_low[2] + muz_low);
     vector x_up_def(x_up[0] + mux_up, x_up[1] + muy_up, x_up[2] + muz_up);
     vector direction_def = x_up_def - x_low_def;
@@ -1175,9 +1176,11 @@ vector ITHACAutilities::displacePoint(vector x0, vector x_low, vector x_up,
     {
         t0 = 0;
     }
+
     if (abs(direction[1]) > 1e-16)
     {
         t1 = (x0[1] - x_low[1]) / direction[1];
+
         if (t0 == 0)
         {
             t0 = t1;
@@ -1187,13 +1190,16 @@ vector ITHACAutilities::displacePoint(vector x0, vector x_low, vector x_up,
     {
         t1 = t0;
     }
+
     if (abs(direction[2]) > 1e-16)
     {
         t2 = (x0[2] - x_low[2]) / direction[2];
+
         if (t1 == 0)
         {
             t1 = t2;
         }
+
         if (t0 == 0)
         {
             t0 = t2;
@@ -1203,6 +1209,7 @@ vector ITHACAutilities::displacePoint(vector x0, vector x_low, vector x_up,
     {
         t2 = t1;
     }
+
     Info << abs((x_low + t0 * direction - x0)[0]) << endl;
     Info << abs((x_low + t1 * direction - x0)[1]) << endl;
     Info << abs((x_low + t2 * direction - x0)[2]) << endl;
