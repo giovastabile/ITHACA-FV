@@ -75,14 +75,13 @@ class steadyNS_simple: public steadyNS
 
         // Variables
         /// Initialization for the full velocity linear system.
-        fvVectorMatrix* Ueqn_global;
         PtrList<fvVectorMatrix> UEqnList;
         PtrList<fvScalarMatrix> PEqnList;
 
         /// Initialization for the full pressure linear system.
-        fvScalarMatrix* Peqn_global;
         /// Initialization for the fluxes;
         autoPtr<surfaceScalarField> phiHbyA_global;
+        autoPtr<fvVectorMatrix> Ueqn_global;
 
         //Functions
         ///

@@ -191,8 +191,6 @@ template DEIM<fvScalarMatrix>::DEIM (PtrList<fvScalarMatrix>& s, int MaxModesA,
                                      int MaxModesB, word MatrixName);
 template DEIM<fvVectorMatrix>::DEIM (PtrList<fvVectorMatrix>& s, int MaxModesA,
                                      int MaxModesB, word MatrixName);
-
-
 template<typename T>
 template<typename S>
 PtrList<S> DEIM<T>::generateSubmeshes(int layers, fvMesh& mesh, S field,
@@ -430,7 +428,6 @@ PtrList<S> DEIM<T>::generateSubmeshesVector(int layers, fvMesh& mesh, S field,
         ITHACAstream::exportSolution(Indici, "1", "./ITHACAoutput/DEIM/" + MatrixName
                                     );
     }
-
     return fieldsB;
 }
 
