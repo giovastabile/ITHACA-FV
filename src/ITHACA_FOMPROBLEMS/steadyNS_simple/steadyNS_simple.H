@@ -84,6 +84,8 @@ class steadyNS_simple: public steadyNS
         /// Initialization for the fluxes;
         autoPtr<surfaceScalarField> phiHbyA_global;
 
+        autoPtr<fvVectorMatrix> Ueqn_global;
+
         //Functions
         ///
         /// @brief      Gets the offline velocity matrix and solve the system. Procedure of the SIMPLE algorithm implemented

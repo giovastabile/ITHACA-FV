@@ -44,13 +44,13 @@ Description
 #include "pointFields.H" //Perhaps not needed..?
 #include "pointPatchField.H"
 
-class DEIM_functionU : public DEIM<PtrList<fvVectorMatrix>, volVectorField>
+class DEIM_functionU : public DEIM<fvVectorMatrix>
 {
     public:
         using DEIM::DEIM;
 };
 
-class DEIM_functionP : public DEIM<PtrList<fvScalarMatrix>, volScalarField>
+class DEIM_functionP : public DEIM<fvScalarMatrix>
 {
     public:
         using DEIM::DEIM;
@@ -310,10 +310,10 @@ class NS_geom_par : public steadyNS_simple
             DEIMU = new DEIM_functionU(UEqnList, NmodesDEIMA, NmodesDEIMB, "U_matrix");
             DEIMP = new DEIM_functionP(PEqnList, NmodesDEIMA, NmodesDEIMB, "P_matrix");
             fvMesh& mesh  =  const_cast<fvMesh&>(U.mesh());
-            DEIMU->generateSubmeshesMatrix(1, mesh, U);
-            DEIMU->generateSubmeshesVector(1, mesh, U);
-            DEIMP->generateSubmeshesMatrix(1, mesh, p);
-            DEIMP->generateSubmeshesVector(1, mesh, p);
+            DEIMU->generateSubmeshesMatrix(2, mesh, U);
+            DEIMU->generateSubmeshesVector(2, mesh, U);
+            DEIMP->generateSubmeshesMatrix(2, mesh, p);
+            DEIMP->generateSubmeshesVector(2, mesh, p);
         }
 
         //     for (int i = 0; i < NmodesDEIMA; i++)
@@ -372,12 +372,13 @@ int main(int argc, char* argv[])
 
     else
     {
-        parAlpha = ITHACAutilities::rand(100, 1, -5, 5);
+        parAlpha = ITHACAutilities::rand(10, 1, 0, 2);
         ITHACAstream::exportMatrix(parAlpha, "angles", "eigen", "./");
     }
 
     example.OfflineSolve(parAlpha.leftCols(1), "./ITHACAoutput/Offline/");
-        example.PODDEIM(40,40,40);
+    example.PODDEIM(8,8,8);
+    exit(0);
 
     ITHACAstream::read_fields(example.liftfield, example.U, "./lift/");
     example.inletIndex.resize(1, 2);
@@ -389,25 +390,18 @@ int main(int argc, char* argv[])
     // Perform POD on velocity and pressure and store the first 10 modes
     ITHACAPOD::getModes(example.Uomfield, example.Umodes, example.Volumes,
                         example.podex, 0, 0,
-                        50);
+                        8);
     ITHACAPOD::getModes(example.Pfield, example.Pmodes, example.Volumes,
-                        example.podex, 0, 0, 50);
+                        example.podex, 0, 0, 8);
     ITHACAPOD::getModes(example.supfield, example.supmodes, 0,
-                        0, 1, 50);
+                        0, 1, 8);
     ITHACAPOD::getModes(example.phiField, example.phiModes, example.Uomfield, 0,
-                        0, 1, 50);
-    // PtrList<volScalarField> Proiezioni_P = example.Pmodes.projectSnapshots(example.Pfield,
-    //                                      example.Volumes);
-    // // PtrList<volVectorField> Proiezioni_U = example.Umodes.projectSnapshots(example.Ufield,
-    // //                                      example.Volumes);
-    // // ITHACAstream::exportFields(Proiezioni_U, "ITHACAoutput/Offline", "U_proj");
-    // ITHACAstream::exportFields(Proiezioni_P, "ITHACAoutput/Offline", "P_proj");
-    //exit(0);
+                        0, 1, 8);
     Eigen::MatrixXd vel(1, 1);
     vel(0, 0) = 1;
     Eigen::VectorXd onlineAlpha;
     onlineAlpha.resize(1);
-    onlineAlpha(0) = 2.0;
+    onlineAlpha(0) = 1.0;
     example.restart();
     reducedSimpleSteadyNS reduced(example);
     example.updateMesh(onlineAlpha(0));
@@ -429,7 +423,7 @@ int main(int argc, char* argv[])
     example.updateMesh(onlineAlpha(0));
     ITHACAstream::writePoints(example._mesh().points(), "./ITHACAoutput/checkOn",
                               name(1) + "/polyMesh/");
-    reduced.solveOnline_Simple(1, 30, 30, 15, "./ITHACAoutput/checkOn/");
+    reduced.solveOnline_Simple(1, 5, 5, 15, "./ITHACAoutput/checkOn/");
     exit(0);
     example.projectSUP("./Matrices", 5, 5, 5);
     example.C_tensor = example.convective_term_tens_phi(5, 5, 5);

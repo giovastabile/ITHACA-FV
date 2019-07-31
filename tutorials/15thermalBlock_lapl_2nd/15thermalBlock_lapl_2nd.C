@@ -42,7 +42,7 @@ Description
 #include "pointFields.H" //Perhaps not needed..?
 #include "pointPatchField.H"
 
-class DEIM_function : public DEIM<PtrList<fvScalarMatrix>, volScalarField >
+class DEIM_function : public DEIM<fvScalarMatrix>
 {
     public:
 
@@ -92,6 +92,9 @@ class DEIM_function : public DEIM<PtrList<fvScalarMatrix>, volScalarField >
 
             return theta;
         }
+
+        PtrList<volScalarField> fieldsA;
+        PtrList<volScalarField> fieldsB;
 };
 
 
@@ -335,8 +338,8 @@ class ThermalGeo : public laplacianProblem
             volScalarField& T = _T();
             DEIMmatrice = new DEIM_function(Mlist, NmodesDEIMA, NmodesDEIMB, "T_matrix");
             fvMesh& mesh  =  const_cast<fvMesh&>(T.mesh());
-            DEIMmatrice->generateSubmeshesMatrix(2, mesh, T);
-            DEIMmatrice->generateSubmeshesVector(2, mesh, T);
+            DEIMmatrice->fieldsA = DEIMmatrice->generateSubmeshesMatrix(2, mesh, T);
+            DEIMmatrice->fieldsB = DEIMmatrice->generateSubmeshesVector(2, mesh, T);
             ModesTEig = Foam2Eigen::PtrList2Eigen(Tmodes);
             ModesTEig.conservativeResize(ModesTEig.rows(), NmodesT);
             ITHACAPOD::GrammSchmidt(ModesTEig);

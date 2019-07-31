@@ -53,6 +53,7 @@ EXE_LIBS = \
     -lITHACA_FOMPROBLEMS \
     -lITHACA_THIRD_PARTY \
     -lITHACA_CORE \
+    -lITHACA_DEIM \
     -L$(FOAM_USER_LIBBIN) \
     -lRBFMotionSolver 
  
