@@ -146,6 +146,10 @@ void SteadyNSSimple::truthSolve2(List<scalar> mu_now, word Folder)
     Vector<double> uresidual_v(0, 0, 0);
     scalar presidual = 1;
     scalar csolve = 0;
+    dimensionSet dimU(0, 4, -2, 0, 0, 0, 0);
+    dimensionSet dimP(0, 3, -1, 0, 0, 0, 0);
+    fvVectorMatrix UEqn(U, dimU);
+    fvScalarMatrix pEqn(p, dimP);
     // Variable that can be changed
     turbulence->read();
     std::ofstream res_os;
@@ -158,19 +162,14 @@ void SteadyNSSimple::truthSolve2(List<scalar> mu_now, word Folder)
 #endif
     {
         Info << "Time = " << runTime.timeName() << nl << endl;
-        volScalarField nueff = turbulence->nuEff();
-        fvVectorMatrix UEqn
-        (
-            fvm::div(phi, U)
-            - fvm::laplacian(nueff, U)
-            - fvc::div(nueff * dev2(T(fvc::grad(U))))
-        );
+        volScalarField nueff = turbulence->nu();
+        UEqn = fvm::div(phi, U) - fvm::laplacian(nueff,
+                U) - fvc::div(nueff * dev2(T(fvc::grad(U))));
         UEqn.relax();
-        UEqn == - fvc::grad(p);
 
         if (simple.momentumPredictor())
         {
-            uresidual_v = solve(UEqn).initialResidual();
+            uresidual_v = solve(UEqn == -fvc::grad(p)).initialResidual();
         }
 
         scalar C = 0;
@@ -190,10 +189,7 @@ void SteadyNSSimple::truthSolve2(List<scalar> mu_now, word Folder)
 
         while (simple.correctNonOrthogonal())
         {
-            fvScalarMatrix pEqn
-            (
-                fvm::laplacian(1.0 / UEqn.A(), p) == fvc::div(phiHbyA)
-            );
+            pEqn = fvm::laplacian(1.0 / UEqn.A(), p) == fvc::div(phiHbyA);
             pEqn.setReference(pRefCell, pRefValue);
 
             if (i == 0)
@@ -219,7 +215,6 @@ void SteadyNSSimple::truthSolve2(List<scalar> mu_now, word Folder)
         U = HbyA - 1.0 / UEqn.A() * fvc::grad(p);
         U.correctBoundaryConditions();
         residual = max(presidual, uresidual);
-        Info << "Time = " << runTime.timeName() << nl << endl;
         laminarTransport.correct();
         turbulence->correct();
     }

@@ -131,6 +131,11 @@ class reducedSimpleSteadyNS: public reducedProblem
         /// Imposed boundary conditions.
         Eigen::MatrixXd vel_now;
 
+        Eigen::MatrixXd redGradP;
+        Eigen::MatrixXd redDivDev2;
+
+        double onlineViscosity;
+
         /// Counter.
         int counter = 0;
 };
