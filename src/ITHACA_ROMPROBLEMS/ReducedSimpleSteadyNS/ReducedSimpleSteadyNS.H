@@ -120,6 +120,8 @@ class reducedSimpleSteadyNS: public reducedProblem
         ///
         void setOnlineVelocity(Eigen::MatrixXd vel);
 
+        void project(int nModesU, int nModesP);
+
         // Variables
 
         /// Lifted velocity modes.
@@ -133,6 +135,8 @@ class reducedSimpleSteadyNS: public reducedProblem
 
         Eigen::MatrixXd redGradP;
         Eigen::MatrixXd redDivDev2;
+
+        List<List<Eigen::MatrixXd>> ReducedOperators;
 
         double onlineViscosity;
 

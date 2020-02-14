@@ -222,6 +222,8 @@ void SteadyNSSimple::truthSolve2(List<scalar> mu_now, word Folder)
     res_os << residual << std::endl;
     res_os.close();
     runTime.setTime(runTime.startTime(), 0);
+    Ulist.append(UEqn);
+    Plist.append(pEqn);
     ITHACAstream::exportSolution(U, name(counter), Folder);
     ITHACAstream::exportSolution(p, name(counter), Folder);
     Ufield.append(U);

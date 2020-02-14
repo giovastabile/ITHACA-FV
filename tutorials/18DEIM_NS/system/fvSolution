@@ -19,7 +19,7 @@ solvers
     p
     {
         solver          GAMG;
-        tolerance       1e-06;
+        tolerance       1e-08;
         relTol          0;
         smoother        GaussSeidel;
     }
@@ -42,14 +42,14 @@ relaxationFactors
 {
     fields
     {
-        p               0.3;
-        Paux            0.3;
+        p               0.1;
+        Paux            0.1;
     }
     equations
     {
-        U               0.7;
+        U               0.5;
         nuTilda         0.7;
-        Uaux            0.7;
+        Uaux            0.5;
     }
 }
 
@@ -60,7 +60,6 @@ cache
 
 SIMPLE
 {
-    nCorrectors 10;
     nNonOrthogonalCorrectors 0;
     pRefCell        0;
     pRefValue       0;

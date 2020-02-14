@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
     int NmodesUproj = para.ITHACAdict->lookupOrDefault<int>("NmodesUproj", 10);
     int NmodesPproj = para.ITHACAdict->lookupOrDefault<int>("NmodesPproj", 10);
     // Read the par file where the parameters are stored
-    example.mu = Eigen::VectorXd::LinSpaced(100, 0.001, 0.0001);
+    example.mu = Eigen::VectorXd::LinSpaced(100, 0.01, 0.001);
     // Set the inlet boundaries patch 0 directions x and y
     example.inletIndex.resize(1, 2);
     example.inletIndex(0, 0) = 0;
@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
                         NmodesPout);
     // Create the reduced object
     reducedSimpleSteadyNS reduced(example);
-    reduced.project(NmodesUproj, NmodesUproj);
+    reduced.project(NmodesUproj, NmodesPproj);
     //reduced.project(NmodesUproj, NmodesPproj);
     PtrList<volVectorField> U_rec_list;
     PtrList<volScalarField> P_rec_list;

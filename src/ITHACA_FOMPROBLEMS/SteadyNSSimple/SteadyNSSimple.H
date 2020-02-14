@@ -79,6 +79,9 @@ class SteadyNSSimple: public steadyNS
         /// Initialization for the full pressure linear system.
         fvScalarMatrix* Peqn_global;
 
+        PtrList<fvVectorMatrix> Ulist;
+        PtrList<fvScalarMatrix> Plist;
+
         //Functions
         ///
         /// @brief      Gets the offline velocity matrix and solve the system. Procedure of the SIMPLE algorithm implemented

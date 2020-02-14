@@ -130,12 +130,10 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
     {
         iter++;
         P.storePrevIter();
-        volScalarField nueff = problem->turbulence->nuEff();
-        fvVectorMatrix UEqn
+        volScalarField nu = problem->_laminarTransport().nu();
+        fvVectorMatrix UEqn1
         (
             fvm::div(phi, U)
-            - fvm::laplacian(nueff, U)
-            - fvc::div(nueff * dev2(T(fvc::grad(U))))
         );
         fvVectorMatrix UEqn2
         (
@@ -145,10 +143,9 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         (
             - fvc::div(nu * dev2(T(fvc::grad(U))))
         );
-        fvVectorMatrix UEqn = UEqn1;
-        fvVectorMatrix UEqn22 = UEqn1 + UEqn2 + UEqn4;
-        UEqn22.relax();
-        UEqn22 == -fvc::grad(P);
+        fvVectorMatrix UEqn = UEqn1 + UEqn2 + UEqn4;
+        UEqn.relax();
+        //UEqn == -fvc::grad(P);
         List<Eigen::MatrixXd> RedLinSysU = ULmodes.project(UEqn1, UprojN);
 
         for (int i = 0; i < ReducedOperators.size(); i++)
@@ -291,7 +288,6 @@ void reducedSimpleSteadyNS::project(int nModesU, int nModesP)
     volVectorField& U = problem->_U();
     //volScalarField nu = problem->turbulence->nu();
     dimensionedScalar nu = ("nu", dimensionSet(0, 1, -1, 0, 0, 0, 0), 1);
-    volScalarField nut = problem->turbulence->nut();
     fvVectorMatrix UEqn
     (
         - fvm::laplacian(nu, U)
@@ -308,7 +304,7 @@ void reducedSimpleSteadyNS::project(int nModesU, int nModesP)
 
     for (int i = 0; i < ULmodes.size(); i++)
     {
-        divdev2.append(fvc::div(nu * dev2(T(fvc::grad(ULmodes[i])))));
+        divdev2.append(-fvc::div(nu * dev2(T(fvc::grad(ULmodes[i])))));
     }
 
     redGradP = ULmodes.project(gradP);
