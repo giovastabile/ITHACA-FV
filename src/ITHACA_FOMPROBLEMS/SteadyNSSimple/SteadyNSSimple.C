@@ -148,7 +148,7 @@ void SteadyNSSimple::truthSolve2(List<scalar> mu_now, word Folder)
     scalar csolve = 0;
     dimensionSet dimU(0, 4, -2, 0, 0, 0, 0);
     dimensionSet dimP(0, 3, -1, 0, 0, 0, 0);
-    fvVectorMatrix UEqn(U, dimU);
+    fvVectorMatrix UEqnA(U, dimU);
     fvScalarMatrix pEqn(p, dimP);
     // Variable that can be changed
     turbulence->read();
@@ -163,7 +163,8 @@ void SteadyNSSimple::truthSolve2(List<scalar> mu_now, word Folder)
     {
         Info << "Time = " << runTime.timeName() << nl << endl;
         volScalarField nueff = turbulence->nu();
-        UEqn = fvm::div(phi, U) - fvm::laplacian(nueff,
+        UEqnA = fvm::div(phi, U);
+        fvVectorMatrix UEqn = UEqnA - fvm::laplacian(nueff,
                 U) - fvc::div(nueff * dev2(T(fvc::grad(U))));
         UEqn.relax();
 
@@ -222,7 +223,7 @@ void SteadyNSSimple::truthSolve2(List<scalar> mu_now, word Folder)
     res_os << residual << std::endl;
     res_os.close();
     runTime.setTime(runTime.startTime(), 0);
-    Ulist.append(UEqn);
+    Ulist.append(UEqnA);
     Plist.append(pEqn);
     ITHACAstream::exportSolution(U, name(counter), Folder);
     ITHACAstream::exportSolution(p, name(counter), Folder);

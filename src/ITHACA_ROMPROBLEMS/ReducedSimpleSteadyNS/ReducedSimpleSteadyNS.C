@@ -54,6 +54,8 @@ reducedSimpleSteadyNS::reducedSimpleSteadyNS(SteadyNSSimple& FOMproblem)
     {
         ULmodes.append(problem->Umodes.toPtrList()[i]);
     }
+
+    ULmodes.toEigen();
 }
 
 // * * * * * * * * * * * * * * * Solve Functions  * * * * * * * * * * * * * //

@@ -33,7 +33,27 @@ SourceFiles
 #include "ReducedSimpleSteadyNS.H"
 #include "forces.H"
 #include "IOmanip.H"
+#include "DEIM.H"
 
+
+class DEIM_function : public DEIM<fvVectorMatrix>
+{
+    public:
+        using DEIM::DEIM;
+
+        static fvVectorMatrix divU(volVectorField& U, surfaceScalarField& phi)
+        {
+            fvVectorMatrix divU
+            (
+                fvm::div(phi, U)
+            );
+            return divU;
+        }
+
+        PtrList<volVectorField> fieldsA;
+        PtrList<volVectorField> fieldsB;
+        PtrList<surfaceScalarField> phi;
+};
 
 class tutorial18 : public SteadyNSSimple
 {
@@ -68,6 +88,7 @@ class tutorial18 : public SteadyNSSimple
                 mu_samples =
                     ITHACAstream::readMatrix("./ITHACAoutput/Offline/mu_samples_mat.txt");
             }
+
             else
             {
                 label BCind = 0;
@@ -80,6 +101,49 @@ class tutorial18 : public SteadyNSSimple
                 }
             }
         }
+
+
+
+};
+
+class tutorial18red : public reducedSimpleSteadyNS
+{
+    public:
+
+        tutorial18red(SteadyNSSimple& FOMproblem)
+            :
+            reducedSimpleSteadyNS(FOMproblem)
+        {}
+
+        DEIM_function* DEIMmatrice;
+        std::vector<Eigen::MatrixXd> ReducedMatricesA;
+        std::vector<Eigen::MatrixXd> ReducedVectorsB;
+
+        void PODDEIM(int NmodesT, int NmodesDEIMA, int NmodesDEIMB)
+        {
+            fvMesh& mesh  =  const_cast<fvMesh&>(problem->_U().mesh());
+            DEIMmatrice = new DEIM_function(problem->Ulist, NmodesDEIMA, NmodesDEIMB,
+                                            "U_matrix");
+            DEIMmatrice->fieldsA = DEIMmatrice->generateSubmeshesMatrix(1, mesh,
+                                   problem->_U());
+            DEIMmatrice->fieldsB = DEIMmatrice->generateSubmeshesVector(1, mesh,
+                                   problem->_U());
+            ReducedMatricesA.resize(NmodesDEIMA);
+            ReducedVectorsB.resize(NmodesDEIMB);
+
+            for (int i = 0; i < NmodesDEIMA; i++)
+            {
+                ReducedMatricesA[i] = ULmodes.EigenModes[0].leftCols(NmodesT).transpose() *
+                                      DEIMmatrice->MatrixOnlineA[i] *
+                                      ULmodes.EigenModes[0].leftCols(NmodesT);
+            }
+
+            for (int i = 0; i < NmodesDEIMB; i++)
+            {
+                ReducedVectorsB[i] = ULmodes.EigenModes[0].leftCols(NmodesT).transpose() *
+                                     DEIMmatrice->MatrixOnlineB;
+            }
+        };
 
 };
 
@@ -114,7 +178,15 @@ int main(int argc, char* argv[])
     ITHACAPOD::getModes(example.Pfield, example.Pmodes, example.podex, 0, 0,
                         NmodesPout);
     // Create the reduced object
-    reducedSimpleSteadyNS reduced(example);
+    tutorial18red reduced(example);
+    // Compute the offline part of the DEIM procedure
+    reduced.PODDEIM(10, 20, 1);
+    Info << reduced.DEIMmatrice->submeshListA.size() << endl;
+    Info << example.phi.size() << endl;
+    surfaceScalarField phi = reduced.DEIMmatrice->submeshListA[0].interpolate(example.phi);
+    Info << phi << endl;
+
+    exit(0);
     reduced.project(NmodesUproj, NmodesPproj);
     //reduced.project(NmodesUproj, NmodesPproj);
     PtrList<volVectorField> U_rec_list;
