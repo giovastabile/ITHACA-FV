@@ -36,23 +36,23 @@ SourceFiles
 #include "DEIM.H"
 
 
-class DEIM_function : public DEIM<fvVectorMatrix>
+class DEIM_functionU : public DEIM<fvVectorMatrix>
 {
     public:
         using DEIM::DEIM;
 
-        static fvVectorMatrix divU(volVectorField& U, surfaceScalarField& phi)
-        {
-            fvVectorMatrix divU
-            (
-                fvm::div(phi, U)
-            );
-            return divU;
-        }
+
 
         PtrList<volVectorField> fieldsA;
         PtrList<volVectorField> fieldsB;
         PtrList<surfaceScalarField> phi;
+};
+
+class DEIM_functionP : public DEIM<fvScalarMatrix>
+{
+    public:
+        using DEIM::DEIM;
+
 };
 
 class tutorial18 : public SteadyNSSimple
@@ -74,6 +74,8 @@ class tutorial18 : public SteadyNSSimple
         ///
         surfaceScalarField& phi;
 
+
+
         /// Perform an Offline solve
         void offlineSolve()
         {
@@ -88,7 +90,6 @@ class tutorial18 : public SteadyNSSimple
                 mu_samples =
                     ITHACAstream::readMatrix("./ITHACAoutput/Offline/mu_samples_mat.txt");
             }
-
             else
             {
                 label BCind = 0;
@@ -115,35 +116,94 @@ class tutorial18red : public reducedSimpleSteadyNS
             reducedSimpleSteadyNS(FOMproblem)
         {}
 
-        DEIM_function* DEIMmatrice;
+        DEIM_functionU* DEIMmatriceU;
+        DEIM_functionP* DEIMmatriceP;
         std::vector<Eigen::MatrixXd> ReducedMatricesA;
         std::vector<Eigen::MatrixXd> ReducedVectorsB;
+        PtrList<volScalarField> pFieldsA;
+        PtrList<volVectorField> UFieldsA;
+        PtrList<surfaceScalarField> phiFieldsA;
+        PtrList<volScalarField> pFieldsB;
+        PtrList<volVectorField> UFieldsB;
+        PtrList<surfaceScalarField> phiFieldsB;
 
         void PODDEIM(int NmodesT, int NmodesDEIMA, int NmodesDEIMB)
         {
             fvMesh& mesh  =  const_cast<fvMesh&>(problem->_U().mesh());
-            DEIMmatrice = new DEIM_function(problem->Ulist, NmodesDEIMA, NmodesDEIMB,
-                                            "U_matrix");
-            DEIMmatrice->fieldsA = DEIMmatrice->generateSubmeshesMatrix(1, mesh,
-                                   problem->_U());
-            DEIMmatrice->fieldsB = DEIMmatrice->generateSubmeshesVector(1, mesh,
-                                   problem->_U());
+            DEIMmatriceU = new DEIM_functionU(problem->Ulist, NmodesDEIMA, NmodesDEIMB,
+                                              "U_matrix");
+            DEIMmatriceP = new DEIM_functionP(problem->Plist, NmodesDEIMA, NmodesDEIMB,
+                                              "P_matrix");
+            DEIMmatriceU->generateSubmeshesMatrix(1, mesh,
+                                                  problem->_U());
+            DEIMmatriceU->generateSubmeshesVector(1, mesh,
+                                                  problem->_U());
+            DEIMmatriceP->generateSubmeshesMatrix(1, mesh,
+                                                  problem->_p());
+            DEIMmatriceP->generateSubmeshesVector(1, mesh,
+                                                  problem->_p());
+            pFieldsA = DEIMmatriceU->generateSubFieldsMatrix(problem->_p());
+            UFieldsA = DEIMmatriceU->generateSubFieldsMatrix(problem->_U());
+            phiFieldsA = DEIMmatriceU->generateSubFieldsMatrix(problem->_phi());
+            pFieldsB = DEIMmatriceU->generateSubFieldsVector(problem->_p());
+            UFieldsB = DEIMmatriceU->generateSubFieldsVector(problem->_U());
+            phiFieldsB = DEIMmatriceU->generateSubFieldsVector(problem->_phi());
             ReducedMatricesA.resize(NmodesDEIMA);
             ReducedVectorsB.resize(NmodesDEIMB);
 
             for (int i = 0; i < NmodesDEIMA; i++)
             {
                 ReducedMatricesA[i] = ULmodes.EigenModes[0].leftCols(NmodesT).transpose() *
-                                      DEIMmatrice->MatrixOnlineA[i] *
+                                      DEIMmatriceU->MatrixOnlineA[i] *
                                       ULmodes.EigenModes[0].leftCols(NmodesT);
             }
 
             for (int i = 0; i < NmodesDEIMB; i++)
             {
                 ReducedVectorsB[i] = ULmodes.EigenModes[0].leftCols(NmodesT).transpose() *
-                                     DEIMmatrice->MatrixOnlineB;
+                                     DEIMmatriceU->MatrixOnlineB;
             }
         };
+
+        Eigen::MatrixXd onlineCoeffsAU()
+        {
+            Eigen::MatrixXd theta(UFieldsA.size(), 1);
+            volScalarField nueff = problem->_laminarTransport().nu();
+
+            for (int i = 0; i < UFieldsA.size(); i++)
+            {
+                Eigen::SparseMatrix<double> Mr;
+                Eigen::VectorXd br;
+                fvVectorMatrix ueqn
+                (
+                    fvm::div(phiFieldsA[i], UFieldsA[i]) - fvm::laplacian(nueff,
+                            UFieldsA[i]) - fvc::div(nueff * dev2(T(fvc::grad(UFieldsA[i]))))
+                );
+                Foam2Eigen::fvMatrix2Eigen(ueqn, Mr, br);
+                int ind_row = DEIMmatriceU->localMagicPointsA[i].first() +
+                              DEIMmatriceU->xyz_A[i].first() *
+                              UFieldsA[i].size();
+                int ind_col = DEIMmatriceU->localMagicPointsA[i].second() +
+                              DEIMmatriceU->xyz_A[i].second() *
+                              UFieldsA[i].size();
+                theta(i) = Mr.coeffRef(ind_row, ind_col);
+            }
+
+            return theta;
+        }
+
+
+
+        fvVectorMatrix Ueqn(volVectorField& U, surfaceScalarField& phi)
+        {
+            volScalarField nueff = problem->_laminarTransport().nu();
+            fvVectorMatrix ueqn
+            (
+                fvm::div(phi, U) - fvm::laplacian(nueff,
+                                                  U) - fvc::div(nueff * dev2(T(fvc::grad(U))))
+            );
+            return ueqn;
+        }
 
 };
 
@@ -181,11 +241,10 @@ int main(int argc, char* argv[])
     tutorial18red reduced(example);
     // Compute the offline part of the DEIM procedure
     reduced.PODDEIM(10, 20, 1);
-    Info << reduced.DEIMmatrice->submeshListA.size() << endl;
+    Info << reduced.DEIMmatriceU->submeshListA.size() << endl;
     Info << example.phi.size() << endl;
-    surfaceScalarField phi = reduced.DEIMmatrice->submeshListA[0].interpolate(example.phi);
-    Info << phi << endl;
-
+    auto phi = reduced.DEIMmatriceU->generateSubFieldsMatrix(example.phi);
+    Info << phi.size() << endl;
     exit(0);
     reduced.project(NmodesUproj, NmodesPproj);
     //reduced.project(NmodesUproj, NmodesPproj);
