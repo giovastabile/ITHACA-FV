@@ -199,8 +199,7 @@ class tutorial18red : public reducedSimpleSteadyNS
             volScalarField nueff = problem->_laminarTransport().nu();
             fvVectorMatrix ueqn
             (
-                fvm::div(phi, U) - fvm::laplacian(nueff,
-                                                  U) - fvc::div(nueff * dev2(T(fvc::grad(U))))
+                fvm::div(phi, U)
             );
             return ueqn;
         }
@@ -229,7 +228,9 @@ int main(int argc, char* argv[])
     example.liftfield.append(ITHACAutilities::computeAverage(example.Ufield));
     ITHACAutilities::normalizeFields(example.liftfield);
     example.liftfield[0].rename("Ulift0");
+    //ITHACAutilities::changeBCtype(example.liftfield[0],"fixedValue",0);
     ITHACAstream::exportSolution(example.liftfield[0], "0", "./");
+
     // Homogenize the snapshots
     example.computeLift(example.Ufield, example.liftfield, example.Uomfield);
     // Perform POD on velocity and pressure and store the first 10 modes
@@ -241,11 +242,15 @@ int main(int argc, char* argv[])
     tutorial18red reduced(example);
     // Compute the offline part of the DEIM procedure
     reduced.PODDEIM(10, 20, 1);
-    Info << reduced.DEIMmatriceU->submeshListA.size() << endl;
-    Info << example.phi.size() << endl;
-    auto phi = reduced.DEIMmatriceU->generateSubFieldsMatrix(example.phi);
-    Info << phi.size() << endl;
-    exit(0);
+    // Info << reduced.DEIMmatriceU->submeshListA.size() << endl;
+    // Info << example.phi.size() << endl;
+    // auto phi = reduced.DEIMmatriceU->generateSubFieldsMatrix(example.phi);
+    // auto U = reduced.DEIMmatriceU->generateSubFieldsMatrix(example.U);
+    // std::cerr << "debug point 1" << std::endl;
+    // fvVectorMatrix UR = reduced.Ueqn(U[0],phi[0]);
+    // std::cerr << "debug point 1" << std::endl;
+    // Info << UR << endl;
+    // exit(0);
     reduced.project(NmodesUproj, NmodesPproj);
     //reduced.project(NmodesUproj, NmodesPproj);
     PtrList<volVectorField> U_rec_list;

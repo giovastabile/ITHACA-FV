@@ -138,7 +138,10 @@ class reducedSimpleSteadyNS: public reducedProblem
 
         List<List<Eigen::MatrixXd>> ReducedOperators;
 
-        double onlineViscosity;
+        scalar onlineViscosity;
+
+        autoPtr<volScalarField> A1;
+        autoPtr<volVectorField> H1;
 
         /// Counter.
         int counter = 0;

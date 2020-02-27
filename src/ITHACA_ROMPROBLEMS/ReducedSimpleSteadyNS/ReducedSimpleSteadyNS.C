@@ -89,6 +89,7 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
     {
         UprojN = ULmodes.size();
     }
+
     else
     {
         UprojN = NmodesUproj + NmodesSup;
@@ -98,6 +99,7 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
     {
         PprojN = problem->Pmodes.size();
     }
+
     else
     {
         PprojN = NmodesPproj;
@@ -139,15 +141,15 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         );
         fvVectorMatrix UEqn2
         (
-            - fvm::laplacian(nu, U)
+            -fvm::laplacian(nu, U)
         );
-        volVectorField UEqn4
-        (
-            - fvc::div(nu * dev2(T(fvc::grad(U))))
-        );
-        fvVectorMatrix UEqn = UEqn1 + UEqn2 + UEqn4;
-        UEqn.relax();
-        //UEqn == -fvc::grad(P);
+        UEqn1.relax();
+        //UEqn2.relax();
+        volScalarField A11 = A1() * onlineViscosity + UEqn1.A();
+        volVectorField H11 = H1() * onlineViscosity + UEqn1.H();
+        Info << sum(H1()*onlineViscosity - UEqn2.H())  << endl;
+        volScalarField A = UEqn2.A() + UEqn1.A();
+        volVectorField H = UEqn2.H() + UEqn1.H();
         List<Eigen::MatrixXd> RedLinSysU = ULmodes.project(UEqn1, UprojN);
 
         for (int i = 0; i < ReducedOperators.size(); i++)
@@ -160,7 +162,7 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         RedLinSysU[1] += redGradP * b;
         a = reducedProblem::solveLinearSys(RedLinSysU, a, uresidual, vel_now);
         ULmodes.reconstruct(U, a, "U");
-        volVectorField HbyA(constrainHbyA(1.0 / UEqn.A() * UEqn.H(), U, P));
+        volVectorField HbyA(constrainHbyA(1.0 / A * H, U, P));
         surfaceScalarField phiHbyA("phiHbyA", fvc::flux(HbyA));
         List<Eigen::MatrixXd> RedLinSysP;
 
@@ -168,7 +170,7 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         {
             fvScalarMatrix pEqn
             (
-                fvm::laplacian(1 / UEqn.A(), P) == fvc::div(phiHbyA)
+                fvm::laplacian(1 / A, P) == fvc::div(phiHbyA)
             );
             RedLinSysP = problem->Pmodes.project(pEqn, PprojN);
             b = reducedProblem::solveLinearSys(RedLinSysP, b, presidual);
@@ -181,7 +183,7 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         }
 
         P.relax();
-        U = HbyA - 1.0 / UEqn.A() * fvc::grad(P);
+        U = HbyA - 1.0 / A * fvc::grad(P);
         U.correctBoundaryConditions();
         uresidualOld = uresidualOld - uresidual;
         presidualOld = presidualOld - presidual;
@@ -288,13 +290,47 @@ void reducedSimpleSteadyNS::project(int nModesU, int nModesP)
     ULmodes.toEigen();
     volScalarField& P = problem->_p();
     volVectorField& U = problem->_U();
-    //volScalarField nu = problem->turbulence->nu();
-    dimensionedScalar nu = ("nu", dimensionSet(0, 1, -1, 0, 0, 0, 0), 1);
+    volScalarField nu
+    (
+        IOobject
+        (
+            "nu",
+            U.time().timeName(),
+            U.db(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE,
+            false
+        ),
+        U.mesh(),
+        dimensionedScalar("nu", dimViscosity, 1.0)
+    );
+    volScalarField nu2
+    (
+        IOobject
+        (
+            "nu",
+            U.time().timeName(),
+            U.db(),
+            IOobject::NO_READ,
+            IOobject::NO_WRITE,
+            false
+        ),
+        U.mesh(),
+        dimensionedScalar("nu", dimViscosity, 1.0)
+    );
     fvVectorMatrix UEqn
     (
         - fvm::laplacian(nu, U)
     );
+    fvVectorMatrix UEqn2
+    (
+        - fvm::laplacian(nu2, U)
+    );
+    A1 = autoPtr < volScalarField >( new volScalarField(UEqn.A()));
+    H1 = autoPtr < volVectorField >( new volVectorField(UEqn.H()));
     PtrList<volVectorField> gradP;
+    PtrList<volVectorField> HU;
+    PtrList<volScalarField> AU;
     PtrList<volVectorField> divdev2;
     gradP.resize(0);
     divdev2.resize(0);
@@ -306,7 +342,13 @@ void reducedSimpleSteadyNS::project(int nModesU, int nModesP)
 
     for (int i = 0; i < ULmodes.size(); i++)
     {
+
         divdev2.append(-fvc::div(nu * dev2(T(fvc::grad(ULmodes[i])))));
+    }
+    for (int i = 0; i < ULmodes.size(); i++)
+    {
+        U = ULmodes[i];
+        HU.append(UEqn.H());
     }
 
     redGradP = ULmodes.project(gradP);
