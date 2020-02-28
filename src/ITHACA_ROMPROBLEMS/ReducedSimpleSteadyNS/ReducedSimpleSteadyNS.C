@@ -137,32 +137,21 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         volScalarField nu = problem->_laminarTransport().nu();
         fvVectorMatrix UEqn1
         (
-            fvm::div(phi, U)
-        );
-        fvVectorMatrix UEqn2
-        (
-            -fvm::laplacian(nu, U)
+            fvm::div(phi, U) - fvm::laplacian(nu, U) - fvc::div(nu * dev2(T(fvc::grad(U))))
         );
         UEqn1.relax();
-        //UEqn2.relax();
-        volScalarField A11 = A1() * onlineViscosity + UEqn1.A();
-        volVectorField H11 = H1() * onlineViscosity + UEqn1.H();
-        Info << sum(H1()*onlineViscosity - UEqn2.H())  << endl;
-        volScalarField A = UEqn2.A() + UEqn1.A();
-        volVectorField H = UEqn2.H() + UEqn1.H();
         List<Eigen::MatrixXd> RedLinSysU = ULmodes.project(UEqn1, UprojN);
 
-        for (int i = 0; i < ReducedOperators.size(); i++)
-        {
-            RedLinSysU[0] += onlineViscosity * ReducedOperators[i][0];
-            RedLinSysU[1] += onlineViscosity * ReducedOperators[i][1];
-        }
-
-        RedLinSysU[0] += onlineViscosity * redDivDev2;
+        // for (int i = 0; i < ReducedOperators.size(); i++)
+        // {
+        //     RedLinSysU[0] += onlineViscosity * ReducedOperators[i][0];
+        //     RedLinSysU[1] += onlineViscosity * ReducedOperators[i][1];
+        // }
+        //RedLinSysU[0] += onlineViscosity * redDivDev2;
         RedLinSysU[1] += redGradP * b;
         a = reducedProblem::solveLinearSys(RedLinSysU, a, uresidual, vel_now);
         ULmodes.reconstruct(U, a, "U");
-        volVectorField HbyA(constrainHbyA(1.0 / A * H, U, P));
+        volVectorField HbyA(constrainHbyA(1.0 / UEqn1.A() * UEqn1.H(), U, P));
         surfaceScalarField phiHbyA("phiHbyA", fvc::flux(HbyA));
         List<Eigen::MatrixXd> RedLinSysP;
 
@@ -170,7 +159,7 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         {
             fvScalarMatrix pEqn
             (
-                fvm::laplacian(1 / A, P) == fvc::div(phiHbyA)
+                fvm::laplacian(1 / UEqn1.A(), P) == fvc::div(phiHbyA)
             );
             RedLinSysP = problem->Pmodes.project(pEqn, PprojN);
             b = reducedProblem::solveLinearSys(RedLinSysP, b, presidual);
@@ -183,7 +172,7 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         }
 
         P.relax();
-        U = HbyA - 1.0 / A * fvc::grad(P);
+        U = HbyA - 1.0 / UEqn1.A() * fvc::grad(P);
         U.correctBoundaryConditions();
         uresidualOld = uresidualOld - uresidual;
         presidualOld = presidualOld - presidual;
@@ -322,10 +311,14 @@ void reducedSimpleSteadyNS::project(int nModesU, int nModesP)
     (
         - fvm::laplacian(nu, U)
     );
+    volVectorField A = UEqn.H();
+    U = ULmodes[0];
     fvVectorMatrix UEqn2
     (
         - fvm::laplacian(nu2, U)
     );
+    volVectorField A2 = UEqn.H();
+
     A1 = autoPtr < volScalarField >( new volScalarField(UEqn.A()));
     H1 = autoPtr < volVectorField >( new volVectorField(UEqn.H()));
     PtrList<volVectorField> gradP;

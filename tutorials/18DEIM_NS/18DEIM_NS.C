@@ -90,6 +90,7 @@ class tutorial18 : public SteadyNSSimple
                 mu_samples =
                     ITHACAstream::readMatrix("./ITHACAoutput/Offline/mu_samples_mat.txt");
             }
+
             else
             {
                 label BCind = 0;
@@ -118,21 +119,32 @@ class tutorial18red : public reducedSimpleSteadyNS
 
         DEIM_functionU* DEIMmatriceU;
         DEIM_functionP* DEIMmatriceP;
-        std::vector<Eigen::MatrixXd> ReducedMatricesA;
-        std::vector<Eigen::MatrixXd> ReducedVectorsB;
-        PtrList<volScalarField> pFieldsA;
-        PtrList<volVectorField> UFieldsA;
-        PtrList<surfaceScalarField> phiFieldsA;
-        PtrList<volScalarField> pFieldsB;
-        PtrList<volVectorField> UFieldsB;
-        PtrList<surfaceScalarField> phiFieldsB;
+        std::vector<Eigen::MatrixXd> ReducedMatricesA_U;
+        std::vector<Eigen::MatrixXd> ReducedVectorsB_U;
+        std::vector<Eigen::MatrixXd> ReducedMatricesA_p;
+        std::vector<Eigen::MatrixXd> ReducedVectorsB_p;
+        PtrList<volScalarField> pFieldsA_U;
+        PtrList<volVectorField> UFieldsA_U;
+        PtrList<surfaceScalarField> phiFieldsA_U;
+        PtrList<volScalarField> pFieldsB_U;
+        PtrList<volVectorField> UFieldsB_U;
+        PtrList<surfaceScalarField> phiFieldsB_U;
+        PtrList<volScalarField> pFieldsA_p;
+        PtrList<volVectorField> UFieldsA_p;
+        PtrList<surfaceScalarField> phiFieldsA_p;
+        PtrList<volScalarField> pFieldsB_p;
+        PtrList<volVectorField> UFieldsB_p;
+        PtrList<surfaceScalarField> phiFieldsB_p;
 
-        void PODDEIM(int NmodesT, int NmodesDEIMA, int NmodesDEIMB)
+        void PODDEIM(int NmodesU, int NmodesP, int NmodesDEIMAU, int NmodesDEIMBU,
+                     int NmodesDEIMAP,
+                     int NmodesDEIMBP)
         {
+            problem->Pmodes.toEigen();
             fvMesh& mesh  =  const_cast<fvMesh&>(problem->_U().mesh());
-            DEIMmatriceU = new DEIM_functionU(problem->Ulist, NmodesDEIMA, NmodesDEIMB,
+            DEIMmatriceU = new DEIM_functionU(problem->Ulist, NmodesDEIMAU, NmodesDEIMBU,
                                               "U_matrix");
-            DEIMmatriceP = new DEIM_functionP(problem->Plist, NmodesDEIMA, NmodesDEIMB,
+            DEIMmatriceP = new DEIM_functionP(problem->Plist, NmodesDEIMAP, NmodesDEIMBP,
                                               "P_matrix");
             DEIMmatriceU->generateSubmeshesMatrix(1, mesh,
                                                   problem->_U());
@@ -142,56 +154,112 @@ class tutorial18red : public reducedSimpleSteadyNS
                                                   problem->_p());
             DEIMmatriceP->generateSubmeshesVector(1, mesh,
                                                   problem->_p());
-            pFieldsA = DEIMmatriceU->generateSubFieldsMatrix(problem->_p());
-            UFieldsA = DEIMmatriceU->generateSubFieldsMatrix(problem->_U());
-            phiFieldsA = DEIMmatriceU->generateSubFieldsMatrix(problem->_phi());
-            pFieldsB = DEIMmatriceU->generateSubFieldsVector(problem->_p());
-            UFieldsB = DEIMmatriceU->generateSubFieldsVector(problem->_U());
-            phiFieldsB = DEIMmatriceU->generateSubFieldsVector(problem->_phi());
-            ReducedMatricesA.resize(NmodesDEIMA);
-            ReducedVectorsB.resize(NmodesDEIMB);
+            // U Eqn
+            pFieldsA_U = DEIMmatriceU->generateSubFieldsMatrix(problem->_p());
+            UFieldsA_U = DEIMmatriceU->generateSubFieldsMatrix(problem->_U());
+            phiFieldsA_U = DEIMmatriceU->generateSubFieldsMatrix(problem->_phi());
+            pFieldsB_U = DEIMmatriceU->generateSubFieldsVector(problem->_p());
+            UFieldsB_U = DEIMmatriceU->generateSubFieldsVector(problem->_U());
+            phiFieldsB_U = DEIMmatriceU->generateSubFieldsVector(problem->_phi());
+            // P Eqn
+            pFieldsA_p = DEIMmatriceP->generateSubFieldsMatrix(problem->_p());
+            UFieldsA_p = DEIMmatriceP->generateSubFieldsMatrix(problem->_U());
+            phiFieldsA_p = DEIMmatriceP->generateSubFieldsMatrix(problem->_phi());
+            pFieldsB_p = DEIMmatriceP->generateSubFieldsVector(problem->_p());
+            UFieldsB_p = DEIMmatriceP->generateSubFieldsVector(problem->_U());
+            phiFieldsB_p = DEIMmatriceP->generateSubFieldsVector(problem->_phi());
+            // reduced operators
+            ReducedMatricesA_U.resize(NmodesDEIMAU);
+            ReducedVectorsB_U.resize(NmodesDEIMBU);
+            ReducedMatricesA_p.resize(NmodesDEIMAP);
+            ReducedVectorsB_p.resize(NmodesDEIMBP);
 
-            for (int i = 0; i < NmodesDEIMA; i++)
+            // U
+            for (int i = 0; i < NmodesDEIMAU; i++)
             {
-                ReducedMatricesA[i] = ULmodes.EigenModes[0].leftCols(NmodesT).transpose() *
-                                      DEIMmatriceU->MatrixOnlineA[i] *
-                                      ULmodes.EigenModes[0].leftCols(NmodesT);
+                ReducedMatricesA_U[i] = ULmodes.EigenModes[0].leftCols(NmodesU).transpose() *
+                                        DEIMmatriceU->MatrixOnlineA[i] *
+                                        ULmodes.EigenModes[0].leftCols(NmodesU);
             }
 
-            for (int i = 0; i < NmodesDEIMB; i++)
+            for (int i = 0; i < NmodesDEIMBU; i++)
             {
-                ReducedVectorsB[i] = ULmodes.EigenModes[0].leftCols(NmodesT).transpose() *
-                                     DEIMmatriceU->MatrixOnlineB;
+                ReducedVectorsB_U[i] = ULmodes.EigenModes[0].leftCols(NmodesU).transpose() *
+                                       DEIMmatriceU->MatrixOnlineB;
+            }
+
+            // P
+            for (int i = 0; i < NmodesDEIMAP; i++)
+            {
+                ReducedMatricesA_p[i] = problem->Pmodes.EigenModes[0].leftCols(
+                                            NmodesP).transpose() *
+                                        DEIMmatriceP->MatrixOnlineA[i] *
+                                        problem->Pmodes.EigenModes[0].leftCols(NmodesP);
+            }
+
+            for (int i = 0; i < NmodesDEIMBP; i++)
+            {
+                ReducedVectorsB_p[i] = problem->Pmodes.EigenModes[0].leftCols(
+                                           NmodesP).transpose() *
+                                       DEIMmatriceP->MatrixOnlineB;
             }
         };
 
-        Eigen::MatrixXd onlineCoeffsAU()
+        Eigen::MatrixXd onlineCoeffsAU(volVectorField& U, surfaceScalarField& phi,
+                                       volScalarField& A, volVectorField& H)
         {
-            Eigen::MatrixXd theta(UFieldsA.size(), 1);
+            Eigen::MatrixXd theta(UFieldsA_U.size(), 1);
             volScalarField nueff = problem->_laminarTransport().nu();
+            fvVectorMatrix ueqn
+            (
+                fvm::div(phi, U) - fvm::laplacian(nueff,
+                                                  U) - fvc::div(nueff * dev2(T(fvc::grad(U))))
+            );
+            ueqn.relax();
+            A = ueqn.A();
+            H = ueqn.H();
+            Eigen::SparseMatrix<double> Mr;
+            Eigen::VectorXd br;
+            Foam2Eigen::fvMatrix2Eigen(ueqn, Mr, br);
 
-            for (int i = 0; i < UFieldsA.size(); i++)
+            for (int i = 0; i < UFieldsA_U.size(); i++)
             {
-                Eigen::SparseMatrix<double> Mr;
-                Eigen::VectorXd br;
-                fvVectorMatrix ueqn
-                (
-                    fvm::div(phiFieldsA[i], UFieldsA[i]) - fvm::laplacian(nueff,
-                            UFieldsA[i]) - fvc::div(nueff * dev2(T(fvc::grad(UFieldsA[i]))))
-                );
-                Foam2Eigen::fvMatrix2Eigen(ueqn, Mr, br);
-                int ind_row = DEIMmatriceU->localMagicPointsA[i].first() +
+                int ind_row = DEIMmatriceU->magicPointsA[i].first() +
                               DEIMmatriceU->xyz_A[i].first() *
-                              UFieldsA[i].size();
-                int ind_col = DEIMmatriceU->localMagicPointsA[i].second() +
+                              problem->_U().size();
+                int ind_col = DEIMmatriceU->magicPointsA[i].second() +
                               DEIMmatriceU->xyz_A[i].second() *
-                              UFieldsA[i].size();
+                              problem->_U().size();
                 theta(i) = Mr.coeffRef(ind_row, ind_col);
             }
 
             return theta;
         }
 
+        Eigen::MatrixXd onlineCoeffsBU(volVectorField& U, surfaceScalarField& phi)
+        {
+            Eigen::MatrixXd theta(UFieldsB_U.size(), 1);
+            volScalarField nueff = problem->_laminarTransport().nu();
+            fvVectorMatrix ueqn
+            (
+                fvm::div(phi, U) - fvm::laplacian(nueff,
+                                                  U) - fvc::div(nueff * dev2(T(fvc::grad(U))))
+            );
+            ueqn.relax();
+            Eigen::SparseMatrix<double> Mr;
+            Eigen::VectorXd br;
+            Foam2Eigen::fvMatrix2Eigen(ueqn, Mr, br);
+
+            for (int i = 0; i < UFieldsB_U.size(); i++)
+            {
+                int ind_row = DEIMmatriceU->magicPointsB[i] +
+                              DEIMmatriceU->xyz_B[i] *
+                              problem->_U().size();
+                theta(i) = br(ind_row);
+            }
+
+            return theta;
+        }
 
 
         fvVectorMatrix Ueqn(volVectorField& U, surfaceScalarField& phi)
@@ -202,6 +270,157 @@ class tutorial18red : public reducedSimpleSteadyNS
                 fvm::div(phi, U)
             );
             return ueqn;
+        }
+
+        void solveOnline_Simple(scalar mu_now,
+                                int NmodesUproj, int NmodesPproj, int NmodesSup, word Folder)
+        {
+            ULmodes.resize(0);
+
+            for (int i = 0; i < problem->inletIndex.rows(); i++)
+            {
+                ULmodes.append(problem->liftfield[i]);
+            }
+
+            for (int i = 0; i < NmodesUproj; i++)
+            {
+                ULmodes.append(problem->Umodes.toPtrList()[i]);
+            }
+
+            for (int i = 0; i < NmodesSup; i++)
+            {
+                ULmodes.append(problem->supmodes.toPtrList()[i]);
+            }
+
+            counter++;
+            scalar UprojN;
+            scalar PprojN;
+
+            if (NmodesUproj == 0)
+            {
+                UprojN = ULmodes.size();
+            }
+
+            else
+            {
+                UprojN = NmodesUproj + NmodesSup;
+            }
+
+            if (NmodesPproj == 0)
+            {
+                PprojN = problem->Pmodes.size();
+            }
+
+            else
+            {
+                PprojN = NmodesPproj;
+            }
+
+            Eigen::VectorXd uresidualOld = Eigen::VectorXd::Zero(UprojN);
+            Eigen::VectorXd presidualOld = Eigen::VectorXd::Zero(PprojN);
+            Eigen::VectorXd uresidual = Eigen::VectorXd::Zero(UprojN);
+            Eigen::VectorXd presidual = Eigen::VectorXd::Zero(PprojN);
+            scalar U_norm_res(1);
+            scalar P_norm_res(1);
+            Eigen::MatrixXd a = Eigen::VectorXd::Zero(UprojN);
+            Eigen::MatrixXd b = Eigen::VectorXd::Zero(PprojN);
+            a(0) = vel_now(0, 0);
+            ITHACAparameters para;
+            float residualJumpLim =
+                para.ITHACAdict->lookupOrDefault<float>("residualJumpLim", 1e-5);
+            float normalizedResidualLim =
+                para.ITHACAdict->lookupOrDefault<float>("normalizedResidualLim", 1e-5);
+            scalar residual_jump(1 + residualJumpLim);
+            problem->restart();
+            volScalarField& P = problem->_p();
+            volVectorField& U = problem->_U();
+            P.rename("p");
+            surfaceScalarField& phi = problem->_phi();
+            phi = fvc::interpolate(U) & U.mesh().Sf();
+            int iter = 0;
+            simpleControl& simple = problem->_simple();
+
+            while (residual_jump > residualJumpLim
+                    || std::max(U_norm_res, P_norm_res) > normalizedResidualLim)
+            {
+                iter++;
+                P.storePrevIter();
+                volScalarField nu = problem->_laminarTransport().nu();
+                fvVectorMatrix UEqn1
+                (
+                    fvm::div(phi, U) - fvm::laplacian(nu, U) - fvc::div(nu * dev2(T(fvc::grad(U))))
+                );
+                UEqn1.relax();
+                List<Eigen::MatrixXd> RedLinSysU = ULmodes.project(UEqn1, UprojN);
+                volVectorField H = UEqn1.H();
+                volScalarField A = UEqn1.A();
+                Eigen::MatrixXd thetaonAU = onlineCoeffsAU(U, phi, A, H);
+                Eigen::MatrixXd thetaonBU = onlineCoeffsBU(U, phi);
+                RedLinSysU[0] = EigenFunctions::MVproduct(ReducedMatricesA_U, thetaonAU);
+                RedLinSysU[1] = EigenFunctions::MVproduct(ReducedVectorsB_U, thetaonBU);
+                // for (int i = 0; i < ReducedOperators.size(); i++)
+                // {
+                //     RedLinSysU[0] += onlineViscosity * ReducedOperators[i][0];
+                //     RedLinSysU[1] += onlineViscosity * ReducedOperators[i][1];
+                // }
+                //RedLinSysU[0] += onlineViscosity * redDivDev2;
+                RedLinSysU[1] += redGradP * b;
+                a = reducedProblem::solveLinearSys(RedLinSysU, a, uresidual, vel_now);
+                ULmodes.reconstruct(U, a, "U");
+                volVectorField HbyA(constrainHbyA(1.0 / A * H, U, P));
+                surfaceScalarField phiHbyA("phiHbyA", fvc::flux(HbyA));
+                List<Eigen::MatrixXd> RedLinSysP;
+
+                while (simple.correctNonOrthogonal())
+                {
+                    fvScalarMatrix pEqn
+                    (
+                        fvm::laplacian(1 / A, P) == fvc::div(phiHbyA)
+                    );
+                    RedLinSysP = problem->Pmodes.project(pEqn, PprojN);
+                    b = reducedProblem::solveLinearSys(RedLinSysP, b, presidual);
+                    problem->Pmodes.reconstruct(P, b, "p");
+
+                    if (simple.finalNonOrthogonalIter())
+                    {
+                        phi = phiHbyA - pEqn.flux();
+                    }
+                }
+
+                P.relax();
+                U = HbyA - 1.0 / A * fvc::grad(P);
+                U.correctBoundaryConditions();
+                uresidualOld = uresidualOld - uresidual;
+                presidualOld = presidualOld - presidual;
+                uresidualOld = uresidualOld.cwiseAbs();
+                presidualOld = presidualOld.cwiseAbs();
+                residual_jump = std::max(uresidualOld.sum(), presidualOld.sum());
+                uresidualOld = uresidual;
+                presidualOld = presidual;
+                uresidual = uresidual.cwiseAbs();
+                presidual = presidual.cwiseAbs();
+                U_norm_res = uresidual.sum() / (RedLinSysU[1].cwiseAbs()).sum();
+                P_norm_res = presidual.sum() / (RedLinSysP[1].cwiseAbs()).sum();
+
+                if (para.debug)
+                {
+                    std::cout << "Residual jump = " << residual_jump << std::endl;
+                    std::cout << "Normalized residual = " << std::max(U_norm_res,
+                              P_norm_res) << std::endl;
+                }
+            }
+
+            std::cout << "Solution " << counter << " converged in " << iter <<
+                      " iterations." << std::endl;
+            std::cout << "Final normalized residual for velocity: " << U_norm_res <<
+                      std::endl;
+            std::cout << "Final normalized residual for pressure: " << P_norm_res <<
+                      std::endl;
+            ULmodes.reconstruct(U, a, "Uaux");
+            P.rename("Paux");
+            problem->Pmodes.reconstruct(P, b, "Paux");
+            ITHACAstream::exportSolution(U, name(counter), Folder);
+            ITHACAstream::exportSolution(P, name(counter), Folder);
         }
 
 };
@@ -230,7 +449,6 @@ int main(int argc, char* argv[])
     example.liftfield[0].rename("Ulift0");
     //ITHACAutilities::changeBCtype(example.liftfield[0],"fixedValue",0);
     ITHACAstream::exportSolution(example.liftfield[0], "0", "./");
-
     // Homogenize the snapshots
     example.computeLift(example.Ufield, example.liftfield, example.Uomfield);
     // Perform POD on velocity and pressure and store the first 10 modes
@@ -241,17 +459,8 @@ int main(int argc, char* argv[])
     // Create the reduced object
     tutorial18red reduced(example);
     // Compute the offline part of the DEIM procedure
-    reduced.PODDEIM(10, 20, 1);
-    // Info << reduced.DEIMmatriceU->submeshListA.size() << endl;
-    // Info << example.phi.size() << endl;
-    // auto phi = reduced.DEIMmatriceU->generateSubFieldsMatrix(example.phi);
-    // auto U = reduced.DEIMmatriceU->generateSubFieldsMatrix(example.U);
-    // std::cerr << "debug point 1" << std::endl;
-    // fvVectorMatrix UR = reduced.Ueqn(U[0],phi[0]);
-    // std::cerr << "debug point 1" << std::endl;
-    // Info << UR << endl;
-    // exit(0);
-    reduced.project(NmodesUproj, NmodesPproj);
+    reduced.PODDEIM(10, 10, 20, 1, 20, 20);
+    reduced.project(10, 10);
     //reduced.project(NmodesUproj, NmodesPproj);
     PtrList<volVectorField> U_rec_list;
     PtrList<volScalarField> P_rec_list;
@@ -266,7 +475,7 @@ int main(int argc, char* argv[])
         example.change_viscosity(mu_now);
         reduced.onlineViscosity = mu_now;
         reduced.setOnlineVelocity(vel);
-        reduced.solveOnline_Simple(mu_now, NmodesUproj, NmodesPproj, 0,
+        reduced.solveOnline_Simple(mu_now, 10, 10, 0,
                                    "./ITHACAoutput/Offline/");
     }
 

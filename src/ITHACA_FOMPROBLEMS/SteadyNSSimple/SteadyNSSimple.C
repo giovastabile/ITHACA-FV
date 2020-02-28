@@ -44,7 +44,6 @@ SteadyNSSimple::SteadyNSSimple(int argc, char* argv[])
     :
     steadyNS(argc, argv)
 {
-    Info << offline << endl;
 }
 
 fvVectorMatrix SteadyNSSimple::get_Umatrix(volVectorField& U,
