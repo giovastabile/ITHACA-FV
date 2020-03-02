@@ -174,10 +174,12 @@ DEIM<T>::DEIM (PtrList<T>& s, int MaxModesA, int MaxModesB, word MatrixName)
     if (MaxModesB == 1 && std::get<1>(Matrix_Modes)[0].norm() < 1e-8)
     {
         MatrixOnlineB = Eigen::MatrixXd::Zero(std::get<1>(Matrix_Modes)[0].rows(), 1);
+        std::cerr << "debug point 1" << std::endl;
     }
     else if (MaxModesB != 1)
     {
         MatrixOnlineB = UB * ((PB.transpose() * UB).inverse());
+        std::cerr << "debug point 2" << std::endl;
     }
     else
     {

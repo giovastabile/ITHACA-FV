@@ -120,9 +120,9 @@ class tutorial18red : public reducedSimpleSteadyNS
         DEIM_functionU* DEIMmatriceU;
         DEIM_functionP* DEIMmatriceP;
         std::vector<Eigen::MatrixXd> ReducedMatricesA_U;
-        std::vector<Eigen::MatrixXd> ReducedVectorsB_U;
+        Eigen::MatrixXd ReducedVectorsB_U;
         std::vector<Eigen::MatrixXd> ReducedMatricesA_p;
-        std::vector<Eigen::MatrixXd> ReducedVectorsB_p;
+        Eigen::MatrixXd ReducedVectorsB_p;
         PtrList<volScalarField> pFieldsA_U;
         PtrList<volVectorField> UFieldsA_U;
         PtrList<surfaceScalarField> phiFieldsA_U;
@@ -170,9 +170,8 @@ class tutorial18red : public reducedSimpleSteadyNS
             phiFieldsB_p = DEIMmatriceP->generateSubFieldsVector(problem->_phi());
             // reduced operators
             ReducedMatricesA_U.resize(NmodesDEIMAU);
-            ReducedVectorsB_U.resize(NmodesDEIMBU);
             ReducedMatricesA_p.resize(NmodesDEIMAP);
-            ReducedVectorsB_p.resize(NmodesDEIMBP);
+            
 
             // U
             for (int i = 0; i < NmodesDEIMAU; i++)
@@ -182,11 +181,8 @@ class tutorial18red : public reducedSimpleSteadyNS
                                         ULmodes.EigenModes[0].leftCols(NmodesU);
             }
 
-            for (int i = 0; i < NmodesDEIMBU; i++)
-            {
-                ReducedVectorsB_U[i] = ULmodes.EigenModes[0].leftCols(NmodesU).transpose() *
-                                       DEIMmatriceU->MatrixOnlineB;
-            }
+            ReducedVectorsB_U = ULmodes.EigenModes[0].leftCols(NmodesU).transpose() *
+                                DEIMmatriceU->MatrixOnlineB;
 
             // P
             for (int i = 0; i < NmodesDEIMAP; i++)
@@ -197,12 +193,9 @@ class tutorial18red : public reducedSimpleSteadyNS
                                         problem->Pmodes.EigenModes[0].leftCols(NmodesP);
             }
 
-            for (int i = 0; i < NmodesDEIMBP; i++)
-            {
-                ReducedVectorsB_p[i] = problem->Pmodes.EigenModes[0].leftCols(
-                                           NmodesP).transpose() *
-                                       DEIMmatriceP->MatrixOnlineB;
-            }
+            ReducedVectorsB_p = problem->Pmodes.EigenModes[0].leftCols(
+                                    NmodesP).transpose() *
+                                DEIMmatriceP->MatrixOnlineB;
         };
 
         Eigen::MatrixXd onlineCoeffsAU(volVectorField& U, surfaceScalarField& phi,
@@ -260,6 +253,62 @@ class tutorial18red : public reducedSimpleSteadyNS
 
             return theta;
         }
+
+
+
+        Eigen::MatrixXd onlineCoeffsAP(volVectorField& U, volScalarField& P,
+                                       volScalarField& A, volVectorField& H)
+        {
+            volVectorField HbyA(constrainHbyA(1.0 / A * H, U, P));
+            surfaceScalarField phiHbyA("phiHbyA", fvc::flux(HbyA));
+            Eigen::MatrixXd theta(UFieldsA_p.size(), 1);
+            fvScalarMatrix pEqn
+            (
+                fvm::laplacian(1 / A, P) == fvc::div(phiHbyA)
+            );
+            Eigen::SparseMatrix<double> Mr;
+            Eigen::VectorXd br;
+            Foam2Eigen::fvMatrix2Eigen(pEqn, Mr, br);
+
+            for (int i = 0; i < pFieldsA_p.size(); i++)
+            {
+                int ind_row = DEIMmatriceP->magicPointsA[i].first() +
+                              DEIMmatriceP->xyz_A[i].first() *
+                              problem->_p().size();
+                int ind_col = DEIMmatriceP->magicPointsA[i].second() +
+                              DEIMmatriceP->xyz_A[i].second() *
+                              problem->_p().size();
+                theta(i) = Mr.coeffRef(ind_row, ind_col);
+            }
+
+            return theta;
+        }
+
+        Eigen::MatrixXd onlineCoeffsBP(volVectorField& U, volScalarField& P,
+                                       volScalarField& A, volVectorField& H)
+        {
+            volVectorField HbyA(constrainHbyA(1.0 / A * H, U, P));
+            surfaceScalarField phiHbyA("phiHbyA", fvc::flux(HbyA));
+            Eigen::MatrixXd theta(pFieldsB_p.size(), 1);
+            fvScalarMatrix pEqn
+            (
+                fvm::laplacian(1 / A, P) == fvc::div(phiHbyA)
+            );
+            Eigen::SparseMatrix<double> Mr;
+            Eigen::VectorXd br;
+            Foam2Eigen::fvMatrix2Eigen(pEqn, Mr, br);
+
+            for (int i = 0; i < pFieldsB_p.size(); i++)
+            {
+                int ind_row = DEIMmatriceP->magicPointsB[i] +
+                              DEIMmatriceP->xyz_B[i] *
+                              problem->_p().size();
+                theta(i) = br(ind_row);
+            }
+
+            return theta;
+        }
+
 
 
         fvVectorMatrix Ueqn(volVectorField& U, surfaceScalarField& phi)
@@ -357,7 +406,8 @@ class tutorial18red : public reducedSimpleSteadyNS
                 Eigen::MatrixXd thetaonAU = onlineCoeffsAU(U, phi, A, H);
                 Eigen::MatrixXd thetaonBU = onlineCoeffsBU(U, phi);
                 RedLinSysU[0] = EigenFunctions::MVproduct(ReducedMatricesA_U, thetaonAU);
-                RedLinSysU[1] = EigenFunctions::MVproduct(ReducedVectorsB_U, thetaonBU);
+                RedLinSysU[1] = ReducedVectorsB_U*thetaonBU;
+                //RedLinSysU[1] = ReducedVectorsB_U*thetaonBU;
                 // for (int i = 0; i < ReducedOperators.size(); i++)
                 // {
                 //     RedLinSysU[0] += onlineViscosity * ReducedOperators[i][0];
@@ -373,11 +423,15 @@ class tutorial18red : public reducedSimpleSteadyNS
 
                 while (simple.correctNonOrthogonal())
                 {
+                    Eigen::MatrixXd thetaonAP = onlineCoeffsAP(U, P, A, H);
+                    Eigen::MatrixXd thetaonBP = onlineCoeffsBP(U, P, A, H);
                     fvScalarMatrix pEqn
                     (
                         fvm::laplacian(1 / A, P) == fvc::div(phiHbyA)
                     );
                     RedLinSysP = problem->Pmodes.project(pEqn, PprojN);
+                    // RedLinSysP[0] = EigenFunctions::MVproduct(ReducedMatricesA_p, thetaonAP);
+                    // RedLinSysP[1] = ReducedVectorsB_p*thetaonBP;
                     b = reducedProblem::solveLinearSys(RedLinSysP, b, presidual);
                     problem->Pmodes.reconstruct(P, b, "p");
 
