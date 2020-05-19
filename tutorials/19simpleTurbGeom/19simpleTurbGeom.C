@@ -65,7 +65,7 @@ class tutorial19 : public SteadyNSSimple
         List<vector> curX;
 
         /// Perform an Offline solve
-        void offlineSolve(Eigen::MatrixXd Box, List<label> patches)
+        void offlineSolve(Eigen::MatrixXd Box, List<label> patches, word folder = "./ITHACAoutput/Offline/")
         {
             Vector<double> inl(0, 0, 0);
             List<scalar> mu_now(1);
@@ -73,15 +73,15 @@ class tutorial19 : public SteadyNSSimple
             // if the offline solution is already performed read the fields
             if (offline && ITHACAutilities::isTurbulent())
             {
-                ITHACAstream::readMiddleFields(Ufield, U, "./ITHACAoutput/Offline/");
-                ITHACAstream::readMiddleFields(Pfield, p, "./ITHACAoutput/Offline/");
+                ITHACAstream::readMiddleFields(Ufield, U, folder);
+                ITHACAstream::readMiddleFields(Pfield, p, folder);
                 auto nut = _mesh().lookupObject<volScalarField>("nut");
-                ITHACAstream::readConvergedFields(nutFields, nut, "./ITHACAoutput/Offline/");
+                ITHACAstream::readConvergedFields(nutFields, nut, folder);
             }
             else if (offline)
             {
-                ITHACAstream::read_fields(Ufield, U, "./ITHACAoutput/Offline/");
-                ITHACAstream::read_fields(Pfield, p, "./ITHACAoutput/Offline/");
+                ITHACAstream::read_fields(Ufield, U, folder);
+                ITHACAstream::read_fields(Pfield, p, folder);
             }
             else
             {
@@ -103,17 +103,17 @@ class tutorial19 : public SteadyNSSimple
 
                     Field<vector> curXV(curX);
                     _mesh().movePoints(curXV);
-                    ITHACAstream::writePoints(_mesh().points(), "./ITHACAoutput/Offline/",
+                    ITHACAstream::writePoints(_mesh().points(), folder,
                                               name(i + 1) + "/polyMesh/");
                     assignIF(U, Uinl);
-                    truthSolve2(mu_now);
+                    truthSolve2(mu_now,folder);
                     int middleF = 1;
 
-                    while (ITHACAutilities::check_folder("./ITHACAoutput/Offline/" + name(
+                    while (ITHACAutilities::check_folder(folder + name(
                             i + 1) + "/" + name(middleF)))
                     {
-                        word command("ln -s  $(readlink -f ./ITHACAoutput/Offline/" + name(
-                                         i + 1) + "/polyMesh/) ./ITHACAoutput/Offline/" + name(i + 1) + "/" + name(
+                        word command("ln -s  $(readlink -f " + folder + name(
+                                         i + 1) + "/polyMesh/) " + folder + name(i + 1) + "/" + name(
                                          middleF) + "/" + " >/dev/null 2>&1");
                         std::cout.setstate(std::ios_base::failbit);
                         system(command);
@@ -244,9 +244,8 @@ int main(int argc, char* argv[])
     Eigen::MatrixXd vel = ITHACAstream::readMatrix(vel_file);
     // Set the maximum iterations number for the online phase
     reduced.maxIterOn = para->ITHACAdict->lookupOrDefault<int>("maxIterOn", 2000);
-
     //Perform the online solutions
-    for (label k = 0; k < angOn.size(); k++)
+    for (label k = 0; k < angOn.rows(); k++)
     {
         scalar mu_now = angOn(k, 0);
         example.restart();
@@ -259,12 +258,10 @@ int main(int argc, char* argv[])
             labelList boxIndices = ITHACAutilities::getIndicesFromBox(example._mesh(),
                                    movPat, Box, points2Move);
             example.linearMovePts(mu_now, points2Move);
-
             for (int j = 0; j < boxIndices.size(); j++)
             {
                 example.curX[boxIndices[j]] = points2Move[j];
             }
-
             Field<vector> curXV(example.curX);
             example._mesh().movePoints(curXV);
             ITHACAstream::writePoints(example._mesh().points(),
@@ -290,9 +287,54 @@ int main(int argc, char* argv[])
             ITHACAstream::writePoints(example._mesh().points(),
                                       "./ITHACAoutput/Reconstruct/", name(k + 1) + "/polyMesh/");
             reduced.solveOnline_Simple(mu_now, example.NUmodes, example.NPmodes,
-                                       example.NNutModes);
+                                      example.NNutModes);
         }
     }
+
+    // Error analysis
+    tutorial19 checkOff(argc, argv);
+    if(!ITHACAutilities::check_folder("./ITHACAoutput/checkOff"))
+    {
+        checkOff.restart();
+        ITHACAparameters* para = ITHACAparameters::getInstance(checkOff._mesh(),
+                             checkOff._runTime());
+        checkOff.offline = false;
+        checkOff.mu = angOn;
+        checkOff.offlineSolve(Box,movPat,"./ITHACAoutput/checkOff/");
+        checkOff.offline = true;
+    }
+    PtrList<volVectorField> Ufull;
+    PtrList<volScalarField> Pfull;
+    PtrList<volVectorField> Ured;
+    PtrList<volScalarField> Pred;
+    volVectorField Uaux("Uaux", checkOff.U);
+    volScalarField Paux("Paux", checkOff.p);
+
+    ITHACAstream::readConvergedFields(Ufull, checkOff.U, "./ITHACAoutput/checkOff/");
+    ITHACAstream::readConvergedFields(Pfull, checkOff.p, "./ITHACAoutput/checkOff/");
+    ITHACAstream::read_fields(Ured, Uaux, "./ITHACAoutput/Reconstruct/");
+    ITHACAstream::read_fields(Pred, Paux, "./ITHACAoutput/Reconstruct/");
+
+    Eigen::MatrixXd relErrorU(Ufull.size(), 1);
+    Eigen::MatrixXd relErrorP(Pfull.size(), 1);
+
+    dimensionedVector U_fs("U_fs", dimVelocity, vector(1, 0, 0));
+
+    for (label k = 0; k < Ufull.size(); k++)
+    {
+        volVectorField errorU = Ufull[k] - Ured[k];
+        volVectorField devU = Ufull[k] - U_fs;
+        volScalarField errorP = Pfull[k] - Pred[k];
+        relErrorU(k, 0) = ITHACAutilities::frobNorm(errorU) /
+                       ITHACAutilities::frobNorm(devU);
+        relErrorP(k, 0) = ITHACAutilities::frobNorm(errorP) /
+                       ITHACAutilities::frobNorm(Pfull[k]);
+    }
+
+    ITHACAstream::exportMatrix(relErrorU,
+                           "errorU_" + name(example.NUmodes) + "_" + name(example.NPmodes), "python", ".");
+    ITHACAstream::exportMatrix(relErrorP,
+                           "errorP_" + name(example.NUmodes) + "_" + name(example.NPmodes), "python", ".");
 
     exit(0);
 }
