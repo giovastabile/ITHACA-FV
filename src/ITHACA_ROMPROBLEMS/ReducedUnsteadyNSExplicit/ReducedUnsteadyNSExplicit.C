@@ -198,7 +198,10 @@ if (problem->ExplicitMethod == "Ales")
         {
             U_rec += Umodes[j] * a_o(j);
         }
-
+    Vector<double> inl(1, 0, 0);
+    Info << U_rec.boundaryField() << endl;
+    // ITHACAutilities::changeBCtype(U_rec,"fixedValue",0);
+    // ITHACAutilities::assignBC(U_rec,0,inl);
 	//volVectorField U_rec("U_rec", problem->Ufield[i]);
 	ITHACAstream::exportSolution(U_rec , name(i), "./ITHACAoutput/intersol");
 	
@@ -214,15 +217,17 @@ if (problem->ExplicitMethod == "Ales")
         {
             U_rec2 += Umodes[j] * a_o(j);
         }
+    Vector<double> v0(0, 0, 0);
+    ITHACAutilities::changeBCtype(U_rec2,"fixedValue",0);
+    ITHACAutilities::assignBC(U_rec2,0,v0);
 	//volVectorField U_rec2("U_rec", problem->Ufield[i]);
-	Vector<double> v0(0, 0, 0);
 	//ITHACAutilities::changeBCtype( U_rec2,"fixedValue",1);
 	//ITHACAutilities::assignBC( U_rec2,1,v0);
 	ITHACAstream::exportSolution(U_rec2 , name(i), "./ITHACAoutput/intersol");
 
-	Vector<double> inl(1, 0, 0);
-	volVectorField U0("U0",problem->_Ub());
-	ITHACAutilities::assignBC( U0,0,inl);
+	volVectorField U0("U0",problem->_U());
+	ITHACAutilities::assignBC(U0,0,inl);
+    ITHACAutilities::assignIF(U0,v0);
 	ITHACAutilities::changeBCtype( U0,"fixedValue",1);
 	ITHACAutilities::assignBC( U0,1,v0);
 	ITHACAstream::exportSolution(U0 , name(i), "./ITHACAoutput/intersol");
@@ -242,7 +247,6 @@ if (problem->ExplicitMethod == "Ales")
 				);
 
 	ITHACAstream::exportSolution(U2aux , name(i), "./ITHACAoutput/intersol");
-
   	volVectorField Uout("Uout", problem->_U());
 	Uout =  U2aux-U1aux;
 	ITHACAstream::exportSolution(Uout , name(i), "./ITHACAoutput/intersol");
