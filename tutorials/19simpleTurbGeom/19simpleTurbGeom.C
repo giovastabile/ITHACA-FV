@@ -43,22 +43,10 @@ class tutorial19 : public SteadyNSSimple
         explicit tutorial19(int argc, char* argv[])
             :
             SteadyNSSimple(argc, argv),
-            U(_U()),
-            p(_p()),
-            phi(_phi()),
-            mesh(_mesh()),
-            curX(mesh.points()),
-            point0(mesh.points())
+            curX(_mesh().points()),
+            point0(_mesh().points())
         {}
 
-        /// Velocity field
-        volVectorField& U;
-        /// Pressure field
-        volScalarField& p;
-        /// Flux field
-        surfaceScalarField& phi;
-        /// The mesh
-        fvMesh& mesh;
         /// Initial coordinates of the grid points
         vectorField point0;
         /// List to store the moved coordinates
@@ -73,15 +61,16 @@ class tutorial19 : public SteadyNSSimple
             // if the offline solution is already performed read the fields
             if (offline && ITHACAutilities::isTurbulent())
             {
-                ITHACAstream::readMiddleFields(Ufield, U, folder);
-                ITHACAstream::readMiddleFields(Pfield, p, folder);
+
+                ITHACAstream::readMiddleFields(Ufield, _U(), folder);
+                ITHACAstream::readMiddleFields(Pfield, _p(), folder);
                 auto nut = _mesh().lookupObject<volScalarField>("nut");
                 ITHACAstream::readConvergedFields(nutFields, nut, folder);
             }
             else if (offline)
             {
-                ITHACAstream::read_fields(Ufield, U, folder);
-                ITHACAstream::read_fields(Pfield, p, folder);
+                ITHACAstream::read_fields(Ufield, _U(), folder);
+                ITHACAstream::read_fields(Pfield, _p(), folder);
             }
             else
             {
@@ -95,17 +84,17 @@ class tutorial19 : public SteadyNSSimple
                                            points2Move);
                     mu_now[0] = mu(i, 0);
                     linearMovePts(mu_now[0], points2Move);
-
                     for (int j = 0; j < boxIndices.size(); j++)
                     {
                         curX[boxIndices[j]] = points2Move[j];
                     }
-
                     Field<vector> curXV(curX);
                     _mesh().movePoints(curXV);
                     ITHACAstream::writePoints(_mesh().points(), folder,
                                               name(i + 1) + "/polyMesh/");
-                    assignIF(U, Uinl);
+                    std::cerr << "debug point 11" << std::endl;
+                    ITHACAutilities::assignIF(_U(), Uinl);
+                    std::cerr << "debug point 12" << std::endl;
                     truthSolve2(mu_now,folder);
                     int middleF = 1;
 
@@ -200,7 +189,7 @@ int main(int argc, char* argv[])
     example.maxIter = para->ITHACAdict->lookupOrDefault<int>("maxIter", 2000);
     // Perform the offline solve
     example.offlineSolve(Box, movPat);
-    ITHACAstream::read_fields(example.liftfield, example.U, "./lift/");
+    ITHACAstream::read_fields(example.liftfield, example._U(), "./lift/");
     // Homogenize the snapshots
     example.computeLift(example.Ufield, example.liftfield, example.Uomfield);
     // Move the mesh to a middle configuration
@@ -303,15 +292,16 @@ int main(int argc, char* argv[])
         checkOff.offlineSolve(Box,movPat,"./ITHACAoutput/checkOff/");
         checkOff.offline = true;
     }
+
     PtrList<volVectorField> Ufull;
     PtrList<volScalarField> Pfull;
     PtrList<volVectorField> Ured;
     PtrList<volScalarField> Pred;
-    volVectorField Uaux("Uaux", checkOff.U);
-    volScalarField Paux("Paux", checkOff.p);
+    volVectorField Uaux("Uaux", checkOff._U());
+    volScalarField Paux("Paux", checkOff._p());
 
-    ITHACAstream::readConvergedFields(Ufull, checkOff.U, "./ITHACAoutput/checkOff/");
-    ITHACAstream::readConvergedFields(Pfull, checkOff.p, "./ITHACAoutput/checkOff/");
+    ITHACAstream::readConvergedFields(Ufull, checkOff._U(), "./ITHACAoutput/checkOff/");
+    ITHACAstream::readConvergedFields(Pfull, checkOff._p(), "./ITHACAoutput/checkOff/");
     ITHACAstream::read_fields(Ured, Uaux, "./ITHACAoutput/Reconstruct/");
     ITHACAstream::read_fields(Pred, Paux, "./ITHACAoutput/Reconstruct/");
 

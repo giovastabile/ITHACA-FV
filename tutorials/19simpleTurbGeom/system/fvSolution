@@ -57,7 +57,7 @@ relaxationFactors
 {
     fields
     {
-        p               0.3;
+        p               0.1;
     }
     equations
     {
@@ -97,7 +97,7 @@ PIMPLE
 SIMPLE
 {
     nNonOrthogonalCorrectors 0;
-    consistent      true;
+    consistent      false;
     nOuterCorrectors    2;
     nCorrectors         2;
     pRefCell        0;
@@ -114,7 +114,7 @@ relaxationFactors
 {
     equations
     {
-        U               0.9; // 0.9 is more stable but 0.95 more convergent
+        U               0.7; // 0.9 is more stable but 0.95 more convergent
         ".*"            0.9; // 0.9 is more stable but 0.95 more convergent
     }
 }
