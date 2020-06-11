@@ -96,7 +96,7 @@ PIMPLE
 }
 SIMPLE
 {
-    nNonOrthogonalCorrectors 0;
+    nNonOrthogonalCorrectors 2;
     consistent      false;
     nOuterCorrectors    2;
     nCorrectors         2;

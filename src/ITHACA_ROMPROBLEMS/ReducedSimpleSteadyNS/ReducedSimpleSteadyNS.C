@@ -161,8 +161,8 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
 
     projGradModP = ULmodes.project(gradModP, NmodesUproj);
 
-    while (residual_jump > residualJumpLim
-            || std::max(U_norm_res, P_norm_res) > normalizedResidualLim && iter < maxIterOn)
+    while ((residual_jump > residualJumpLim
+            || std::max(U_norm_res, P_norm_res) > normalizedResidualLim) && iter < maxIterOn)
     {
         iter++;
 #if OFVER == 6
@@ -233,7 +233,10 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
             std::cout << "Residual jump = " << residual_jump << std::endl;
             std::cout << "Normalized residual = " << std::max(U_norm_res,
                       P_norm_res) << std::endl;
+            std::cout << "Final normalized residual for velocity: " << U_norm_res << std::endl;
+            std::cout << "Final normalized residual for pressure: " << P_norm_res << std::endl;
         }
+        //problem->turbulence->correct();
     }
 
     std::cout << "Solution " << counter << " converged in " << iter <<

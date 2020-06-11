@@ -92,9 +92,7 @@ class tutorial19 : public SteadyNSSimple
                     _mesh().movePoints(curXV);
                     ITHACAstream::writePoints(_mesh().points(), folder,
                                               name(i + 1) + "/polyMesh/");
-                    std::cerr << "debug point 11" << std::endl;
                     ITHACAutilities::assignIF(_U(), Uinl);
-                    std::cerr << "debug point 12" << std::endl;
                     truthSolve2(mu_now,folder);
                     int middleF = 1;
 
@@ -190,6 +188,7 @@ int main(int argc, char* argv[])
     // Perform the offline solve
     example.offlineSolve(Box, movPat);
     ITHACAstream::read_fields(example.liftfield, example._U(), "./lift/");
+    ITHACAutilities::normalizeFields(example.liftfield);
     // Homogenize the snapshots
     example.computeLift(example.Ufield, example.liftfield, example.Uomfield);
     // Move the mesh to a middle configuration
@@ -302,22 +301,44 @@ int main(int argc, char* argv[])
 
     ITHACAstream::readConvergedFields(Ufull, checkOff._U(), "./ITHACAoutput/checkOff/");
     ITHACAstream::readConvergedFields(Pfull, checkOff._p(), "./ITHACAoutput/checkOff/");
+    // ITHACAstream::read_fields(Ufull, checkOff._U(), "./ITHACAoutput/checkOff/");
+    // ITHACAstream::read_fields(Pfull, checkOff._p(), "./ITHACAoutput/checkOff/");
     ITHACAstream::read_fields(Ured, Uaux, "./ITHACAoutput/Reconstruct/");
     ITHACAstream::read_fields(Pred, Paux, "./ITHACAoutput/Reconstruct/");
 
+    // PtrList<volVectorField> projectedU = reduced.ULmodes.projectSnapshots(Ufull, example.NUmodes, "Frobenius");
+    // PtrList<volScalarField> projectedP = example.Pmodes.projectSnapshots(Pfull, example.NPmodes, "Frobenius");
+
+    Eigen::MatrixXd coeffU = ITHACAutilities::getCoeffs(Ufull, reduced.ULmodes, example.NUmodes,false);
+    Eigen::MatrixXd coeffP = ITHACAutilities::getCoeffs(Pfull, example.Pmodes, example.NPmodes,false);
+    PtrList<volVectorField> projectedU = ITHACAutilities::reconstructFromCoeff(reduced.ULmodes, coeffU, example.NUmodes);
+    PtrList<volScalarField> projectedP = ITHACAutilities::reconstructFromCoeff(example.Pmodes, coeffP, example.NPmodes);
+
+    ITHACAstream::exportFields(projectedU, "./ITHACAoutput/projected/", "U");
+    ITHACAstream::exportFields(projectedP, "./ITHACAoutput/projected/", "P");
+
     Eigen::MatrixXd relErrorU(Ufull.size(), 1);
     Eigen::MatrixXd relErrorP(Pfull.size(), 1);
+    Eigen::MatrixXd relProjErrorU(Ufull.size(), 1);
+    Eigen::MatrixXd relProjErrorP(Pfull.size(), 1);
 
     dimensionedVector U_fs("U_fs", dimVelocity, vector(1, 0, 0));
 
     for (label k = 0; k < Ufull.size(); k++)
     {
         volVectorField errorU = Ufull[k] - Ured[k];
+        volVectorField projErrorU = Ufull[k] - projectedU[k];
         volVectorField devU = Ufull[k] - U_fs;
         volScalarField errorP = Pfull[k] - Pred[k];
+        volScalarField projErrorP = Pfull[k] - projectedP[k];
+
         relErrorU(k, 0) = ITHACAutilities::frobNorm(errorU) /
                        ITHACAutilities::frobNorm(devU);
         relErrorP(k, 0) = ITHACAutilities::frobNorm(errorP) /
+                       ITHACAutilities::frobNorm(Pfull[k]);
+        relProjErrorU(k, 0) = ITHACAutilities::frobNorm(projErrorU) /
+                       ITHACAutilities::frobNorm(devU);
+        relProjErrorP(k, 0) = ITHACAutilities::frobNorm(projErrorP) /
                        ITHACAutilities::frobNorm(Pfull[k]);
     }
 
@@ -325,6 +346,10 @@ int main(int argc, char* argv[])
                            "errorU_" + name(example.NUmodes) + "_" + name(example.NPmodes), "python", ".");
     ITHACAstream::exportMatrix(relErrorP,
                            "errorP_" + name(example.NUmodes) + "_" + name(example.NPmodes), "python", ".");
+    ITHACAstream::exportMatrix(relProjErrorU,
+                           "projErrorU_" + name(example.NUmodes) + "_" + name(example.NPmodes), "python", ".");
+    ITHACAstream::exportMatrix(relProjErrorP,
+                           "projErrorP_" + name(example.NUmodes) + "_" + name(example.NPmodes), "python", ".");
 
     exit(0);
 }
