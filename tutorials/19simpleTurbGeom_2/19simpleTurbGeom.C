@@ -65,7 +65,8 @@ class tutorial19 : public SteadyNSSimple
         List<vector> curX;
 
         /// Perform an Offline solve
-        void offlineSolve(Eigen::MatrixXd Box, List<label> patches, word folder = "./ITHACAoutput/Offline/")
+        void offlineSolve(Eigen::MatrixXd Box, List<label> patches,
+                          word folder = "./ITHACAoutput/Offline/")
         {
             Vector<double> inl(0, 0, 0);
             List<scalar> mu_now(1);
@@ -78,11 +79,13 @@ class tutorial19 : public SteadyNSSimple
                 auto nut = _mesh().lookupObject<volScalarField>("nut");
                 ITHACAstream::readConvergedFields(nutFields, nut, folder);
             }
+
             else if (offline)
             {
                 ITHACAstream::read_fields(Ufield, U, folder);
                 ITHACAstream::read_fields(Pfield, p, folder);
             }
+
             else
             {
                 Vector<double> Uinl(1, 0, 0);
@@ -106,7 +109,7 @@ class tutorial19 : public SteadyNSSimple
                     ITHACAstream::writePoints(_mesh().points(), folder,
                                               name(i + 1) + "/polyMesh/");
                     assignIF(U, Uinl);
-                    truthSolve2(mu_now,folder);
+                    truthSolve2(mu_now, folder);
                     int middleF = 1;
 
                     while (ITHACAutilities::check_folder(folder + name(
@@ -165,6 +168,7 @@ int main(int argc, char* argv[])
     {
         example.mu  = ITHACAstream::readMatrix("./angOff_mat.txt");
     }
+
     else
     {
         example.mu  = Eigen::VectorXd::LinSpaced(50, 0, 75);
@@ -178,6 +182,7 @@ int main(int argc, char* argv[])
     {
         angOn = ITHACAstream::readMatrix("./angOn_mat.txt");
     }
+
     else
     {
         angOn = Eigen::VectorXd::LinSpaced(20, 2, 73);
@@ -200,9 +205,9 @@ int main(int argc, char* argv[])
     example.maxIter = para->ITHACAdict->lookupOrDefault<int>("maxIter", 2000);
     // Perform the offline solve
     example.offlineSolve(Box, movPat);
-    ITHACAstream::read_fields(example.liftfield, example.U, "./lift/");
+    // ITHACAstream::read_fields(example.liftfield, example.U, "./lift/");
     // Homogenize the snapshots
-    example.computeLift(example.Ufield, example.liftfield, example.Uomfield);
+    // example.computeLift(example.Ufield, example.liftfield, example.Uomfield);
     // Move the mesh to a middle configuration
     List<vector> points2Move;
     labelList boxIndices = ITHACAutilities::getIndicesFromBox(example._mesh(),
@@ -219,7 +224,7 @@ int main(int argc, char* argv[])
     Field<vector> curXV(example.curX);
     example._mesh().movePoints(curXV);
     // Perform POD on velocity and pressure and store the first 10 modes
-    ITHACAPOD::getModes(example.Uomfield, example.Umodes, example._U().name(),
+    ITHACAPOD::getModes(example.Ufield, example.Umodes, example._U().name(),
                         example.podex, 0, 0,
                         example.NUmodesOut);
     ITHACAPOD::getModes(example.Pfield, example.Pmodes, example._p().name(),
@@ -234,6 +239,35 @@ int main(int argc, char* argv[])
         example.getTurbRBF(example.NNutModes);
     }
 
+    for (int i = 0; i < example.inletIndex.rows(); i++)
+    {
+        volVectorField ul(example._U());
+        vector v(0, 0, 0);
+        vector v0(0, 0, 0);
+        v[example.inletIndex(i, 1)] = 1;
+        ITHACAutilities::assignIF(ul, v0);
+        ITHACAutilities::assignBC(ul, example.inletIndex(i, 0), v);
+
+        for(int j=0; j < example.Umodes.size(); j++)
+        {
+            ITHACAutilities::assignBC(example.Umodes[j], example.inletIndex(i, 0), v0);
+        }
+
+        for (int k = 0; k < ul.boundaryField().size(); k++)
+        {
+            if (k != example.inletIndex(i, 0))
+            {
+                ITHACAutilities::changeBCtype(ul, "fixedValue", k);
+                ITHACAutilities::assignBC(ul, k, v0);
+            }
+        }
+
+        example.liftfield.append(ul);
+    }
+
+    Info << example.Umodes[0] << endl;
+    exit(0);
+
     example._mesh().movePoints(example.point0);
     // Create the reduced object
     reducedSimpleSteadyNS reduced(example);
@@ -244,12 +278,14 @@ int main(int argc, char* argv[])
     Eigen::MatrixXd vel = ITHACAstream::readMatrix(vel_file);
     // Set the maximum iterations number for the online phase
     reduced.maxIterOn = para->ITHACAdict->lookupOrDefault<int>("maxIterOn", 2000);
+
     //Perform the online solutions
     for (label k = 0; k < angOn.rows(); k++)
     {
         scalar mu_now = angOn(k, 0);
         example.restart();
-        reduced.setOnlineVelocity(vel);
+        // reduced.setOnlineVelocity(vel);
+        reduced.vel_now = vel;
 
         if (ITHACAutilities::isTurbulent())
         {
@@ -258,10 +294,12 @@ int main(int argc, char* argv[])
             labelList boxIndices = ITHACAutilities::getIndicesFromBox(example._mesh(),
                                    movPat, Box, points2Move);
             example.linearMovePts(mu_now, points2Move);
+
             for (int j = 0; j < boxIndices.size(); j++)
             {
                 example.curX[boxIndices[j]] = points2Move[j];
             }
+
             Field<vector> curXV(example.curX);
             example._mesh().movePoints(curXV);
             ITHACAstream::writePoints(example._mesh().points(),
@@ -269,6 +307,7 @@ int main(int argc, char* argv[])
             reduced.solveOnline_Simple(mu_now, example.NUmodes, example.NPmodes,
                                        example.NNutModes);
         }
+
         else
         {
             example._mesh().movePoints(example.point0);
@@ -287,37 +326,38 @@ int main(int argc, char* argv[])
             ITHACAstream::writePoints(example._mesh().points(),
                                       "./ITHACAoutput/Reconstruct/", name(k + 1) + "/polyMesh/");
             reduced.solveOnline_Simple(mu_now, example.NUmodes, example.NPmodes,
-                                      example.NNutModes);
+                                       example.NNutModes);
         }
     }
 
     // Error analysis
     tutorial19 checkOff(argc, argv);
-    if(!ITHACAutilities::check_folder("./ITHACAoutput/checkOff"))
+
+    if (!ITHACAutilities::check_folder("./ITHACAoutput/checkOff"))
     {
         checkOff.restart();
         ITHACAparameters* para = ITHACAparameters::getInstance(checkOff._mesh(),
-                             checkOff._runTime());
+                                 checkOff._runTime());
         checkOff.offline = false;
         checkOff.mu = angOn;
-        checkOff.offlineSolve(Box,movPat,"./ITHACAoutput/checkOff/");
+        checkOff.offlineSolve(Box, movPat, "./ITHACAoutput/checkOff/");
         checkOff.offline = true;
     }
+
     PtrList<volVectorField> Ufull;
     PtrList<volScalarField> Pfull;
     PtrList<volVectorField> Ured;
     PtrList<volScalarField> Pred;
     volVectorField Uaux("Uaux", checkOff.U);
     volScalarField Paux("Paux", checkOff.p);
-
-    ITHACAstream::readConvergedFields(Ufull, checkOff.U, "./ITHACAoutput/checkOff/");
-    ITHACAstream::readConvergedFields(Pfull, checkOff.p, "./ITHACAoutput/checkOff/");
+    ITHACAstream::readConvergedFields(Ufull, checkOff.U,
+                                      "./ITHACAoutput/checkOff/");
+    ITHACAstream::readConvergedFields(Pfull, checkOff.p,
+                                      "./ITHACAoutput/checkOff/");
     ITHACAstream::read_fields(Ured, Uaux, "./ITHACAoutput/Reconstruct/");
     ITHACAstream::read_fields(Pred, Paux, "./ITHACAoutput/Reconstruct/");
-
     Eigen::MatrixXd relErrorU(Ufull.size(), 1);
     Eigen::MatrixXd relErrorP(Pfull.size(), 1);
-
     dimensionedVector U_fs("U_fs", dimVelocity, vector(1, 0, 0));
 
     for (label k = 0; k < Ufull.size(); k++)
@@ -326,15 +366,14 @@ int main(int argc, char* argv[])
         volVectorField devU = Ufull[k] - U_fs;
         volScalarField errorP = Pfull[k] - Pred[k];
         relErrorU(k, 0) = ITHACAutilities::frobNorm(errorU) /
-                       ITHACAutilities::frobNorm(devU);
+                          ITHACAutilities::frobNorm(devU);
         relErrorP(k, 0) = ITHACAutilities::frobNorm(errorP) /
-                       ITHACAutilities::frobNorm(Pfull[k]);
+                          ITHACAutilities::frobNorm(Pfull[k]);
     }
 
     ITHACAstream::exportMatrix(relErrorU,
-                           "errorU_" + name(example.NUmodes) + "_" + name(example.NPmodes), "python", ".");
+                               "errorU_" + name(example.NUmodes) + "_" + name(example.NPmodes), "python", ".");
     ITHACAstream::exportMatrix(relErrorP,
-                           "errorP_" + name(example.NUmodes) + "_" + name(example.NPmodes), "python", ".");
-
+                               "errorP_" + name(example.NUmodes) + "_" + name(example.NPmodes), "python", ".");
     exit(0);
 }

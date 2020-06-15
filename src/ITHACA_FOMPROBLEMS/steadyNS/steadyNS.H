@@ -502,6 +502,8 @@ class steadyNS: public reductionProblem
         /// set U and P back to the values into the 0 folder
         void restart();
 
+        void computeBoundaryTerms();
+
 
 };
 
