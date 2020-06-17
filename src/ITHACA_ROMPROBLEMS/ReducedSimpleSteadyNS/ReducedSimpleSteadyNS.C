@@ -45,11 +45,10 @@ reducedSimpleSteadyNS::reducedSimpleSteadyNS(SteadyNSSimple& FOMproblem)
     problem(&FOMproblem)
 {
     // Create a new Umodes set where the first ones are the lift functions
-    for (int i = 0; i < problem->inletIndex.rows(); i++)
-    {
-        ULmodes.append(problem->liftfield[i]);
-    }
-
+    // for (int i = 0; i < problem->inletIndex.rows(); i++)
+    // {
+    //     ULmodes.append(problem->liftfield[i]);
+    // }
     for (int i = 0; i < problem->Umodes.size(); i++)
     {
         ULmodes.append(problem->Umodes.toPtrList()[i]);
@@ -63,10 +62,11 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         int NmodesUproj, int NmodesPproj, int NmodesNut, int NmodesSup, word Folder)
 {
     ULmodes.resize(0);
-    for (int i = 0; i < problem->inletIndex.rows(); i++)
-    {
-        ULmodes.append(problem->liftfield[i]);
-    }
+
+    // for (int i = 0; i < problem->inletIndex.rows(); i++)
+    // {
+    //     ULmodes.append(problem->liftfield[i]);
+    // }
 
     for (int i = 0; i < NmodesUproj; i++)
     {
@@ -86,6 +86,7 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
     {
         UprojN = ULmodes.size();
     }
+
     else
     {
         UprojN = NmodesUproj + NmodesSup;
@@ -95,6 +96,7 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
     {
         PprojN = problem->Pmodes.size();
     }
+
     else
     {
         PprojN = NmodesPproj;
@@ -160,9 +162,11 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
     }
 
     projGradModP = ULmodes.project(gradModP, NmodesUproj);
+    PtrList<fvVectorMatrix> UeqnList;
 
     while ((residual_jump > residualJumpLim
-            || std::max(U_norm_res, P_norm_res) > normalizedResidualLim) && iter < maxIterOn)
+            || std::max(U_norm_res, P_norm_res) > normalizedResidualLim) &&
+            iter < maxIterOn)
     {
         iter++;
 #if OFVER == 6
@@ -177,26 +181,62 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
             - fvm::laplacian(nueff, U)
             - fvc::div(nueff * dev2(T(fvc::grad(U))))
         );
+        List<List<Eigen::MatrixXd>> RedLinSysUL;
+        UeqnList.resize(0);
+
+        for (label i = 0; i < problem->liftfield.size(); i++)
+        {
+            surfaceScalarField phi(problem->_phi());
+            phi = fvc::flux(problem->liftfield[i]);
+            fvVectorMatrix UEqn
+            (
+                fvm::div(phi, problem->liftfield[i])
+                - fvm::laplacian(nueff, problem->liftfield[i])
+                - fvc::div(nueff * dev2(T(fvc::grad(problem->liftfield[i]))))
+            );
+            RedLinSysUL.append(ULmodes.project(UEqn, UprojN));
+            UeqnList.append(UEqn);
+        }
+
         UEqn.relax();
         List<Eigen::MatrixXd> RedLinSysU = ULmodes.project(UEqn, UprojN);
         RedLinSysU[1] = RedLinSysU[1] - projGradModP * b;
-        a = reducedProblem::solveLinearSys(RedLinSysU, a, uresidual, vel_now);
+
+        for (unsigned int i = 0; i < RedLinSysUL.size(); i++)
+         {
+            RedLinSysU[1] += RedLinSysUL[i][1];
+        }
+
+        a = reducedProblem::solveLinearSys(RedLinSysU, a, uresidual);
         ULmodes.reconstruct(U, a, "U");
-        volScalarField rAU(1.0 / UEqn.A());
-        volVectorField HbyA(constrainHbyA(1.0 / UEqn.A() * UEqn.H(), U, P));
+        vector v(1,0,0);
+        ITHACAutilities::assignBC(U,0,v);
+        // U = U + problem->liftfield[0];
+        // Info << U << endl;
+        // exit(0);
+
+        volScalarField A = UEqn.A()+UeqnList[0].A();
+        volVectorField H = UEqn.H();//+UeqnList[0].H();
+        volScalarField H1 = UEqn.H1();//+UeqnList[0].H1();
+        // Info << A << endl;
+        // Info << H << endl;
+        // exit(0);
+        volScalarField rAU(1.0 / A);
+        volVectorField HbyA(constrainHbyA(1.0 / A * H, U, P));
         surfaceScalarField phiHbyA("phiHbyA", fvc::flux(HbyA));
         adjustPhi(phiHbyA, U, P);
         tmp<volScalarField> rAtU(rAU);
 
         if (simple.consistent())
         {
-            rAtU = 1.0 / (1.0 / rAU - UEqn.H1());
+            rAtU = 1.0 / (1.0 / rAU - H1);
             phiHbyA +=
                 fvc::interpolate(rAtU() - rAU) * fvc::snGrad(P) * mesh.magSf();
             HbyA -= (rAU - rAtU()) * fvc::grad(P);
         }
 
         List<Eigen::MatrixXd> RedLinSysP;
+
         while (simple.correctNonOrthogonal())
         {
             fvScalarMatrix pEqn
@@ -233,9 +273,12 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
             std::cout << "Residual jump = " << residual_jump << std::endl;
             std::cout << "Normalized residual = " << std::max(U_norm_res,
                       P_norm_res) << std::endl;
-            std::cout << "Final normalized residual for velocity: " << U_norm_res << std::endl;
-            std::cout << "Final normalized residual for pressure: " << P_norm_res << std::endl;
+            std::cout << "Final normalized residual for velocity: " << U_norm_res <<
+                      std::endl;
+            std::cout << "Final normalized residual for pressure: " << P_norm_res <<
+                      std::endl;
         }
+
         //problem->turbulence->correct();
     }
 

@@ -265,9 +265,6 @@ int main(int argc, char* argv[])
         example.liftfield.append(ul);
     }
 
-    Info << example.Umodes[0] << endl;
-    exit(0);
-
     example._mesh().movePoints(example.point0);
     // Create the reduced object
     reducedSimpleSteadyNS reduced(example);
