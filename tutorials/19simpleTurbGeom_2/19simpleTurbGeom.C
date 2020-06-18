@@ -264,6 +264,9 @@ int main(int argc, char* argv[])
 
         example.liftfield.append(ul);
     }
+    // vector v1(1, 0, 0);
+
+    // ITHACAutilities::assignBC(example.Umodes[0], 0, v1);
 
     example._mesh().movePoints(example.point0);
     // Create the reduced object

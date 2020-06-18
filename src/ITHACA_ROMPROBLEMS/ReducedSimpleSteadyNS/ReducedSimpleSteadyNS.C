@@ -129,9 +129,9 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
     Time& runTime = problem->_runTime();
     P.rename("p");
     surfaceScalarField& phi(problem->_phi());
-    ULmodes.reconstruct(U, a, "U");
+    // ULmodes.reconstruct(U, a, "U");
     problem->Pmodes.reconstruct(P, b, "p");
-    phi = fvc::interpolate(U) & U.mesh().Sf();
+    phi = fvc::flux(U);
     int iter = 0;
     simpleControl& simple = problem->_simple();
 
@@ -175,6 +175,9 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         simple.loop();
 #endif
         volScalarField nueff = problem->turbulence->nuEff();
+        vector v(1, 0, 0);
+        ITHACAutilities::assignBC(U, 0, v);
+        // ITHACAutilities::assignBC(phi,0,0.0);
         fvVectorMatrix UEqn
         (
             fvm::div(phi, U)
@@ -182,40 +185,39 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
             - fvc::div(nueff * dev2(T(fvc::grad(U))))
         );
         List<List<Eigen::MatrixXd>> RedLinSysUL;
+        UEqn.relax();
         UeqnList.resize(0);
 
         for (label i = 0; i < problem->liftfield.size(); i++)
         {
             surfaceScalarField phi(problem->_phi());
             phi = fvc::flux(problem->liftfield[i]);
-            fvVectorMatrix UEqn
+            fvVectorMatrix UEqn2
             (
                 fvm::div(phi, problem->liftfield[i])
                 - fvm::laplacian(nueff, problem->liftfield[i])
                 - fvc::div(nueff * dev2(T(fvc::grad(problem->liftfield[i]))))
             );
+            UEqn2.relax();
             RedLinSysUL.append(ULmodes.project(UEqn, UprojN));
-            UeqnList.append(UEqn);
+            UeqnList.append(UEqn2);
         }
 
-        UEqn.relax();
         List<Eigen::MatrixXd> RedLinSysU = ULmodes.project(UEqn, UprojN);
         RedLinSysU[1] = RedLinSysU[1] - projGradModP * b;
-
-        for (unsigned int i = 0; i < RedLinSysUL.size(); i++)
-         {
-            RedLinSysU[1] += RedLinSysUL[i][1];
-        }
-
+        // for (unsigned int i = 0; i < RedLinSysUL.size(); i++)
+        //  {
+        //     RedLinSysU[1] += RedLinSysUL[i][1];
+        // }
         a = reducedProblem::solveLinearSys(RedLinSysU, a, uresidual);
         ULmodes.reconstruct(U, a, "U");
-        vector v(1,0,0);
-        ITHACAutilities::assignBC(U,0,v);
+        ITHACAutilities::assignBC(U, 0, v);
         // U = U + problem->liftfield[0];
         // Info << U << endl;
         // exit(0);
-
-        volScalarField A = UEqn.A()+UeqnList[0].A();
+        volScalarField A1 = UEqn.A();
+        volScalarField A2 = UeqnList[0].A();
+        volScalarField A = A1;//+A2;//+UeqnList[0].A();
         volVectorField H = UEqn.H();//+UeqnList[0].H();
         volScalarField H1 = UEqn.H1();//+UeqnList[0].H1();
         // Info << A << endl;

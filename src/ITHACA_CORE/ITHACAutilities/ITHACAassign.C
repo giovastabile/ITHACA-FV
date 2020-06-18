@@ -348,7 +348,7 @@ template void assignBC(
 
 template<typename T>
 void assignBC(GeometricField<T, fvsPatchField, surfaceMesh>& s, label BC_ind,
-              T& value)
+              T value)
 {
     int sizeBC = s.boundaryField()[BC_ind].size();
     List<T> valueList(sizeBC);
@@ -363,10 +363,10 @@ void assignBC(GeometricField<T, fvsPatchField, surfaceMesh>& s, label BC_ind,
 
 template void assignBC(
     GeometricField<scalar, fvsPatchField, surfaceMesh>& s, label BC_ind,
-    scalar& valueList);
+    scalar value);
 template void assignBC(
     GeometricField<vector, fvsPatchField, surfaceMesh>& s, label BC_ind,
-    vector& valueList);
+    vector value);
 
 void assignBC(GeometricField<scalar, fvsPatchField, surfaceMesh>& s,
               label BC_ind, Eigen::MatrixXd& valueVec)

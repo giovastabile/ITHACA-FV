@@ -229,7 +229,7 @@ void assignBC(GeometricField<T, fvsPatchField, surfaceMesh>& field,
 template<typename T>
 void assignBC(GeometricField<T, fvsPatchField, surfaceMesh>& field,
               label BC_ind,
-              T& value);
+              T value);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcomment"
