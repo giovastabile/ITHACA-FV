@@ -49,10 +49,10 @@ reducedSimpleSteadyNS::reducedSimpleSteadyNS(SteadyNSSimple& FOMproblem)
     // {
     //     ULmodes.append(problem->liftfield[i]);
     // }
-    for (int i = 0; i < problem->Umodes.size(); i++)
-    {
-        ULmodes.append(problem->Umodes.toPtrList()[i]);
-    }
+    // for (int i = 0; i < problem->Umodes.size(); i++)
+    // {
+    //     ULmodes.append(problem->Umodes.toPtrList()[i]);
+    // }
 }
 
 // * * * * * * * * * * * * * * * Solve Functions  * * * * * * * * * * * * * //
@@ -61,22 +61,22 @@ reducedSimpleSteadyNS::reducedSimpleSteadyNS(SteadyNSSimple& FOMproblem)
 void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         int NmodesUproj, int NmodesPproj, int NmodesNut, int NmodesSup, word Folder)
 {
-    ULmodes.resize(0);
+    //ULmodes.resize(0);
 
     // for (int i = 0; i < problem->inletIndex.rows(); i++)
     // {
     //     ULmodes.append(problem->liftfield[i]);
     // }
 
-    for (int i = 0; i < NmodesUproj; i++)
-    {
-        ULmodes.append(problem->Umodes.toPtrList()[i]);
-    }
+    // for (int i = 0; i < NmodesUproj; i++)
+    // {
+    //     ULmodes.append(problem->Umodes.toPtrList()[i]);
+    // }
 
-    for (int i = 0; i < NmodesSup; i++)
-    {
-        ULmodes.append(problem->supmodes.toPtrList()[i]);
-    }
+    // for (int i = 0; i < NmodesSup; i++)
+    // {
+    //     ULmodes.append(problem->supmodes.toPtrList()[i]);
+    // }
 
     counter++;
     scalar UprojN;
@@ -84,7 +84,7 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
 
     if (NmodesUproj == 0)
     {
-        UprojN = ULmodes.size();
+        UprojN = problem->Umodes.size();
     }
 
     else
@@ -115,7 +115,8 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
     scalar P_norm_res(1);
     Eigen::MatrixXd a = Eigen::VectorXd::Zero(UprojN);
     Eigen::MatrixXd b = Eigen::VectorXd::Zero(PprojN);
-    a(0) = vel_now(0, 0);
+    //a(0) = vel_now(0, 0);
+    //a(0) = 1;
     float residualJumpLim =
         problem->para->ITHACAdict->lookupOrDefault<float>("residualJumpLim", 1e-5);
     float normalizedResidualLim =
@@ -125,11 +126,14 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
     //problem->restart();
     volScalarField& P = problem->_p();
     volVectorField& U = problem->_U();
+    Eigen::VectorXd a0 = ITHACAutilities::getCoeffs(U, problem->Umodes, 0, false);
+    a(0) = a0(0);
     fvMesh& mesh = problem->_mesh();
     Time& runTime = problem->_runTime();
     P.rename("p");
     surfaceScalarField& phi(problem->_phi());
     // ULmodes.reconstruct(U, a, "U");
+    problem->Umodes.reconstruct(U, a, "U");
     problem->Pmodes.reconstruct(P, b, "p");
     phi = fvc::flux(U);
     int iter = 0;
@@ -161,7 +165,7 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         gradModP.append(fvc::grad(problem->Pmodes[i]));
     }
 
-    projGradModP = ULmodes.project(gradModP, NmodesUproj);
+    projGradModP = (problem->Umodes).project(gradModP, NmodesUproj);
     PtrList<fvVectorMatrix> UeqnList;
 
     while ((residual_jump > residualJumpLim
@@ -169,6 +173,7 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
             iter < maxIterOn)
     {
         iter++;
+        std::cout << iter << std::endl;
 #if OFVER == 6
         simple.loop(runTime);
 #else
@@ -184,54 +189,54 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
             - fvm::laplacian(nueff, U)
             - fvc::div(nueff * dev2(T(fvc::grad(U))))
         );
-        List<List<Eigen::MatrixXd>> RedLinSysUL;
+        //List<List<Eigen::MatrixXd>> RedLinSysUL;
         UEqn.relax();
-        UeqnList.resize(0);
+        //UeqnList.resize(0);
 
-        for (label i = 0; i < problem->liftfield.size(); i++)
-        {
-            surfaceScalarField phi(problem->_phi());
-            phi = fvc::flux(problem->liftfield[i]);
-            fvVectorMatrix UEqn2
-            (
-                fvm::div(phi, problem->liftfield[i])
-                - fvm::laplacian(nueff, problem->liftfield[i])
-                - fvc::div(nueff * dev2(T(fvc::grad(problem->liftfield[i]))))
-            );
-            UEqn2.relax();
-            RedLinSysUL.append(ULmodes.project(UEqn, UprojN));
-            UeqnList.append(UEqn2);
-        }
+        // for (label i = 0; i < problem->liftfield.size(); i++)
+        // {
+        //     surfaceScalarField phi(problem->_phi());
+        //     phi = fvc::flux(problem->liftfield[i]);
+        //     fvVectorMatrix UEqn2
+        //     (
+        //         fvm::div(phi, problem->liftfield[i])
+        //         - fvm::laplacian(nueff, problem->liftfield[i])
+        //         - fvc::div(nueff * dev2(T(fvc::grad(problem->liftfield[i]))))
+        //     );
+        //     UEqn2.relax();
+        //     RedLinSysUL.append(problem->Umodes.project(UEqn, UprojN));
+        //     UeqnList.append(UEqn2);
+        // }
 
-        List<Eigen::MatrixXd> RedLinSysU = ULmodes.project(UEqn, UprojN);
+        List<Eigen::MatrixXd> RedLinSysU = problem->Umodes.project(UEqn, UprojN);
         RedLinSysU[1] = RedLinSysU[1] - projGradModP * b;
         // for (unsigned int i = 0; i < RedLinSysUL.size(); i++)
         //  {
         //     RedLinSysU[1] += RedLinSysUL[i][1];
         // }
         a = reducedProblem::solveLinearSys(RedLinSysU, a, uresidual);
-        ULmodes.reconstruct(U, a, "U");
+        problem->Umodes.reconstruct(U, a, "U");
         ITHACAutilities::assignBC(U, 0, v);
         // U = U + problem->liftfield[0];
         // Info << U << endl;
         // exit(0);
-        volScalarField A1 = UEqn.A();
-        volScalarField A2 = UeqnList[0].A();
-        volScalarField A = A1;//+A2;//+UeqnList[0].A();
-        volVectorField H = UEqn.H();//+UeqnList[0].H();
-        volScalarField H1 = UEqn.H1();//+UeqnList[0].H1();
+        //volScalarField A1 = UEqn.A();
+        //volScalarField A2 = UeqnList[0].A();
+        //volScalarField A = A1;//+A2;//+UeqnList[0].A();
+        //volVectorField H = UEqn.H();//+UeqnList[0].H();
+        //volScalarField H1 = UEqn.H1();//+UeqnList[0].H1();
         // Info << A << endl;
         // Info << H << endl;
         // exit(0);
-        volScalarField rAU(1.0 / A);
-        volVectorField HbyA(constrainHbyA(1.0 / A * H, U, P));
+        volScalarField rAU(1.0 / UEqn.A());
+        volVectorField HbyA(constrainHbyA(1.0 / UEqn.A() * UEqn.H(), U, P));
         surfaceScalarField phiHbyA("phiHbyA", fvc::flux(HbyA));
         adjustPhi(phiHbyA, U, P);
         tmp<volScalarField> rAtU(rAU);
 
         if (simple.consistent())
         {
-            rAtU = 1.0 / (1.0 / rAU - H1);
+            rAtU = 1.0 / (1.0 / rAU - UEqn.H1());
             phiHbyA +=
                 fvc::interpolate(rAtU() - rAU) * fvc::snGrad(P) * mesh.magSf();
             HbyA -= (rAU - rAtU()) * fvc::grad(P);
@@ -290,8 +295,8 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
               std::endl;
     std::cout << "Final normalized residual for pressure: " << P_norm_res <<
               std::endl;
-    ULmodes.reconstruct(U, a, "Uaux");
-    P.rename("Paux");
+    problem->Umodes.reconstruct(U, a, "Uaux");
+    //P.rename("Paux");
     problem->Pmodes.reconstruct(P, b, "Paux");
     ITHACAstream::exportSolution(U, name(counter), Folder);
     ITHACAstream::exportSolution(P, name(counter), Folder);

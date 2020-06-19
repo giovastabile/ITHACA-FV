@@ -19,13 +19,13 @@ EigenSolver eigen;
 
 // Number of modes to output and to use for projection
 NmodesUout 30;
-NmodesUproj 20;
-NmodePUout 30;
-NmodesPproj 20;
-NmodesSUPout 15;
-NmodesSUPproj 10;
+NmodesUproj 10;
+NmodesPout 30;
+NmodesPproj 10;
+NmodesSUPout 30;
+NmodesSUPproj 0;
 NmodesNutOut 30;
-NmodesNutProj 20;
+NmodesNutProj 10;
 
 // Output format to save market vectors.
 OutPrecision 20;
@@ -38,7 +38,7 @@ tolerance 1e-5;
 
 // Maximum number of iterations
 maxIter 2000;
-maxIterOn 3000;
+maxIterOn 8000;
 
 // Reduced simple cicle parameters
 residualJumpLim 1e-8;
