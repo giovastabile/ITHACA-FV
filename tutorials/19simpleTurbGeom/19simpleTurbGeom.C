@@ -239,35 +239,18 @@ int main(int argc, char* argv[])
         example.getTurbRBF(example.NNutModes);
     }
 
-    // for (int i = 0; i < example.inletIndex.rows(); i++)
-    // {
-    //     volVectorField ul(example._U());
-    //     vector v(0, 0, 0);
-    //     vector v0(0, 0, 0);
-    //     v[example.inletIndex(i, 1)] = 1;
-    //     ITHACAutilities::assignIF(ul, v0);
-    //     ITHACAutilities::assignBC(ul, example.inletIndex(i, 0), v);
+for (int i = 0; i < example.inletIndex.rows(); i++)
+    {
+        vector v0(0, 0, 0);
 
-    //     for(int j=0; j < example.Umodes.size(); j++)
-    //     {
-    //         ITHACAutilities::assignBC(example.Umodes[j], example.inletIndex(i, 0), v0);
-    //     }
+        for(int j=0; j < example.Umodes.size(); j++)
+        {
+            ITHACAutilities::assignBC(example.Umodes[j], example.inletIndex(i, 0), v0);
+        }
+    }
 
-    //     for (int k = 0; k < ul.boundaryField().size(); k++)
-    //     {
-    //         if (k != example.inletIndex(i, 0))
-    //         {
-    //             ITHACAutilities::changeBCtype(ul, "fixedValue", k);
-    //             ITHACAutilities::assignBC(ul, k, v0);
-    //         }
-    //     }
-
-    //     example.liftfield.append(ul);
-    // }
     // vector v1(1, 0, 0);
-
     // ITHACAutilities::assignBC(example.Umodes[0], 0, v1);
-
     example._mesh().movePoints(example.point0);
     // Create the reduced object
     reducedSimpleSteadyNS reduced(example);
@@ -285,7 +268,7 @@ int main(int argc, char* argv[])
         scalar mu_now = angOn(k, 0);
         example.restart();
         // reduced.setOnlineVelocity(vel);
-        //reduced.vel_now = vel;
+        reduced.vel_now = vel;
 
         if (ITHACAutilities::isTurbulent())
         {
@@ -356,20 +339,20 @@ int main(int argc, char* argv[])
                                       "./ITHACAoutput/checkOff/");
     ITHACAstream::read_fields(Ured, Uaux, "./ITHACAoutput/Reconstruct/");
     ITHACAstream::read_fields(Pred, Paux, "./ITHACAoutput/Reconstruct/");
-    
-    Eigen::MatrixXd coeffU = ITHACAutilities::getCoeffs(Ufull, example.Umodes, example.NUmodes,false);
-    Eigen::MatrixXd coeffP = ITHACAutilities::getCoeffs(Pfull, example.Pmodes, example.NPmodes,false);
-    PtrList<volVectorField> projectedU = ITHACAutilities::reconstructFromCoeff(example.Umodes, coeffU, example.NUmodes);
-    PtrList<volScalarField> projectedP = ITHACAutilities::reconstructFromCoeff(example.Pmodes, coeffP, example.NPmodes);
-
+    Eigen::MatrixXd coeffU = ITHACAutilities::getCoeffs(Ufull, example.Umodes,
+                             example.NUmodes, false);
+    Eigen::MatrixXd coeffP = ITHACAutilities::getCoeffs(Pfull, example.Pmodes,
+                             example.NPmodes, false);
+    PtrList<volVectorField> projectedU = ITHACAutilities::reconstructFromCoeff(
+            example.Umodes, coeffU, example.NUmodes);
+    PtrList<volScalarField> projectedP = ITHACAutilities::reconstructFromCoeff(
+            example.Pmodes, coeffP, example.NPmodes);
     ITHACAstream::exportFields(projectedU, "./ITHACAoutput/projected/", "U");
     ITHACAstream::exportFields(projectedP, "./ITHACAoutput/projected/", "P");
-
     Eigen::MatrixXd relErrorU(Ufull.size(), 1);
     Eigen::MatrixXd relErrorP(Pfull.size(), 1);
     Eigen::MatrixXd relProjErrorU(Ufull.size(), 1);
     Eigen::MatrixXd relProjErrorP(Pfull.size(), 1);
-
     dimensionedVector U_fs("U_fs", dimVelocity, vector(1, 0, 0));
 
     for (label k = 0; k < Ufull.size(); k++)
@@ -379,15 +362,14 @@ int main(int argc, char* argv[])
         volVectorField devU = Ufull[k] - U_fs;
         volScalarField errorP = Pfull[k] - Pred[k];
         volScalarField projErrorP = Pfull[k] - projectedP[k];
-
         relErrorU(k, 0) = ITHACAutilities::frobNorm(errorU) /
                           ITHACAutilities::frobNorm(devU);
         relErrorP(k, 0) = ITHACAutilities::frobNorm(errorP) /
                           ITHACAutilities::frobNorm(Pfull[k]);
         relProjErrorU(k, 0) = ITHACAutilities::frobNorm(projErrorU) /
-                       ITHACAutilities::frobNorm(devU);
+                              ITHACAutilities::frobNorm(devU);
         relProjErrorP(k, 0) = ITHACAutilities::frobNorm(projErrorP) /
-                       ITHACAutilities::frobNorm(Pfull[k]);
+                              ITHACAutilities::frobNorm(Pfull[k]);
     }
 
     ITHACAstream::exportMatrix(relErrorU,
@@ -395,9 +377,10 @@ int main(int argc, char* argv[])
     ITHACAstream::exportMatrix(relErrorP,
                                "errorP_" + name(example.NUmodes) + "_" + name(example.NPmodes), "python", ".");
     ITHACAstream::exportMatrix(relProjErrorU,
-                           "projErrorU_" + name(example.NUmodes) + "_" + name(example.NPmodes), "python", ".");
+                               "projErrorU_" + name(example.NUmodes) + "_" + name(example.NPmodes), "python",
+                               ".");
     ITHACAstream::exportMatrix(relProjErrorP,
-                           "projErrorP_" + name(example.NUmodes) + "_" + name(example.NPmodes), "python", ".");
-
+                               "projErrorP_" + name(example.NUmodes) + "_" + name(example.NPmodes), "python",
+                               ".");
     exit(0);
 }

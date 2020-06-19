@@ -134,7 +134,7 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
     surfaceScalarField& phi(problem->_phi());
     // ULmodes.reconstruct(U, a, "U");
     problem->Umodes.reconstruct(U, a, "U");
-    problem->Pmodes.reconstruct(P, b, "p");
+    //problem->Pmodes.reconstruct(P, b, "p");
     phi = fvc::flux(U);
     int iter = 0;
     simpleControl& simple = problem->_simple();
