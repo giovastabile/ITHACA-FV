@@ -3,8 +3,8 @@ import os
 import files 
 import itertools
 
-modes_U = [8,10,15,20]
-modes_p = [8,10,15,20]
+modes_U = [10,15,20,25,30]
+modes_p = [10,15,20,25,30]
 
 for k in modes_U:
      files.sed_variable("NmodesUproj","./system/ITHACAdict",str(k))
