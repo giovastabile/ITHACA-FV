@@ -77,6 +77,7 @@ class tutorial19 : public SteadyNSSimple
                 ITHACAstream::readMiddleFields(Ufield, _U(), folder);
                 ITHACAstream::readMiddleFields(Pfield, _p(), folder);
                 auto nut = _mesh().lookupObject<volScalarField>("nut");
+                // ITHACAstream::readConvergedFields(nutFields, nut, folder);
                 ITHACAstream::readConvergedFields(nutFields, nut, folder);
             }
 

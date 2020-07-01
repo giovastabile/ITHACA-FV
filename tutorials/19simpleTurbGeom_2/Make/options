@@ -35,9 +35,13 @@ EXE_INC = \
     -I$(LIB_ITHACA_SRC)/thirdparty/spectra/include \
     -I$(LIB_ITHACA_SRC)/ITHACA_THIRD_PARTY/splinter/include \
     -I$(LIB_ITHACA_SRC)/OF_EXT/lnInclude \
+    -I$(LIB_ITHACA_SRC)/ITHACA_TORCH \
+    -I$(LIB_ITHACA_SRC)/ITHACA_THIRD_PARTY/splinter/include \
+    -I$(TORCH_LIBRARIES)/include \
+    -I$(TORCH_LIBRARIES)/include/torch/csrc/api/include \
     -w \
     -DOFVER=$${WM_PROJECT_VERSION%.*} \
-    -std=c++11
+    -std=c++14
 
 EXE_LIBS = \
     -lturbulenceModels \
@@ -54,5 +58,10 @@ EXE_LIBS = \
     -lITHACA_CORE \
     -lITHACA_DEIM \
     -L$(FOAM_USER_LIBBIN) \
-    -lRBFMotionSolver 
+    -lRBFMotionSolver \
+    -Wl,-rpath,$(TORCH_LIBRARIES)/lib $(TORCH_LIBRARIES)/lib/libtorch.so $(TORCH_LIBRARIES)/lib/libc10.so $(TORCH_LIBRARIES)/lib/libc10d.a \
+    -Wl,--no-as-needed,$(TORCH_LIBRARIES)/lib/libcaffe2_detectron_ops.so \
+    -Wl,--as-needed $(TORCH_LIBRARIES)/lib/libc10.so \
+
+
  

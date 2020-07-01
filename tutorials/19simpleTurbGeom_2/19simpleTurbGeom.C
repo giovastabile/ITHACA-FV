@@ -77,7 +77,7 @@ class tutorial19 : public SteadyNSSimple
                 ITHACAstream::readMiddleFields(Ufield, U, folder);
                 ITHACAstream::readMiddleFields(Pfield, p, folder);
                 auto nut = _mesh().lookupObject<volScalarField>("nut");
-                ITHACAstream::readConvergedFields(nutFields, nut, folder);
+                ITHACAstream::readMiddleFields(nutFields, nut, folder);
             }
 
             else if (offline)
@@ -236,6 +236,7 @@ int main(int argc, char* argv[])
         ITHACAPOD::getModes(example.nutFields, example.nutModes, "nut",
                             example.podex, 0, 0, example.NNutModesOut);
         // Create the RBF for turbulence
+        example.getTurbNN();
         example.getTurbRBF(example.NNutModes);
     }
 

@@ -61,10 +61,13 @@ EXE_INC = \
     -I$(LIB_ITHACA_SRC)/ITHACA_CORE/Foam2Eigen \
     -I$(LIB_ITHACA_SRC)/ITHACA_CORE/EigenFunctions \
     -I$(LIB_ITHACA_SRC)/ITHACA_CORE/Containers \
+    -I$(LIB_ITHACA_SRC)/ITHACA_TORCH \
     -Wno-comment \
+    -I$(TORCH_LIBRARIES)/include \
+    -I$(TORCH_LIBRARIES)/include/torch/csrc/api/include \
     -w \
     -DOFVER=$${WM_PROJECT_VERSION%.*} \
-    -std=c++11 
+    -std=c++14
 
 
 
@@ -83,4 +86,9 @@ EXE_LIBS = \
     -lcompressibleRASModels \
     -lforces \
     -lfileFormats \
-    -lcompressibleLESModels
+    -lcompressibleLESModels \
+    -lITHACA_TORCH \
+    -L$(FOAM_USER_LIBBIN) \
+    -Wl,-rpath,$(TORCH_LIBRARIES)/lib $(TORCH_LIBRARIES)/lib/libtorch.so $(TORCH_LIBRARIES)/lib/libc10.so $(TORCH_LIBRARIES)/lib/libc10d.a \
+    -Wl,--no-as-needed,$(TORCH_LIBRARIES)/lib/libcaffe2_detectron_ops.so \
+    -Wl,--as-needed $(TORCH_LIBRARIES)/lib/libc10.so \

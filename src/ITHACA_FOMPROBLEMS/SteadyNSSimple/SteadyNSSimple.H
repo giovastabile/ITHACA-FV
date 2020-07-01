@@ -36,6 +36,9 @@ SourceFiles
 
 #ifndef SteadyNSSimple_H
 #define SteadyNSSimple_H
+#include <torch/script.h>
+#include <torch/torch.h>
+#include "torch2Eigen.H"
 #include "fvCFD.H"
 #include "singlePhaseTransportModel.H"
 #include "turbulentTransportModel.H"
@@ -54,6 +57,7 @@ SourceFiles
 #include <bsplinebuilder.h>
 #include <rbfspline.h>
 #include <spline.h>
+
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -108,6 +112,9 @@ class SteadyNSSimple: public steadyNS
         /// Initialization for the full pressure linear system.
         fvScalarMatrix* Peqn_global;
 
+        //
+        torch::nn::Sequential Net;
+
         //Functions
         ///
         /// @brief      Gets the offline velocity matrix and solve the system. Procedure of the SIMPLE algorithm implemented
@@ -136,6 +143,10 @@ class SteadyNSSimple: public steadyNS
         /// @param[in]  NNutModes  Number of modes to be used for nut.
         ///
         void getTurbRBF(int NNutModes);
+
+        void getTurbNN();
+
+
         ///
         /// @brief      Offline solver for the whole Navier-Stokes problem.
         ///

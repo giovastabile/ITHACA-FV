@@ -119,6 +119,7 @@ fvScalarMatrix SteadyNSSimple::get_Pmatrix(volVectorField& U,
         {
             presidual = pEqn.solve().initialResidual();
         }
+
         else
         {
             pEqn.solve().initialResidual();
@@ -174,6 +175,7 @@ void SteadyNSSimple::getTurbRBF(int NNutModes)
                                                     SPLINTER::RadialBasisFunctionType::GAUSSIAN, weights);
             std::cout << "Constructing RadialBasisFunction for mode " << i + 1 << std::endl;
         }
+
         else
         {
             samples[i] = new SPLINTER::DataTable(1, 1);
@@ -190,6 +192,16 @@ void SteadyNSSimple::getTurbRBF(int NNutModes)
             std::cout << "Constructing RadialBasisFunction for mode " << i + 1 << std::endl;
         }
     }
+}
+
+void SteadyNSSimple::getTurbNN()
+{
+    Eigen::MatrixXd coeffL2Nut = ITHACAutilities::getCoeffs(nutFields, nutModes, NNutModes, false);
+    std::cout << coeffL2Nut.rows() << std::endl;
+    std::cout << coeffL2Nut.cols() << std::endl;    
+    Eigen::MatrixXd coeffL2U = ITHACAutilities::getCoeffs(nutFields, nutModes, NUmodes, false);
+    std::cout << coeffL2U.rows() << std::endl;
+    std::cout << coeffL2U.cols() << std::endl;
 }
 
 void SteadyNSSimple::truthSolve2(List<scalar> mu_now, word Folder)
@@ -281,6 +293,7 @@ void SteadyNSSimple::truthSolve2(List<scalar> mu_now, word Folder)
             {
                 presidual = pEqn.solve().initialResidual();
             }
+
             else
             {
                 pEqn.solve().initialResidual();
@@ -312,6 +325,13 @@ void SteadyNSSimple::truthSolve2(List<scalar> mu_now, word Folder)
             ITHACAstream::exportSolution(p, name(folderN), Folder + name(counter));
             Ufield.append(U);
             Pfield.append(p);
+        }
+
+        if (ITHACAutilities::isTurbulent())
+        {
+            auto nut = mesh.lookupObject<volScalarField>("nut");
+            ITHACAstream::exportSolution(nut, name(folderN), Folder + name(counter));
+            nutFields.append(nut);
         }
     }
 

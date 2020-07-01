@@ -36,7 +36,9 @@ SourceFiles
 
 #ifndef ReducedSimpleSteadyNS_H
 #define ReducedSimpleSteadyNS_H
-
+#include <torch/script.h>
+#include <torch/torch.h>
+#include "torch2Eigen.H"
 #include "fvCFD.H"
 #include "IOmanip.H"
 #include "ReducedProblem.H"
