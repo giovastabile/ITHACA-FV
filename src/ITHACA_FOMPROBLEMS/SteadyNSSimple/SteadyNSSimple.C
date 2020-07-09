@@ -196,13 +196,108 @@ void SteadyNSSimple::getTurbRBF(int NNutModes)
 
 void SteadyNSSimple::getTurbNN()
 {
-    Eigen::MatrixXd coeffL2Nut = ITHACAutilities::getCoeffs(nutFields, nutModes, NNutModes, false);
-    std::cout << coeffL2Nut.rows() << std::endl;
-    std::cout << coeffL2Nut.cols() << std::endl;    
-    Eigen::MatrixXd coeffL2U = ITHACAutilities::getCoeffs(nutFields, nutModes, NUmodes, false);
-    std::cout << coeffL2U.rows() << std::endl;
-    std::cout << coeffL2U.cols() << std::endl;
+    if (!ITHACAutilities::check_file("./ITHACAoutput/Offline/NN/Net.pt"))
+    {
+        coeffL2Nut = ITHACAutilities::getCoeffs(nutFields, nutModes,
+                                                NNutModes, false);
+        coeffL2Nut.transposeInPlace();
+        coeffL2U = ITHACAutilities::getCoeffs(Ufield, Umodes,
+                                              NUmodes, false);
+        coeffL2U.transposeInPlace();
+        bias_inp  = coeffL2U.colwise().minCoeff();
+        scale_inp = coeffL2U.colwise().maxCoeff() - coeffL2U.colwise().minCoeff();
+        bias_out  = coeffL2Nut.colwise().minCoeff();
+        scale_out = coeffL2Nut.colwise().maxCoeff() - coeffL2Nut.colwise().minCoeff();
+
+        for (unsigned int i = 0; i < coeffL2U.rows(); i++)
+        {
+            coeffL2U.row(i) = (coeffL2U.row(i).array() - bias_inp.array()).array()
+                              / scale_inp.array();
+        }
+
+        for (unsigned int i = 0; i < coeffL2Nut.rows(); i++)
+        {
+            coeffL2Nut.row(i) = (coeffL2Nut.row(i).array() - bias_out.array()).array()
+                                / scale_out.array();
+        }
+
+        coeffL2U_tensor = eigenMatrix2torchTensor(coeffL2U);
+        coeffL2Nut_tensor = eigenMatrix2torchTensor(coeffL2Nut);
+        Net->push_back(torch::nn::Linear(NUmodes, 128));
+        Net->push_back(torch::nn::ReLU());
+        Net->push_back(torch::nn::Linear(128, 64));
+        Net->push_back(torch::nn::ReLU());
+        Net->push_back(torch::nn::Linear(64, NNutModes));
+        optimizer = new torch::optim::Adam(Net->parameters(),
+                                           torch::optim::AdamOptions(2e-2));
+        int epochs = 10000;
+
+        for (int64_t epoch = 1; epoch <= epochs; ++epoch)
+        {
+            std::cerr << epoch << std::endl;
+            Net->zero_grad();
+            torch::Tensor y_r = Net->forward(coeffL2U_tensor);
+            torch::Tensor d_loss_real = torch::nn::functional::mse_loss(y_r,
+                                        coeffL2Nut_tensor);
+            std::cout << d_loss_real.item<float>() << std::endl;
+            d_loss_real.backward();
+            optimizer->step();
+        }
+
+        mkDir("./ITHACAoutput/Offline/NN");
+        torch::save(Net, "./ITHACAoutput/Offline/NN/Net.pt");
+        ITHACAstream::SaveDenseMatrix(bias_inp, "./ITHACAoutput/Offline/NN/",
+                                      "bias_inp");
+        ITHACAstream::SaveDenseMatrix(scale_inp, "./ITHACAoutput/Offline/NN/",
+                                      "scale_inp");
+        ITHACAstream::SaveDenseMatrix(bias_out, "./ITHACAoutput/Offline/NN/",
+                                      "bias_out");
+        ITHACAstream::SaveDenseMatrix(scale_out, "./ITHACAoutput/Offline/NN/",
+                                      "scale_out");
+    }
+
+    else
+    {
+        std::cerr << "File: SteadyNSSimple.C, Line: 261"<< std::endl;
+        Net->push_back(torch::nn::Linear(NUmodes, 128));
+        Net->push_back(torch::nn::ReLU());
+        Net->push_back(torch::nn::Linear(128, 64));
+        Net->push_back(torch::nn::ReLU());
+        Net->push_back(torch::nn::Linear(64, NNutModes));
+        torch::load(Net, "./ITHACAoutput/Offline/NN/Net.pt");
+
+        for (auto& p : Net->named_parameters())
+        {
+            // Access key.
+            std::cout << p.key() << std::endl;
+            // Access value.
+            std::cout << p.value() << std::endl;
+        }
+
+        ITHACAstream::ReadDenseMatrix(bias_inp, "./ITHACAoutput/Offline/NN/",
+                                      "bias_inp");
+        ITHACAstream::ReadDenseMatrix(scale_inp, "./ITHACAoutput/Offline/NN/",
+                                      "scale_inp");
+        ITHACAstream::ReadDenseMatrix(bias_out, "./ITHACAoutput/Offline/NN/",
+                                      "bias_out");
+        ITHACAstream::ReadDenseMatrix(scale_out, "./ITHACAoutput/Offline/NN/",
+                                      "scale_out");
+    }
 }
+
+Eigen::MatrixXd SteadyNSSimple::evalNet(Eigen::MatrixXd a)
+{
+    a.transposeInPlace();
+    a = (a.array() - bias_inp.array()) / scale_inp.array();
+    torch::Tensor aTensor = eigenMatrix2torchTensor(a);
+    torch::Tensor out = Net->forward(aTensor);
+    Eigen::MatrixXd g = torchTensor2eigenMatrix<double>(out);
+    g = g.array() * scale_out.array() + bias_out.array();
+    g.transposeInPlace();
+    return g;
+}
+
+
 
 void SteadyNSSimple::truthSolve2(List<scalar> mu_now, word Folder)
 {
@@ -347,6 +442,7 @@ void SteadyNSSimple::truthSolve2(List<scalar> mu_now, word Folder)
         ITHACAstream::exportSolution(nut, name(folderN + 1), Folder + name(counter));
         nutFields.append(nut);
     }
+
     else
     {
         ITHACAstream::exportSolution(U, name(counter), Folder);

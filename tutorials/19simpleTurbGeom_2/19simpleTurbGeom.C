@@ -237,7 +237,7 @@ int main(int argc, char* argv[])
                             example.podex, 0, 0, example.NNutModesOut);
         // Create the RBF for turbulence
         example.getTurbNN();
-        example.getTurbRBF(example.NNutModes);
+        //example.getTurbRBF(example.NNutModes);
     }
 
     for (int i = 0; i < example.inletIndex.rows(); i++)

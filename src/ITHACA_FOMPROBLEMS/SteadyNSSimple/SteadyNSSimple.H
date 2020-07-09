@@ -58,7 +58,7 @@ SourceFiles
 #include <rbfspline.h>
 #include <spline.h>
 
-
+using namespace ITHACAtorch::torch2Eigen;
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -112,8 +112,21 @@ class SteadyNSSimple: public steadyNS
         /// Initialization for the full pressure linear system.
         fvScalarMatrix* Peqn_global;
 
+        Eigen::MatrixXd bias_inp;
+        Eigen::MatrixXd scale_inp;
+        Eigen::MatrixXd bias_out;
+        Eigen::MatrixXd scale_out;
+
+        Eigen::MatrixXd coeffL2Nut;
+        Eigen::MatrixXd coeffL2U;
+
+        torch::Tensor coeffL2U_tensor;
+        torch::Tensor coeffL2Nut_tensor;
+
+
         //
         torch::nn::Sequential Net;
+        torch::optim::Optimizer* optimizer;
 
         //Functions
         ///
@@ -145,6 +158,8 @@ class SteadyNSSimple: public steadyNS
         void getTurbRBF(int NNutModes);
 
         void getTurbNN();
+
+        Eigen::MatrixXd evalNet(Eigen::MatrixXd a);
 
 
         ///

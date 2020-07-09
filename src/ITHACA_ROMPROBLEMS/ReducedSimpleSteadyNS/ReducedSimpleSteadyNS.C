@@ -62,22 +62,18 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         int NmodesUproj, int NmodesPproj, int NmodesNut, int NmodesSup, word Folder)
 {
     //ULmodes.resize(0);
-
     // for (int i = 0; i < problem->inletIndex.rows(); i++)
     // {
     //     ULmodes.append(problem->liftfield[i]);
     // }
-
     // for (int i = 0; i < NmodesUproj; i++)
     // {
     //     ULmodes.append(problem->Umodes.toPtrList()[i]);
     // }
-
     // for (int i = 0; i < NmodesSup; i++)
     // {
     //     ULmodes.append(problem->supmodes.toPtrList()[i]);
     // }
-
     counter++;
     scalar UprojN;
     scalar PprojN;
@@ -138,20 +134,19 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
     phi = fvc::flux(U);
     int iter = 0;
     simpleControl& simple = problem->_simple();
+    std::cerr << "File: ReducedSimpleSteadyNS.C, Line: 142" << std::endl;
 
     if (ITHACAutilities::isTurbulent())
     {
-        Eigen::MatrixXd nutCoeff;
-        nutCoeff.resize(NmodesNut, 1);
-
-        for (int i = 0; i < NmodesNut; i++)
-        {
-            Eigen::MatrixXd muEval;
-            muEval.resize(1, 1);
-            muEval(0, 0) = mu_now;
-            nutCoeff(i, 0) = problem->rbfSplines[i]->eval(muEval);
-        }
-
+        Eigen::MatrixXd nutCoeff = problem->evalNet(a);
+        // nutCoeff.resize(NmodesNut, 1);
+        // for (int i = 0; i < NmodesNut; i++)
+        // {
+        //     Eigen::MatrixXd muEval;
+        //     muEval.resize(1, 1);
+        //     muEval(0, 0) = mu_now;
+        //     nutCoeff(i, 0) = problem->rbfSplines[i]->eval(muEval);
+        // }
         volScalarField& nut = const_cast<volScalarField&>
                               (problem->_mesh().lookupObject<volScalarField>("nut"));
         problem->nutModes.reconstruct(nut, nutCoeff, "nut");
@@ -183,6 +178,24 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         vector v(1, 0, 0);
         ITHACAutilities::assignBC(U, 0, v);
         // ITHACAutilities::assignBC(phi,0,0.0);
+
+        if (ITHACAutilities::isTurbulent())
+        {
+            Eigen::MatrixXd nutCoeff = problem->evalNet(a);
+            // nutCoeff.resize(NmodesNut, 1);
+            // for (int i = 0; i < NmodesNut; i++)
+            // {
+            //     Eigen::MatrixXd muEval;
+            //     muEval.resize(1, 1);
+            //     muEval(0, 0) = mu_now;
+            //     nutCoeff(i, 0) = problem->rbfSplines[i]->eval(muEval);
+            // }
+            volScalarField& nut = const_cast<volScalarField&>
+                                  (problem->_mesh().lookupObject<volScalarField>("nut"));
+            problem->nutModes.reconstruct(nut, nutCoeff, "nut");
+            ITHACAstream::exportSolution(nut, name(counter), Folder);
+        }
+
         fvVectorMatrix UEqn
         (
             fvm::div(phi, U)
@@ -192,7 +205,6 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         //List<List<Eigen::MatrixXd>> RedLinSysUL;
         UEqn.relax();
         //UeqnList.resize(0);
-
         // for (label i = 0; i < problem->liftfield.size(); i++)
         // {
         //     surfaceScalarField phi(problem->_phi());
@@ -207,7 +219,6 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         //     RedLinSysUL.append(problem->Umodes.project(UEqn, UprojN));
         //     UeqnList.append(UEqn2);
         // }
-
         List<Eigen::MatrixXd> RedLinSysU = problem->Umodes.project(UEqn, UprojN);
         RedLinSysU[1] = RedLinSysU[1] - projGradModP * b;
         // for (unsigned int i = 0; i < RedLinSysUL.size(); i++)
