@@ -160,7 +160,7 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         gradModP.append(fvc::grad(problem->Pmodes[i]));
     }
 
-    projGradModP = (problem->Umodes).project(gradModP, NmodesUproj);
+    //projGradModP = (problem->Umodes).project(gradModP, NmodesUproj);
     PtrList<fvVectorMatrix> UeqnList;
 
     while ((residual_jump > residualJumpLim
@@ -219,13 +219,15 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         //     RedLinSysUL.append(problem->Umodes.project(UEqn, UprojN));
         //     UeqnList.append(UEqn2);
         // }
-        List<Eigen::MatrixXd> RedLinSysU = problem->Umodes.project(UEqn, UprojN);
+        List<Eigen::MatrixXd> RedLinSysU = problem->Umodes.project(UEqn, UprojN, "G");
+        projGradModP = (problem->Umodes).project(gradModP,
+                       NmodesUproj, "G", &UEqn);
         RedLinSysU[1] = RedLinSysU[1] - projGradModP * b;
+        a = reducedProblem::solveLinearSys(RedLinSysU, a, uresidual);
         // for (unsigned int i = 0; i < RedLinSysUL.size(); i++)
         //  {
         //     RedLinSysU[1] += RedLinSysUL[i][1];
         // }
-        a = reducedProblem::solveLinearSys(RedLinSysU, a, uresidual);
         problem->Umodes.reconstruct(U, a, "U");
         ITHACAutilities::assignBC(U, 0, v);
         // U = U + problem->liftfield[0];
