@@ -134,7 +134,6 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
     phi = fvc::flux(U);
     int iter = 0;
     simpleControl& simple = problem->_simple();
-    std::cerr << "File: ReducedSimpleSteadyNS.C, Line: 142" << std::endl;
 
     if (ITHACAutilities::isTurbulent())
     {
@@ -204,6 +203,8 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         );
         //List<List<Eigen::MatrixXd>> RedLinSysUL;
         UEqn.relax();
+
+        //UEqn == -fvc::grad(P);
         //UeqnList.resize(0);
         // for (label i = 0; i < problem->liftfield.size(); i++)
         // {
@@ -219,10 +220,12 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         //     RedLinSysUL.append(problem->Umodes.project(UEqn, UprojN));
         //     UeqnList.append(UEqn2);
         // }
-        List<Eigen::MatrixXd> RedLinSysU = problem->Umodes.project(UEqn, UprojN, "G");
-        projGradModP = (problem->Umodes).project(gradModP,
-                       NmodesUproj, "G", &UEqn);
-        RedLinSysU[1] = RedLinSysU[1] - projGradModP * b;
+        List<Eigen::MatrixXd> RedLinSysU = problem->Umodes.project(UEqn, UprojN, "PG");
+        volVectorField gradP = -fvc::grad(P);
+        projGradModP = (problem->Umodes).project(gradP,
+                       NmodesUproj, "PG", &UEqn);
+        //RedLinSysU[1] = RedLinSysU[1] - projGradModP * b;
+        RedLinSysU[1] = RedLinSysU[1] + projGradModP;
         a = reducedProblem::solveLinearSys(RedLinSysU, a, uresidual);
         // for (unsigned int i = 0; i < RedLinSysUL.size(); i++)
         //  {
@@ -263,7 +266,7 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
             (
                 fvm::laplacian(rAtU(), P) == fvc::div(phiHbyA)
             );
-            RedLinSysP = problem->Pmodes.project(pEqn, PprojN);
+            RedLinSysP = problem->Pmodes.project(pEqn, PprojN, "PG");
             b = reducedProblem::solveLinearSys(RedLinSysP, b, presidual);
             problem->Pmodes.reconstruct(P, b, "p");
 

@@ -3,13 +3,17 @@ import os
 import files 
 import itertools
 
-modes_U = [1,2,3,4,5,6,7,8,9,10,15,20]
-modes_p = [1,2,3,4,5,6,7,8,9,10,15,20]
+# modes_U = [1,2,3,4,5,6,7,8,9,10,15,20]
+# modes_p = [1,2,3,4,5,6,7,8,9,10,15,20]
+
+modes_U = [2,4,6,8,10,20,30,40,50]
+modes_p = [2,4,6,8,10,20,30,40,50]
 
 for k in modes_U:
      files.sed_variable("NmodesUproj","./system/ITHACAdict",str(k))
      files.sed_variable("NmodesPproj","./system/ITHACAdict",str(k))
      os.system("rm -r ITHACAoutput/POD")
+     os.system("rm -r ITHACAoutput/Offline/NN")     
      os.system("19simpleTurbGeom")
 
 

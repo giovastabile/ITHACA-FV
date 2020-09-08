@@ -230,7 +230,7 @@ void SteadyNSSimple::getTurbNN()
         Net->push_back(torch::nn::Linear(64, NNutModes));
         optimizer = new torch::optim::Adam(Net->parameters(),
                                            torch::optim::AdamOptions(2e-2));
-        int epochs = 10000;
+        int epochs = 40000;
 
         for (int64_t epoch = 1; epoch <= epochs; ++epoch)
         {

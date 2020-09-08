@@ -27,8 +27,13 @@ License
 
 /// \file
 /// Implementation of the assert function for ITHACA-FV
+/// 
+/// 
 
 #pragma once
+
+#ifndef ITHACA_ASSERT_H
+#define ITHACA_ASSERT_H
 
 inline void __M_Assert(const char* expr_str, bool expr, const char* file,
                        int line, const char* msg)
@@ -41,6 +46,8 @@ inline void __M_Assert(const char* expr_str, bool expr, const char* file,
         abort();
     }
 }
+
+#endif
 
 #ifndef NDEBUG
 #define M_Assert(Expr, Msg) \
