@@ -63,7 +63,7 @@ template<class T>
 List<Eigen::MatrixXd> Modes<T>::project(fvMatrix<T>& Af, int numberOfModes,
                                         word projType)
 {
-    M_Assert(projType == "G" || projType == "PG" ,
+    M_Assert(projType == "G" || projType == "PG",
              "Projection type can be G for Galerking or PG for Petrov-Galerkin");
     List<Eigen::MatrixXd> LinSys;
     LinSys.resize(2);
@@ -91,7 +91,6 @@ List<Eigen::MatrixXd> Modes<T>::project(fvMatrix<T>& Af, int numberOfModes,
             LinSys[1] = (Ae * EigenModes[0]).transpose() * be;
         }
     }
-
     else
     {
         M_Assert(numberOfModes <= EigenModes[0].cols(),
@@ -119,7 +118,7 @@ template<class T>
 Eigen::MatrixXd Modes<T>::project(GeometricField<T, fvPatchField, volMesh>&
                                   field, int numberOfModes, word projType, fvMatrix<T>* Af)
 {
-    M_Assert(projType == "G" || projType == "PG" ,
+    M_Assert(projType == "G" || projType == "PG",
              "Projection type can be G for Galerking or PG for Petrov-Galerkin");
     Eigen::MatrixXd fieldEig = Foam2Eigen::field2Eigen(field);
     auto vol = ITHACAutilities::getMassMatrixFV(field);
@@ -136,7 +135,6 @@ Eigen::MatrixXd Modes<T>::project(GeometricField<T, fvPatchField, volMesh>&
         {
             projField = EigenModes[0].transpose() * vol.asDiagonal() * fieldEig;
         }
-
         else if (projType == "PG")
         {
             M_Assert(Af != NULL,
@@ -147,7 +145,6 @@ Eigen::MatrixXd Modes<T>::project(GeometricField<T, fvPatchField, volMesh>&
             projField = (Ae * EigenModes[0]).transpose() * vol.asDiagonal() * fieldEig;
         }
     }
-
     else
     {
         M_Assert(numberOfModes <= EigenModes[0].cols(),
@@ -158,7 +155,6 @@ Eigen::MatrixXd Modes<T>::project(GeometricField<T, fvPatchField, volMesh>&
             projField = ((EigenModes[0]).leftCols(numberOfModes)).transpose() *
                         vol.asDiagonal() * fieldEig;
         }
-
         else if (projType == "PG")
         {
             M_Assert(Af != NULL,
@@ -180,7 +176,7 @@ Eigen::MatrixXd Modes<T>::project(
     fields,
     int numberOfModes, word projType, fvMatrix<T>* Af)
 {
-    M_Assert(projType == "G" || projType == "PG" ,
+    M_Assert(projType == "G" || projType == "PG",
              "Projection type can be G for Galerking or PG for Petrov-Galerkin");
     Eigen::MatrixXd fieldEig = Foam2Eigen::PtrList2Eigen(fields);
     auto vol = ITHACAutilities::getMassMatrixFV(fields[0]);
@@ -197,7 +193,6 @@ Eigen::MatrixXd Modes<T>::project(
         {
             projField = EigenModes[0].transpose() * vol.asDiagonal() * fieldEig;
         }
-
         else if (projType == "PG")
         {
             M_Assert(Af != NULL,
@@ -208,7 +203,6 @@ Eigen::MatrixXd Modes<T>::project(
             projField = (Ae * EigenModes[0]).transpose() * vol.asDiagonal() * fieldEig;
         }
     }
-
     else
     {
         M_Assert(numberOfModes <= EigenModes[0].cols(),
@@ -219,7 +213,6 @@ Eigen::MatrixXd Modes<T>::project(
             projField = ((EigenModes[0]).leftCols(numberOfModes)).transpose() *
                         vol.asDiagonal() * fieldEig;
         }
-
         else if (projType == "PG")
         {
             M_Assert(Af != NULL,
@@ -314,7 +307,6 @@ void Modes<T>::projectSnapshots(
     {
         Modes = EigenModes[0];
     }
-
     else
     {
         Modes = EigenModes[0].leftCols(numberOfModes);
@@ -333,7 +325,6 @@ void Modes<T>::projectSnapshots(
             M = Modes.transpose() * (totVolumes.col(i)).asDiagonal() * Modes;
             projSnapI = Modes.transpose() * (totVolumes.col(i)).asDiagonal() * F_eigen;
         }
-
         else //Frobenius
         {
             M = Modes.transpose() * Modes;
@@ -373,7 +364,6 @@ void Modes<T>::projectSnapshots(
     {
         Modes = EigenModes[0];
     }
-
     else
     {
         Modes = EigenModes[0].leftCols(numberOfModes);
@@ -397,12 +387,10 @@ void Modes<T>::projectSnapshots(
         {
             M_vol = ITHACAutilities::getMassMatrixFV(snapshots[i]);
         }
-
         else if (innerProduct == "Frobenius")
         {
             M_vol =  Eigen::VectorXd::Identity(F_eigen.rows(), 1);
         }
-
         else
         {
             std::cout << "Inner product not defined" << endl;

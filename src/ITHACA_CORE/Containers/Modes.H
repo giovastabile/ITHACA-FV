@@ -110,7 +110,8 @@ class Modes : public PtrList<GeometricField<T, fvPatchField, volMesh>>
         ///             system, the second element is the reduced source term of
         ///             the linear system.
         ///
-        List<Eigen::MatrixXd> project(fvMatrix<T>& Af, int numberOfModes = 0, word projType = "G");
+        List<Eigen::MatrixXd> project(fvMatrix<T>& Af, int numberOfModes = 0,
+                                      word projType = "G");
 
         //----------------------------------------------------------------------
         /// @brief      A function that project a field on the modes
