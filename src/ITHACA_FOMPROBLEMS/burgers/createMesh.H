@@ -21,54 +21,24 @@
   GNU Lesser General Public License for more details.
   You should have received a copy of the GNU Lesser General Public License
   along with ITHACA-FV. If not, see <http://www.gnu.org/licenses/>.
- \*---------------------------------------------------------------------------*/
+\*---------------------------------------------------------------------------*/
+Info << "Reading field p\n" << endl;
 
-Info << "Reading field U\n" << endl;
-_U = autoPtr<volVectorField>
-     (
-         new volVectorField
-         (
-             IOobject
-             (
-                 "U",
-                 runTime.timeName(),
-                 mesh,
-                 IOobject::MUST_READ,
-                 IOobject::AUTO_WRITE
-             ),
-             mesh
-         )
-     );
-volVectorField& U = _U();
+Info << "Create mesh for time = "
+     << runTime.timeName() << nl << endl;
 
-volVectorField U0(U);
+_mesh = autoPtr<fvMesh>
+        (
+            new fvMesh
+            (
+                IOobject
+                (
+                    fvMesh::defaultRegion,
+                    runTime.timeName(),
+                    runTime,
+                    IOobject::MUST_READ
+                )
+            )
+        );
 
-_U0 = autoPtr<volVectorField>
-      (
-          new volVectorField(U0)
-      );
-
-Info<< "Reading transportProperties\n" << endl;
-
-//CHECK_start
-IOdictionary transportProperties
-(
-    IOobject
-    (
-        "transportProperties",
-        runTime.constant(),
-        mesh,
-        IOobject::MUST_READ_IF_MODIFIED,
-        IOobject::NO_WRITE
-    )
-);
-
-
-Info<< "Reading viscosity nu\n" << endl;
-
-dimensionedScalar _nu("nu", dimViscosity, transportProperties);
-dimensionedScalar& nu = _nu;
-//CHECK_end
-
-#include "createPhi.H"
-
+Foam::fvMesh& mesh = _mesh();

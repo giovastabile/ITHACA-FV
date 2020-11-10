@@ -1,0 +1,6 @@
+/usr/bin/ld: /usr/lib/gcc/x86_64-linux-gnu/10/../../../x86_64-linux-gnu/Scrt1.o: in function `_start':
+(.text+0x20): undefined reference to `main'
+/usr/bin/ld: /home/fromor/OpenFOAM/OpenFOAM-v2006/build/linux64GccDPInt32Opt/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.o: in function `Burgers::truthSolve(Foam::List<double>, Foam::fileName)':
+burgers.C:(.text+0x16b05): undefined reference to `void ITHACAstream::exportMatrix<double, -1>(Eigen::Matrix<double, -1, -1, ((Eigen::StorageOptions)0)|((((-1)==(1))&&((-1)!=(1)))?((Eigen::StorageOptions)1) : ((((-1)==(1))&&((-1)!=(1)))?((Eigen::StorageOptions)0) : ((Eigen::StorageOptions)0))), -1, -1>&, Foam::word, Foam::word, Foam::word)'
+collect2: error: ld returned 1 exit status
+make: *** [/home/fromor/OpenFOAM/OpenFOAM-v2006/wmake/makefiles/general:150: /home/fromor/OpenFOAM/fromor-v2006/platforms/linux64GccDPInt32Opt/lib/burgersFoam] Error 1

@@ -1,3 +1,3 @@
-burgersFoam.C
+burgers.C
 
-EXE = $(FOAM_USER_APPBIN)/burgersFoam
+EXE = $(FOAM_USER_LIBBIN)/burgersFoam

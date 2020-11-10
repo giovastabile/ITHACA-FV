@@ -21,54 +21,31 @@
   GNU Lesser General Public License for more details.
   You should have received a copy of the GNU Lesser General Public License
   along with ITHACA-FV. If not, see <http://www.gnu.org/licenses/>.
- \*---------------------------------------------------------------------------*/
+\*---------------------------------------------------------------------------*/
 
-Info << "Reading field U\n" << endl;
-_U = autoPtr<volVectorField>
-     (
-         new volVectorField
-         (
-             IOobject
-             (
-                 "U",
-                 runTime.timeName(),
-                 mesh,
-                 IOobject::MUST_READ,
-                 IOobject::AUTO_WRITE
-             ),
-             mesh
-         )
-     );
-volVectorField& U = _U();
+while (runTime.run())
+{
+#include "readTimeControls.H"
+#include "CourantNo.H"
+#include "setDeltaT.H"
+    runTime++;
+    Info << "Time = " << runTime.timeName() << nl << endl;
 
-volVectorField U0(U);
+    // --- Pressure-velocity PIMPLE corrector loop
+    while (simple.loop())
+    {
+#include "UEqn.H"
+    }
 
-_U0 = autoPtr<volVectorField>
-      (
-          new volVectorField(U0)
-      );
-
-Info<< "Reading transportProperties\n" << endl;
-
-//CHECK_start
-IOdictionary transportProperties
-(
-    IOobject
-    (
-        "transportProperties",
-        runTime.constant(),
-        mesh,
-        IOobject::MUST_READ_IF_MODIFIED,
-        IOobject::NO_WRITE
-    )
-);
+    Info << "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
+         << "  ClockTime = " << runTime.elapsedClockTime() << " s"
+         << nl << endl;
+}
 
 
-Info<< "Reading viscosity nu\n" << endl;
 
-dimensionedScalar _nu("nu", dimViscosity, transportProperties);
-dimensionedScalar& nu = _nu;
-//CHECK_end
 
-#include "createPhi.H"
+
+
+
 

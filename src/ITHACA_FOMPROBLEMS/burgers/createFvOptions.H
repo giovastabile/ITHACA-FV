@@ -21,54 +21,11 @@
   GNU Lesser General Public License for more details.
   You should have received a copy of the GNU Lesser General Public License
   along with ITHACA-FV. If not, see <http://www.gnu.org/licenses/>.
- \*---------------------------------------------------------------------------*/
-
-Info << "Reading field U\n" << endl;
-_U = autoPtr<volVectorField>
-     (
-         new volVectorField
-         (
-             IOobject
-             (
-                 "U",
-                 runTime.timeName(),
-                 mesh,
-                 IOobject::MUST_READ,
-                 IOobject::AUTO_WRITE
-             ),
-             mesh
-         )
-     );
-volVectorField& U = _U();
-
-volVectorField U0(U);
-
-_U0 = autoPtr<volVectorField>
-      (
-          new volVectorField(U0)
-      );
-
-Info<< "Reading transportProperties\n" << endl;
-
-//CHECK_start
-IOdictionary transportProperties
-(
-    IOobject
-    (
-        "transportProperties",
-        runTime.constant(),
-        mesh,
-        IOobject::MUST_READ_IF_MODIFIED,
-        IOobject::NO_WRITE
-    )
-);
+\*---------------------------------------------------------------------------*/
+Info << "Reading field p\n" << endl;
 
 
-Info<< "Reading viscosity nu\n" << endl;
+_fvOptions = autoPtr<fv::options>(new fv::options(mesh));
 
-dimensionedScalar _nu("nu", dimViscosity, transportProperties);
-dimensionedScalar& nu = _nu;
-//CHECK_end
 
-#include "createPhi.H"
 
