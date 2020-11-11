@@ -34,6 +34,7 @@ EXE_INC = \
     -I$(LIB_ITHACA_SRC)/ITHACA_FOMPROBLEMS/SteadyNSSimple \
     -I$(LIB_ITHACA_SRC)/ITHACA_FOMPROBLEMS/msrProblem \
     -I$(LIB_ITHACA_SRC)/ITHACA_FOMPROBLEMS/unsteadymsrProblem \
+    -I$(LIB_ITHACA_SRC)/ITHACA_FOMPROBLEMS/burgers \
     -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/ReducedProblem \
     -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/ReducedUnsteadyNS \
     -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/ReducedUnsteadyBB \
@@ -83,4 +84,6 @@ EXE_LIBS = \
     -lcompressibleRASModels \
     -lforces \
     -lfileFormats \
-    -lcompressibleLESModels
+    -lcompressibleLESModels \
+    -lburgers \
+    -L$(FOAM_USER_LIBBIN)

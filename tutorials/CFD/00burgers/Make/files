@@ -1,3 +1,4 @@
 00burgers.C
 
 EXE = $(FOAM_USER_APPBIN)/00burgers
+

@@ -113,27 +113,34 @@ int main(int argc, char* argv[])
 
     // Search the lift function
     //example.liftSolve();
+
     // Normalize the lifting function
     //ITHACAutilities::normalizeFields(example.liftfield);
+
     // Create homogeneous basis functions for velocity
     //example.computeLift(example.Ufield, example.liftfield, example.Uomfield);
+
     // Perform a POD decomposition for velocity and pressure
     ITHACAPOD::getModes(example.Uomfield, example.Umodes, example._U().name(),
                         example.podex, 0, 0,
                         NmodesUout);
 
     ReducedBurgers reduced(example);
-    // Set values of the reduced stuff
+
+    // Set values of the reduced model
     reduced.nu = 0.005;
     reduced.tstart = 50;
     reduced.finalTime = 70;
     reduced.dt = 0.005;
     reduced.storeEvery = 0.005;
     reduced.exportEvery = 0.1;
+
     // Set the online velocity
-    Eigen::MatrixXd vel_now(1, 1);
-    vel_now(0, 0) = 1;
-    reduced.solveOnline(vel_now, 1);
+    // Eigen::MatrixXd vel_now(1, 1);
+    // vel_now(0, 0) = 1;
+    // reduced.solveOnline(vel_now, 1);
+
+
     // Reconstruct the solution and export it
     reduced.reconstruct(true, "./ITHACAoutput/Reconstruction/");
     exit(0);

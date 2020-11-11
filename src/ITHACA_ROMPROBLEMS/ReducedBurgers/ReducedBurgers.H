@@ -82,23 +82,23 @@ struct newton_burgers: public newton_argument<double>
 /// Class where it is implemented a reduced problem for the <b> steady Navier-stokes </b> problem.
 /** In this class are implemented the methods to solve a reduced version of the stationary Navier-stokes
 equations. This class must be used together with the steadyNS class */
-class reducedBurgers: public reducedProblem
+class ReducedBurgers: public reducedProblem
 {
     private:
 
     public:
         // Constructors
         /// Construct Null
-        reducedBurgers();
+        ReducedBurgers();
 
         /// Construct Null
         ///
         /// @param[in]  problem  a full order steadyNS problem
         /// @param[in]  tipo     Type of pressure stabilisation method you want to use "SUP" for supremizer, "PPE" for pressure Poisson equation.
         ///
-        explicit reducedBurgers(Burgers& problem);
+        explicit ReducedBurgers(Burgers& problem);
 
-        ~reducedBurgers() {};
+        ~ReducedBurgers() {};
 
         /// parameters to be read from the ITHACAdict file
         ITHACAparameters* para;
@@ -213,6 +213,16 @@ class reducedBurgers: public reducedProblem
         ///
         void solveOnline(Eigen::MatrixXd vel_now, int startSnap = 0);
 
+        /// Method to perform an online solve using a supremizer stabilisation method
+        ///
+        /// @param[in]  vel_now   The vector of online velocity. It is defined in
+        /// with an Eigen::MatrixXd and must have one col and as many rows as the number
+        /// of parametrized boundary conditions.
+        /// @param[in]  startSnap The first snapshot taken from the offline snapshots
+        /// and used to get the reduced initial condition.
+        ///
+        void solveOnline(dimensionedScalar nu, int startSnap = 0);
+
         ///
         /// Method to reconstruct the solutions from an online solve.
         ///
@@ -221,8 +231,7 @@ class reducedBurgers: public reducedProblem
         /// @param[in]  printevery    The printevery variabel, when it is 1 the function outputs all stored fields
         ///
         void reconstruct(bool exportFields = false,
-                         fileName folder = "./ITHACAoutput/online_rec",
-                         int printevery = 1);
+                         fileName folder = "./ITHACAoutput/online_rec");
 
         ///
         /// @brief      Sets the online velocity.

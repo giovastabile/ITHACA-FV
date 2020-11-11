@@ -59,7 +59,7 @@ Burgers::Burgers(int argc, char* argv[])
                       mesh
                   )
               );
-    simpleControl& simple = _simple();
+    simpleControl& simple = _simple();//CHECK
 #include "createFields.H"
 #include "createFvOptions.H"
     ITHACAdict = new IOdictionary
@@ -126,7 +126,12 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
         // --- Pressure-velocity PIMPLE corrector loop
         while (simple.loop())
         {
+            Info<< "Time = " << runTime.timeName() << nl << endl;
+
+            while (simple.correctNonOrthogonal())//CHECK
+            {
 #include "UEqn.H"
+            }
         }
 
         Info << "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
@@ -159,12 +164,11 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
         mu.resize(1, 1);
     }
 
-    //CHECK compiling errors
-    // if (mu_samples.rows() == counter * mu.cols())
-    // {
-    //     ITHACAstream::exportMatrix(mu_samples, "mu_samples", "eigen",
-    //                                folder);
-    // }
+    if (mu_samples.rows() == counter * mu.cols())
+    {
+        ITHACAstream::exportMatrix(mu_samples, "mu_samples", "eigen",
+                                   folder);
+    }
 }
 
 // Method to compute the lifting function
@@ -474,13 +478,14 @@ void Burgers::restart()
     //                     );
     // singlePhaseTransportModel& laminarTransport = _laminarTransport();
 
+    //CHECK_start
     _MRF = autoPtr<IOMRFZoneList>
            (
                new IOMRFZoneList(mesh)
            );
     _fvOptions = autoPtr<fv::options>(new fv::options(mesh));
 
-    //CHECK_start
+
     Info<< "Reading transportProperties\n" << endl;
 
     IOdictionary transportProperties
