@@ -20,11 +20,13 @@ EXE_INC = \
     -I$(LIB_ITHACA_SRC)/ITHACA_FOMPROBLEMS/steadyNS \
     -I$(LIB_ITHACA_SRC)/ITHACA_FOMPROBLEMS/unsteadyNS \
     -I$(LIB_ITHACA_SRC)/ITHACA_FOMPROBLEMS/glassFurnace \
+    -I$(LIB_ITHACA_SRC)/ITHACA_FOMPROBLEMS/burgers \
     -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/ReducedProblem \
     -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/ReducedUnsteadyNS \
     -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/ReducedSteadyNS \
     -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/ReducedLaplacian \
     -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/NonLinearSolvers \
+    -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/ReducedBurgers \
     -I$(LIB_ITHACA_SRC)/ITHACA_CORE/ITHACAutilities \
     -I$(LIB_ITHACA_SRC)/ITHACA_CORE/ITHACAPOD \
     -I$(LIB_ITHACA_SRC)/ITHACA_CORE/ITHACAparallel \
@@ -38,7 +40,7 @@ EXE_INC = \
     -Wno-comment \
     -w \
     -DOFVER=$${WM_PROJECT_VERSION%.*} \
-    -std=c++11 \
+    -std=c++11
 
 EXE_LIBS = \
     -lturbulenceModels \
@@ -53,4 +55,6 @@ EXE_LIBS = \
     -lITHACA_ROMPROBLEMS \
     -lITHACA_THIRD_PARTY \
     -lITHACA_CORE \
-    -L$(FOAM_USER_LIBBIN) \
+    -lburgersFoam \
+    -lburgersReduced \
+    -L$(FOAM_USER_LIBBIN)

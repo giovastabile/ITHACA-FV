@@ -1,0 +1,3 @@
+/usr/bin/ld: /home/fromor/OpenFOAM/fromor-v2006/platforms/linux64GccDPInt32Opt/lib/libITHACA_FOMPROBLEMS.so: undefined reference to `void ITHACAstream::exportMatrix<double, -1>(Eigen::Matrix<double, -1, -1, ((Eigen::StorageOptions)0)|((((-1)==(1))&&((-1)!=(1)))?((Eigen::StorageOptions)1) : ((((-1)==(1))&&((-1)!=(1)))?((Eigen::StorageOptions)0) : ((Eigen::StorageOptions)0))), -1, -1>&, Foam::word, Foam::word, Foam::word)'
+collect2: error: ld returned 1 exit status
+make: *** [/home/fromor/OpenFOAM/OpenFOAM-v2006/wmake/makefiles/general:150: /home/fromor/OpenFOAM/fromor-v2006/platforms/linux64GccDPInt32Opt/bin/04unsteadyNS] Error 1

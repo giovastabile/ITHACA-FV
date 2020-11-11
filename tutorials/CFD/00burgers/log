@@ -1,0 +1,2 @@
+g++: error: d: No such file or directory
+make: *** [/home/fromor/OpenFOAM/OpenFOAM-v2006/wmake/makefiles/general:150: /home/fromor/OpenFOAM/fromor-v2006/platforms/linux64GccDPInt32Opt/bin/00burgers] Error 1

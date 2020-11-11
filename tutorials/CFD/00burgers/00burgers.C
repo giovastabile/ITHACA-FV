@@ -41,7 +41,7 @@ class tutorial00: public Burgers
         explicit tutorial00(int argc, char* argv[])
             :
             Burgers(argc, argv),
-            U(_U()),
+            U(_U())
         {}
 
         // Fields To Perform
@@ -49,7 +49,7 @@ class tutorial00: public Burgers
 
         void offlineSolve()
         {
-            //Vector<double> inl(1, 0, 0);//CHECK
+            //Vector<double> inl(1, 0, 0);
             List<scalar> mu_now(1);
 
             if (offline)
@@ -139,6 +139,9 @@ int main(int argc, char* argv[])
     // Eigen::MatrixXd vel_now(1, 1);
     // vel_now(0, 0) = 1;
     // reduced.solveOnline(vel_now, 1);
+    scalar mu_now(1);
+    mu_now = 0.001;
+    reduced.solveOnline(mu_now, 1);
 
 
     // Reconstruct the solution and export it
