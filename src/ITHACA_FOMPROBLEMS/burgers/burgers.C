@@ -276,6 +276,106 @@ void Burgers::liftSolve()
     }
 }
 
+// * * * * * * * * * * * * * * Projection Methods * * * * * * * * * * * * * * //
+
+void Burgers::project(fileName folder, label NU)
+{
+    NUmodes = NU;
+    L_Umodes.resize(0);
+
+    if (liftfield.size() != 0)
+    {
+        for (label k = 0; k < liftfield.size(); k++)
+        {
+            L_Umodes.append(liftfield[k]);
+        }
+    }
+
+    if (NUmodes != 0)
+    {
+        for (label k = 0; k < NUmodes; k++)
+        {
+            L_Umodes.append(Umodes[k]);
+        }
+    }
+
+    if (ITHACAutilities::check_folder("./ITHACAoutput/Matrices/"))
+    {
+        word B_str = "B_" + name(liftfield.size()) + "_" + name(NUmodes);
+
+        if (ITHACAutilities::check_file("./ITHACAoutput/Matrices/" + B_str))
+        {
+            ITHACAstream::ReadDenseMatrix(B_matrix, "./ITHACAoutput/Matrices/", B_str);
+        }
+        else
+        {
+            B_matrix = diffusive_term(NUmodes);
+        }
+
+        word M_str = "M_" + name(liftfield.size()) + "_" + name(NUmodes);
+
+        if (ITHACAutilities::check_file("./ITHACAoutput/Matrices/" + M_str))
+        {
+            ITHACAstream::ReadDenseMatrix(M_matrix, "./ITHACAoutput/Matrices/", M_str);
+        }
+        else
+        {
+            M_matrix = mass_term(NUmodes);
+        }
+
+        word C_str = "C_" + name(liftfield.size()) + "_" + name(NUmodes) + "_t";
+        Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 327 ####################" << endl;
+        if (ITHACAutilities::check_file("./ITHACAoutput/Matrices/" + C_str))
+        {
+            ITHACAstream::ReadDenseTensor(C_tensor, "./ITHACAoutput/Matrices/", C_str);
+        }
+        else
+        {
+            C_tensor = convective_term_tens(NUmodes);
+        }
+
+        // if (bcMethod == "penalty")
+        // {
+        //     bcVelVec = bcVelocityVec(NUmodes);
+        //     bcVelMat = bcVelocityMat(NUmodes);
+        // }
+    }
+    else
+    {
+        B_matrix = diffusive_term(NUmodes);
+        C_tensor = convective_term_tens(NUmodes);
+        M_matrix = mass_term(NUmodes);
+
+        // if (bcMethod == "penalty")
+        // {
+        //     bcVelVec = bcVelocityVec(NUmodes);
+        //     bcVelMat = bcVelocityMat(NUmodes);
+        // }
+    }
+
+    // Export the matrices
+    if (para->exportPython)
+    {
+        ITHACAstream::exportMatrix(B_matrix, "B", "python", "./ITHACAoutput/Matrices/");
+        ITHACAstream::exportMatrix(M_matrix, "M", "python", "./ITHACAoutput/Matrices/");
+        ITHACAstream::exportTensor(C_tensor, "C", "python", "./ITHACAoutput/Matrices/");
+    }
+
+    if (para->exportMatlab)
+    {
+        ITHACAstream::exportMatrix(B_matrix, "B", "matlab", "./ITHACAoutput/Matrices/");
+        ITHACAstream::exportMatrix(M_matrix, "M", "matlab", "./ITHACAoutput/Matrices/");
+        ITHACAstream::exportTensor(C_tensor, "C", "python", "./ITHACAoutput/Matrices/");
+    }
+
+    if (para->exportTxt)
+    {
+        ITHACAstream::exportMatrix(B_matrix, "B", "eigen", "./ITHACAoutput/Matrices/");
+        ITHACAstream::exportMatrix(M_matrix, "M", "eigen", "./ITHACAoutput/Matrices/");
+        ITHACAstream::exportTensor(C_tensor, "C", "python","./ITHACAoutput/Matrices/C");
+    }
+}
+
 // * * * * * * * * * * * * * * Momentum Eq. Methods * * * * * * * * * * * * * //
 
 Eigen::MatrixXd Burgers::diffusive_term(label NUmodes)

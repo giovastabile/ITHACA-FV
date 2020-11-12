@@ -48,10 +48,10 @@ ReducedBurgers::ReducedBurgers(Burgers& FOMproblem)
     N_BC = problem->inletIndex.rows();//CHECK
     Nphi_u = problem->B_matrix.rows();
 
-    for (int k = 0; k < problem->liftfield.size(); k++)
-    {
-        Umodes.append(problem->liftfield[k]);
-    }
+    // for (int k = 0; k < problem->liftfield.size(); k++)
+    // {
+    //     Umodes.append(problem->liftfield[k]);
+    // }
 
     for (int k = 0; k < problem->NUmodes; k++)
     {
@@ -321,9 +321,8 @@ void ReducedBurgers::solveOnline(int startSnap)
     // Create and resize the solution vector
     y.resize(Nphi_u, 1);
     y.setZero();
-    y.head(Nphi_u) = ITHACAutilities::getCoeffs(problem->Ufield[startSnap],
-                     Umodes);
-
+    y.head(Nphi_u) = ITHACAutilities::getCoeffs(problem->Ufield[startSnap],Umodes);
+    Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 326 ####################" << endl;
     int nextStore = 0;
     int counter2 = 0;
 
@@ -578,7 +577,7 @@ void ReducedBurgers::reconstruct(bool exportFields, fileName folder)
         mkDir(folder);
         ITHACAutilities::createSymLink(folder);
     }
-
+    Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 581 ####################" << endl;
     int counter = 0;
     int nextwrite = 0;
     List < Eigen::MatrixXd> CoeffU;
@@ -586,7 +585,7 @@ void ReducedBurgers::reconstruct(bool exportFields, fileName folder)
     CoeffU.resize(0);
     tValues.resize(0);
     int exportEveryIndex = round(exportEvery / storeEvery);
-
+    Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 589 ####################" << endl;
     for (int i = 0; i < online_solution.size(); i++)
     {
         if (counter == nextwrite)
@@ -601,10 +600,10 @@ void ReducedBurgers::reconstruct(bool exportFields, fileName folder)
 
         counter++;
     }
-
+    Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 604 ####################" << endl;
     volVectorField uRec("uRec", Umodes[0] * 0);
     uRecFields = problem->L_Umodes.reconstruct(uRec, CoeffU, "uRec");
-
+    Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 607 ####################" << endl;
     if (exportFields)
     {
         ITHACAstream::exportFields(uRecFields, folder,

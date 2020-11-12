@@ -32,77 +32,67 @@ SourceFiles
 #include "ReducedBurgers.H"
 #include "ITHACAstream.H"
 #include <chrono>
-#include<math.h>
-#include<iomanip>
+#include <math.h>
+#include <iomanip>
 
-class tutorial00: public Burgers
+class tutorial00 : public Burgers
 {
-    public:
-        explicit tutorial00(int argc, char* argv[])
-            :
-            Burgers(argc, argv),
-            U(_U())
-        {}
+public:
+    explicit tutorial00(int argc, char *argv[])
+        : Burgers(argc, argv),
+          U(_U())
+    {
+    }
 
-        // Fields To Perform
-        volVectorField& U;
+    // Fields To Perform
+    volVectorField &U;
 
-        void offlineSolve()
+    void offlineSolve()
+    {
+        List<scalar> mu_now(1);
+
+        if (offline)
         {
-            //Vector<double> inl(1, 0, 0);
-            List<scalar> mu_now(1);
-
-            if (offline)
+            ITHACAstream::read_fields(Ufield, U, "./ITHACAoutput/Offline/");
+        }
+        else
+        {
+            for (label i = 0; i < mu.cols(); i++)
             {
-                ITHACAstream::read_fields(Ufield, U, "./ITHACAoutput/Offline/");
-            }
-            else
-            {
-                for (label i = 0; i < mu.cols(); i++)
-                {
-                    //inl[0] = mu(0, i);
-                    mu_now[0] = mu(0, i);
-                    //assignBC(U, BCind, inl);
-                    //assignIF(U, inl);//CHECK
-                    change_viscosity(mu(0, i));
-                    truthSolve(mu_now);
-                }
+                mu_now[0] = mu(0, i);
+                change_viscosity(mu(0, i));
+                truthSolve(mu_now);
             }
         }
+    }
 };
 
 /*---------------------------------------------------------------------------*\
                                Starting the MAIN
 \*---------------------------------------------------------------------------*/
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-    Info << "####################DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 81####################" << endl;
     // Construct the tutorial04 object
     tutorial00 example(argc, argv);
+
     // Read parameters from ITHACAdict file
-    ITHACAparameters* para = ITHACAparameters::getInstance(example._mesh(),
-                             example._runTime());
+    ITHACAparameters *para = ITHACAparameters::getInstance(example._mesh(),
+                                                           example._runTime());
     int NmodesUout = para->ITHACAdict->lookupOrDefault<int>("NmodesUout", 15);
     int NmodesUproj = para->ITHACAdict->lookupOrDefault<int>("NmodesUproj", 10);
 
     /// Set the number of parameters
     example.Pnumber = 1;
-    /// Set samples
+    /// Set the dimension of the training set
     example.Tnumber = NmodesUout;
-    /// Set the parameters infos
+    /// Instantiates a void Pnumber-by-Tnumber matrix mu for the parameters and a void
+    /// Pnumber-by-2 matrix mu_range for the ranges
     example.setParameters();
     // Set the parameter ranges
     example.mu_range(0, 0) = 0.0001;
     example.mu_range(0, 1) = 0.01;
-    // Generate equispaced samples inside the parameter range
+    // Generate a number of Tnumber linearly equispaced samples inside the parameter range
     example.genEquiPar();
-
-    //CHECK_start
-    // Set the inlet boundaries where we have non homogeneous boundary conditions
-    // example.inletIndex.resize(1, 2);
-    // example.inletIndex(0, 0) = 0;
-    // example.inletIndex(0, 1) = 0;
-    //CHECK_end
 
     // Time parameters
     example.startTime = 0;
@@ -112,24 +102,16 @@ int main(int argc, char* argv[])
 
     // Perform The Offline Solve;
     example.offlineSolve();
+    Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 105 ####################" << example.Umodes.size() << endl;
 
-    // Search the lift function
-    //example.liftSolve();
-
-    // Normalize the lifting function
-    //ITHACAutilities::normalizeFields(example.liftfield);
-
-    // Create homogeneous basis functions for velocity
-    //example.computeLift(example.Ufield, example.liftfield, example.Uomfield);
-    Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 125 ####################" << NmodesUout << NmodesUproj << example.Uomfield.size() << example.Ufield.size() << endl;
     // Perform a POD decomposition for velocity and pressure
     ITHACAPOD::getModes(example.Ufield, example.Umodes, example._U().name(),
-                        example.podex, 0, 0,
-                        NmodesUout);
+                        example.podex, 0, 0, NmodesUout);
 
-    Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 132 ####################" << endl;
+    example.project("./Matrices", NmodesUproj);
+
     ReducedBurgers reduced(example);
-    Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 134 ####################" << endl;
+
     // Set values of the reduced model
     reduced.nu = 0.005;
     reduced.tstart = 0;
@@ -138,20 +120,13 @@ int main(int argc, char* argv[])
     reduced.storeEvery = 0.005;
     reduced.exportEvery = 0.1;
 
-    // Set the online velocity
-    // Eigen::MatrixXd vel_now(1, 1);
-    // vel_now(0, 0) = 1;
-    // reduced.solveOnline(vel_now, 1);
-
-    reduced.solveOnline();
-    Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 149 ####################" << endl;
-
+    Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 125 ####################" << example.Ufield.size() << " " << reduced.Umodes.size() << " " << example.Umodes.size()<< endl;
+    reduced.solveOnline(0);
+    Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 127 ####################" << endl;
     // Reconstruct the solution and export it
     reduced.reconstruct(true, "./ITHACAoutput/Reconstruction/");
     exit(0);
 }
-
-
 
 /// \dir 04unsteadyNS Folder of the turorial 4
 /// \file

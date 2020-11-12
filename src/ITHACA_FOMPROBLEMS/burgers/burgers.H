@@ -218,6 +218,16 @@ class Burgers: public reductionProblem
         void liftSolve();
 
         //--------------------------------------------------------------------------
+        /// Project using a supremizer approach
+        ///
+        /// @param[in]  folder     The folder used to save the reduced matrices.
+        /// @param[in]  NUmodes    The number of velocity modes.
+        /// @param[in]  NPmodes    The number of pressure modes.
+        /// @param[in]  NSUPmodes  The number of supremizer modes.
+        ///
+        void project(fileName folder, label NUmodes);
+
+        //--------------------------------------------------------------------------
         //  Projection Methods Momentum Equation
         /// Diffusive Term
         ///
