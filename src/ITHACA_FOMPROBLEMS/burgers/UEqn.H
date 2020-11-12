@@ -24,20 +24,19 @@ License
 \*---------------------------------------------------------------------------*/
 // Solve the Momentum equation
 
-MRF.correctBoundaryVelocity(U);//CHECK
+//MRF.correctBoundaryVelocity(U);//CHECK
 
-tmp<fvVectorMatrix> tUEqn
+fvVectorMatrix UEqn
 (
-    fvm::ddt(U) + 0.5 * fvm::div(phi, U)
-    - fvm::laplacian(nu, U)
+      fvm::ddt(U)
+    + 0.5*fvm::div(phi, U)
     ==
-    fvOptions(U)
+      fvm::laplacian(nu, U)
 );
-
-fvVectorMatrix& UEqn = tUEqn.ref();
 UEqn.solve();
 phi = linearInterpolate(U) & mesh.Sf();
 
-UEqn.relax();
-fvOptions.constrain(UEqn);
+
+// UEqn.relax();
+// fvOptions.constrain(UEqn);
 

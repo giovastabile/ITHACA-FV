@@ -34,8 +34,8 @@ expressions
         #{
             vector
             (
-            sin(2*pi()*pos().x())*sin(2*pi()*pos().y()),
-            sin(2*pi()*pos().x())*sin(2*pi()*pos().y()),
+            0.18*sin(2*pi()*pos().x())*sin(2*pi()*pos().y()),
+            0.18*sin(2*pi()*pos().x())*sin(2*pi()*pos().y()),
             0
             )
         #};

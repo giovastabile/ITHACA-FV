@@ -294,7 +294,7 @@ void ReducedBurgers::solveOnline(Eigen::MatrixXd vel,
                                "./ITHACAoutput/red_coeff");
 }
 
-void ReducedBurgers::solveOnline(scalar nu, int startSnap)
+void ReducedBurgers::solveOnline(int startSnap)
 {
     M_Assert(exportEvery >= dt,
              "The time step dt must be smaller than exportEvery.");

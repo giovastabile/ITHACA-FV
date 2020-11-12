@@ -17,13 +17,13 @@ FoamFile
 
 5
 (
-    inlet
+    left
     {
         type            patch;
         nFaces          100;
         startFace       19800;
     }
-    outlet
+    right
     {
         type            patch;
         nFaces          100;

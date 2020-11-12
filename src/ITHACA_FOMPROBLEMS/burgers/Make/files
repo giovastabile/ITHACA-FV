@@ -1,3 +1,3 @@
 burgers.C
 
-LIB = $(FOAM_USER_LIBBIN)/burgersFoam
+LIB = $(FOAM_USER_LIBBIN)/libburgersFoam

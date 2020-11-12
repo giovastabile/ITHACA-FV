@@ -22,9 +22,9 @@ License
     You should have received a copy of the GNU Lesser General Public License
     along with ITHACA-FV. If not, see <http://www.gnu.org/licenses/>.
 Description
-    Example of an unsteady NS Reduction Problem
+    Example of a Burgers' Problem
 SourceFiles
-    04unsteadyNS.C
+    00burgers.C
 \*---------------------------------------------------------------------------*/
 
 #include "burgers.H"
@@ -64,7 +64,7 @@ class tutorial00: public Burgers
                     mu_now[0] = mu(0, i);
                     //assignBC(U, BCind, inl);
                     //assignIF(U, inl);//CHECK
-                    change_viscosity( mu(0, i));
+                    change_viscosity(mu(0, i));
                     truthSolve(mu_now);
                 }
             }
@@ -76,6 +76,7 @@ class tutorial00: public Burgers
 \*---------------------------------------------------------------------------*/
 int main(int argc, char* argv[])
 {
+    Info << "####################DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 81####################" << endl;
     // Construct the tutorial04 object
     tutorial00 example(argc, argv);
     // Read parameters from ITHACAdict file
@@ -87,7 +88,7 @@ int main(int argc, char* argv[])
     /// Set the number of parameters
     example.Pnumber = 1;
     /// Set samples
-    example.Tnumber = 100;
+    example.Tnumber = NmodesUout;
     /// Set the parameters infos
     example.setParameters();
     // Set the parameter ranges
@@ -104,10 +105,11 @@ int main(int argc, char* argv[])
     //CHECK_end
 
     // Time parameters
-    example.startTime = 50;
-    example.finalTime = 70;
-    example.timeStep = 0.01;
+    example.startTime = 0;
+    example.finalTime = 2;
+    example.timeStep = 0.001;
     example.writeEvery = 0.1;
+
     // Perform The Offline Solve;
     example.offlineSolve();
 
@@ -119,19 +121,20 @@ int main(int argc, char* argv[])
 
     // Create homogeneous basis functions for velocity
     //example.computeLift(example.Ufield, example.liftfield, example.Uomfield);
-
+    Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 125 ####################" << NmodesUout << NmodesUproj << example.Uomfield.size() << example.Ufield.size() << endl;
     // Perform a POD decomposition for velocity and pressure
-    ITHACAPOD::getModes(example.Uomfield, example.Umodes, example._U().name(),
+    ITHACAPOD::getModes(example.Ufield, example.Umodes, example._U().name(),
                         example.podex, 0, 0,
                         NmodesUout);
 
+    Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 132 ####################" << endl;
     ReducedBurgers reduced(example);
-
+    Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 134 ####################" << endl;
     // Set values of the reduced model
     reduced.nu = 0.005;
-    reduced.tstart = 50;
-    reduced.finalTime = 70;
-    reduced.dt = 0.005;
+    reduced.tstart = 0;
+    reduced.finalTime = 2;
+    reduced.dt = 0.001;
     reduced.storeEvery = 0.005;
     reduced.exportEvery = 0.1;
 
@@ -139,10 +142,9 @@ int main(int argc, char* argv[])
     // Eigen::MatrixXd vel_now(1, 1);
     // vel_now(0, 0) = 1;
     // reduced.solveOnline(vel_now, 1);
-    scalar mu_now(1);
-    mu_now = 0.001;
-    reduced.solveOnline(mu_now, 1);
 
+    reduced.solveOnline();
+    Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 149 ####################" << endl;
 
     // Reconstruct the solution and export it
     reduced.reconstruct(true, "./ITHACAoutput/Reconstruction/");

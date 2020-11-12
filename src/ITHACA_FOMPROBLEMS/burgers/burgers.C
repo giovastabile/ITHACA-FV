@@ -39,6 +39,7 @@
 Burgers::Burgers() {}
 Burgers::Burgers(int argc, char* argv[])
 {
+    Info << "####################DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 42####################" << endl;
     _args = autoPtr<argList>
             (
                 new argList(argc, argv)
@@ -61,7 +62,7 @@ Burgers::Burgers(int argc, char* argv[])
               );
     simpleControl& simple = _simple();//CHECK
 #include "createFields.H"
-#include "createFvOptions.H"
+    Info << "####################DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 65####################" << this->_nu->value() << endl;
     ITHACAdict = new IOdictionary
     (
         IOobject
@@ -75,9 +76,9 @@ Burgers::Burgers(int argc, char* argv[])
     );
     tolerance = ITHACAdict->lookupOrDefault<scalar>("tolerance", 1e-5);
     maxIter = ITHACAdict->lookupOrDefault<scalar>("maxIter", 1000);
-    bcMethod = ITHACAdict->lookupOrDefault<word>("bcMethod", "lift");
-    M_Assert(bcMethod == "lift" || bcMethod == "penalty",
-             "The BC method must be set to lift or penalty in ITHACAdict");
+    // bcMethod = ITHACAdict->lookupOrDefault<word>("bcMethod", "lift");
+    // M_Assert(bcMethod == "lift" || bcMethod == "penalty",
+    //          "The BC method must be set to lift or penalty in ITHACAdict");
     para = ITHACAparameters::getInstance(mesh, runTime);
     offline = ITHACAutilities::check_off();
     podex = ITHACAutilities::check_pod();
@@ -90,18 +91,20 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
 {
     Time& runTime = _runTime();
     fvMesh& mesh = _mesh();
-#include "initContinuityErrs.H" //CHECK
+//#include "initContinuityErrs.H" //CHECK
     simpleControl& simple = _simple();
-    fv::options& fvOptions = _fvOptions();
+    // fv::options& fvOptions = _fvOptions();
     surfaceScalarField& phi = _phi();
     volVectorField& U = _U();
     dimensionedScalar& nu = _nu();//CHECK
-    IOMRFZoneList& MRF = _MRF();
+    // IOMRFZoneList& MRF = _MRF();
+    finalTime = runTime.controlDict().getOrDefault<scalar>("endTime", GREAT);//CHECK
     instantList Times = runTime.times();
     runTime.setEndTime(finalTime);
 
     // Perform a TruthSolve
     runTime.setTime(Times[1], 1);
+    timeStep = runTime.controlDict().getOrDefault<scalar>("deltaT", GREAT);//CHECK
     runTime.setDeltaT(timeStep);
     nextWrite = startTime;
 
@@ -116,9 +119,11 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
     // Start the time loop
     while (runTime.run())
     {
-#include "readTimeControls.H"
+        Info<< "\nCalculating vector transport\n" << endl;
+// #include "readTimeControls.H"
 #include "CourantNo.H"
-#include "setDeltaT.H"
+// #include "setDeltaT.H"
+        Info<< "deltaT = " <<  runTime.deltaTValue() << endl;
         runTime.setEndTime(finalTime);
         runTime++;
         Info << "Time = " << runTime.timeName() << nl << endl;
@@ -398,8 +403,11 @@ Eigen::MatrixXd Burgers::mass_term(label NUmodes)
 //CHECK_start
 void Burgers::change_viscosity(double mu)
 {
+    Info << "~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 401\n" << endl;
     dimensionedScalar& nu = _nu();
-    nu = mu;
+    Info << "~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 404\n" << endl;
+    nu = dimensionedScalar(dimViscosity, mu);
+    Info << "~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 407\n" << endl;
     // volScalarField& nu_hard_copy = const_cast<volScalarField&>(nu);
     // this->assignIF(nu, mu);
 
@@ -409,6 +417,17 @@ void Burgers::change_viscosity(double mu)
     // }
 }
 //CHECK_end
+// void steadyNS::change_viscosity(double mu)
+// {
+//     const volScalarField& nu =  _laminarTransport().nu();
+//     volScalarField& ciao = const_cast<volScalarField&>(nu);
+//     this->assignIF(ciao, mu);
+
+//     for (label i = 0; i < ciao.boundaryFieldRef().size(); i++)
+//     {
+//         this->assignBC(ciao, i, mu);
+//     }
+// }
 
 void Burgers::restart()
 {
@@ -503,8 +522,8 @@ void Burgers::restart()
 
     Info<< "Reading viscosity nu\n" << endl;
 
-    dimensionedScalar _nu("nu", dimViscosity, transportProperties);
-    dimensionedScalar& nu = _nu;
+    _nu = autoPtr<dimensionedScalar>(new dimensionedScalar("nu", dimViscosity, transportProperties));
+    dimensionedScalar& nu = _nu();
     //CHECK_end
 }
 

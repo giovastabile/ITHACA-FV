@@ -221,7 +221,7 @@ class ReducedBurgers: public reducedProblem
         /// @param[in]  startSnap The first snapshot taken from the offline snapshots
         /// and used to get the reduced initial condition.
         ///
-        void solveOnline(scalar nu, int startSnap = 0);
+        void solveOnline(int startSnap = 0);
 
         ///
         /// Method to reconstruct the solutions from an online solve.
