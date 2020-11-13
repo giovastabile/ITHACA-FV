@@ -223,6 +223,16 @@ class ReducedBurgers: public reducedProblem
         ///
         void solveOnline(int startSnap = 0);
 
+        /// Method to perform an online solve using a supremizer stabilisation method
+        ///
+        /// @param[in]  vel_now   The vector of online velocity. It is defined in
+        /// with an Eigen::MatrixXd and must have one col and as many rows as the number
+        /// of parametrized boundary conditions.
+        /// @param[in]  startSnap The first snapshot taken from the offline snapshots
+        /// and used to get the reduced initial condition.
+        ///
+        void solveOnline(double initialVelocity, int startSnap = 0);
+
         ///
         /// Method to reconstruct the solutions from an online solve.
         ///

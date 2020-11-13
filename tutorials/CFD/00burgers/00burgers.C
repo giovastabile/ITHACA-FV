@@ -31,9 +31,12 @@ SourceFiles
 #include "ITHACAPOD.H"
 #include "ReducedBurgers.H"
 #include "ITHACAstream.H"
+#include "Foam2Eigen.H"
+#include "cnpy.H"
 #include <chrono>
 #include <math.h>
 #include <iomanip>
+#include <string>
 
 class tutorial00 : public Burgers
 {
@@ -47,7 +50,7 @@ public:
     // Fields To Perform
     volVectorField &U;
 
-    void offlineSolve()
+    void offlineSolveViscosity()
     {
         List<scalar> mu_now(1);
 
@@ -65,16 +68,60 @@ public:
             }
         }
     }
+
+    void offlineSolveInitialVelocity()
+    {
+        List<scalar> mu_now(1);
+
+        if (offline)
+        {
+            ITHACAstream::read_fields(Ufield, U, "./ITHACAoutput/Offline/");
+        }
+        else
+        {
+            for (label i = 0; i < mu.cols(); i++)
+            {
+                mu_now[0] = mu(0, i);
+                change_initial_velocity(mu(0, i));
+                truthSolve(mu_now, "./ITHACA-FV/solutions");
+            }
+        }
+    }
 };
 
 /*---------------------------------------------------------------------------*\
                                Starting the MAIN
 \*---------------------------------------------------------------------------*/
+
+void one_parameter_viscosity(tutorial00);
+void one_parameter_initial_velocity(tutorial00);
+
 int main(int argc, char *argv[])
 {
-    // Construct the tutorial04 object
+    // Construct the tutorial00 object
     tutorial00 example(argc, argv);
+    one_parameter_initial_velocity(example);
 
+    // if (argv[1] == std::string("oneinitial"))
+    // {
+    //     one_parameter_initial_velocity(example);
+    // }
+    // else if (argv[1] == std::string("oneviscosity"))
+    // {
+    //     one_parameter_viscosity(example);
+    // }
+    // else
+    // {
+    //     std::cout << "Pass oneviscosity or oneinitial as arguments." << endl;
+    // }
+
+
+
+    exit(0);
+}
+
+void one_parameter_viscosity(tutorial00 example)
+{
     // Read parameters from ITHACAdict file
     ITHACAparameters *para = ITHACAparameters::getInstance(example._mesh(),
                                                            example._runTime());
@@ -101,8 +148,7 @@ int main(int argc, char *argv[])
     example.writeEvery = 0.1;
 
     // Perform The Offline Solve;
-    example.offlineSolve();
-    Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 105 ####################" << example.Umodes.size() << endl;
+    example.offlineSolveViscosity();
 
     // Perform a POD decomposition for velocity and pressure
     ITHACAPOD::getModes(example.Ufield, example.Umodes, example._U().name(),
@@ -113,19 +159,72 @@ int main(int argc, char *argv[])
     ReducedBurgers reduced(example);
 
     // Set values of the reduced model
-    reduced.nu = 0.005;
+    reduced.nu = 0.0001;
     reduced.tstart = 0;
     reduced.finalTime = 2;
     reduced.dt = 0.001;
     reduced.storeEvery = 0.005;
     reduced.exportEvery = 0.1;
 
-    Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 125 ####################" << example.Ufield.size() << " " << reduced.Umodes.size() << " " << example.Umodes.size()<< endl;
-    reduced.solveOnline(0);
-    Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 127 ####################" << endl;
+    reduced.solveOnline(1);
+
     // Reconstruct the solution and export it
     reduced.reconstruct(true, "./ITHACAoutput/Reconstruction/");
-    exit(0);
+}
+
+void one_parameter_initial_velocity(tutorial00 example)
+{
+    // Read parameters from ITHACAdict file
+    ITHACAparameters *para = ITHACAparameters::getInstance(example._mesh(),
+                                                           example._runTime());
+    int NmodesUout = para->ITHACAdict->lookupOrDefault<int>("NmodesUout", 15);
+    int NmodesUproj = para->ITHACAdict->lookupOrDefault<int>("NmodesUproj", 10);
+
+    /// Set the number of parameters
+    example.Pnumber = 1;
+    /// Set the dimension of the training set
+    example.Tnumber = NmodesUout;
+    /// Instantiates a void Pnumber-by-Tnumber matrix mu for the parameters and a void
+    /// Pnumber-by-2 matrix mu_range for the ranges
+    example.setParameters();
+    // Set the parameter ranges
+    example.mu_range(0, 0) = 0.8;
+    example.mu_range(0, 1) = 1.2;
+    // Generate a number of Tnumber linearly equispaced samples inside the parameter range
+    example.genEquiPar();
+
+    // Time parameters
+    example.startTime = 0;
+    example.finalTime = 2;
+    example.timeStep = 0.001;
+    example.writeEvery = 0.1;
+
+    // Perform The Offline Solve;
+    example.offlineSolveInitialVelocity();
+
+    // Perform a POD decomposition for velocity and pressure
+    ITHACAPOD::getModes(example.Ufield, example.Umodes, example._U().name(),
+                        example.podex, 0, 0, NmodesUout);
+
+    Eigen::MatrixXd SnapMatrix = Foam2Eigen::PtrList2Eigen(example.Ufield);
+    cnpy::save(SnapMatrix, "npSnapshots.npy");
+
+    example.project("./Matrices", NmodesUproj);
+
+    ReducedBurgers reduced(example);
+
+    // Set values of the reduced model
+    reduced.nu = 0.0001;
+    reduced.tstart = 0;
+    reduced.finalTime = 2;
+    reduced.dt = 0.001;
+    reduced.storeEvery = 0.005;
+    reduced.exportEvery = 0.1;
+
+    reduced.solveOnline(1.0, 1);
+
+    // Reconstruct the solution and export it
+    reduced.reconstruct(true, "./ITHACAoutput/Reconstruction/");
 }
 
 /// \dir 04unsteadyNS Folder of the turorial 4

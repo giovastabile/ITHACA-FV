@@ -39,7 +39,6 @@
 Burgers::Burgers() {}
 Burgers::Burgers(int argc, char* argv[])
 {
-    Info << "####################DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 42####################" << endl;
     _args = autoPtr<argList>
             (
                 new argList(argc, argv)
@@ -62,7 +61,6 @@ Burgers::Burgers(int argc, char* argv[])
               );
     simpleControl& simple = _simple();//CHECK
 #include "createFields.H"
-    Info << "####################DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 65####################" << this->_nu->value() << endl;
     ITHACAdict = new IOdictionary
     (
         IOobject
@@ -95,16 +93,14 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
     simpleControl& simple = _simple();
     // fv::options& fvOptions = _fvOptions();
     surfaceScalarField& phi = _phi();
-    volVectorField& U = _U();
+    volVectorField& U = _U0();
     dimensionedScalar& nu = _nu();//CHECK
     // IOMRFZoneList& MRF = _MRF();
-    finalTime = runTime.controlDict().getOrDefault<scalar>("endTime", GREAT);//CHECK
     instantList Times = runTime.times();
     runTime.setEndTime(finalTime);
 
     // Perform a TruthSolve
     runTime.setTime(Times[1], 1);
-    timeStep = runTime.controlDict().getOrDefault<scalar>("deltaT", GREAT);//CHECK
     runTime.setDeltaT(timeStep);
     nextWrite = startTime;
 
@@ -120,9 +116,9 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
     while (runTime.run())
     {
         Info<< "\nCalculating vector transport\n" << endl;
-// #include "readTimeControls.H"
+#include "readTimeControls.H"
 #include "CourantNo.H"
-// #include "setDeltaT.H"
+#include "setDeltaT.H"
         Info<< "deltaT = " <<  runTime.deltaTValue() << endl;
         runTime.setEndTime(finalTime);
         runTime++;
@@ -290,6 +286,12 @@ void Burgers::project(fileName folder, label NU)
             L_Umodes.append(liftfield[k]);
         }
     }
+    else
+    {
+        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 291 #################### " << endl;
+        L_Umodes.append(_U0);
+    }
+
 
     if (NUmodes != 0)
     {
@@ -324,7 +326,7 @@ void Burgers::project(fileName folder, label NU)
         }
 
         word C_str = "C_" + name(liftfield.size()) + "_" + name(NUmodes) + "_t";
-        Info << "#################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 327 ####################" << endl;
+
         if (ITHACAutilities::check_file("./ITHACAoutput/Matrices/" + C_str))
         {
             ITHACAstream::ReadDenseTensor(C_tensor, "./ITHACAoutput/Matrices/", C_str);
@@ -503,19 +505,18 @@ Eigen::MatrixXd Burgers::mass_term(label NUmodes)
 //CHECK_start
 void Burgers::change_viscosity(double mu)
 {
-    Info << "~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 401\n" << endl;
     dimensionedScalar& nu = _nu();
-    Info << "~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 404\n" << endl;
     nu = dimensionedScalar(dimViscosity, mu);
-    Info << "~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 407\n" << endl;
-    // volScalarField& nu_hard_copy = const_cast<volScalarField&>(nu);
-    // this->assignIF(nu, mu);
-
-    // for (label i = 0; i < nu.boundaryFieldRef().size(); i++)
-    // {
-    //     this->assignBC(nu, i, mu);
-    // }
 }
+
+void Burgers::change_initial_velocity(double mu)
+{
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 514 #################### " << mu << endl;
+    volVectorField& U0 =  _U0();
+    // volScalarField& U0_dummy = const_cast<volScalarField&>(U0);
+    U0 *= mu;
+}
+
 //CHECK_end
 // void steadyNS::change_viscosity(double mu)
 // {

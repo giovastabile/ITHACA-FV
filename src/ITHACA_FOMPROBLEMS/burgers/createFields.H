@@ -69,8 +69,5 @@ Info<< "Reading viscosity nu\n" << endl;
 _nu = autoPtr<dimensionedScalar>(new dimensionedScalar("nu", dimViscosity, transportProperties));
 dimensionedScalar& nu = _nu();
 
-Info << "####################DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/createFields.H, line 72####################" << endl;
-//CHECK_end
-
 #include "createPhi.H"
 

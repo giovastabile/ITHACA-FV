@@ -299,6 +299,13 @@ class Burgers: public reductionProblem
         ///
         void change_viscosity(double mu);
 
+        //--------------------------------------------------------------------------
+        /// Function to change the viscosity
+        ///
+        /// @param[in]  mu    viscosity (scalar)
+        ///
+        void change_initial_velocity(double mu);
+
         /// set U and P back to the values into the 0 folder
         void restart();
 
