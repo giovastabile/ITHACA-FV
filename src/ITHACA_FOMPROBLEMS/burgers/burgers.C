@@ -93,12 +93,12 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
     simpleControl& simple = _simple();
     // fv::options& fvOptions = _fvOptions();
     surfaceScalarField& phi = _phi();
-    volVectorField& U = _U0();
+    volVectorField& U = _U();
     dimensionedScalar& nu = _nu();//CHECK
     // IOMRFZoneList& MRF = _MRF();
     instantList Times = runTime.times();
     runTime.setEndTime(finalTime);
-
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 101 #################### " << "viscosity: " << nu << endl;
     // Perform a TruthSolve
     runTime.setTime(Times[1], 1);
     runTime.setDeltaT(timeStep);
@@ -118,7 +118,7 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
         Info<< "\nCalculating vector transport\n" << endl;
 #include "readTimeControls.H"
 #include "CourantNo.H"
-#include "setDeltaT.H"
+// #include "setDeltaT.H"
         Info<< "deltaT = " <<  runTime.deltaTValue() << endl;
         runTime.setEndTime(finalTime);
         runTime++;
@@ -133,30 +133,32 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
             {
 #include "UEqn.H"
             }
+
+            if (checkWrite(runTime))
+            {
+                // Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 144 #################### " << runTime.timeName().c_str() << nextWrite << "counter" << counter << endl;
+
+                ITHACAstream::exportSolution(U, name(counter), folder);
+                std::ofstream of(folder + name(counter) + "/" +
+                                runTime.timeName());
+                Ufield.append(U);
+                counter++;
+                nextWrite += writeEvery;
+                writeMu(mu_now);
+                // --- Fill in the mu_samples with parameters (time, mu) to be used for the PODI sample points
+                mu_samples.conservativeResize(mu_samples.rows() + 1, mu_now.size() + 1);
+                mu_samples(mu_samples.rows() - 1, 0) = atof(runTime.timeName().c_str());
+
+            for (label i = 0; i < mu_now.size(); i++)
+                {
+                    mu_samples(mu_samples.rows() - 1, i + 1) = mu_now[i];
+                }
+            }
         }
 
         Info << "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
              << "  ClockTime = " << runTime.elapsedClockTime() << " s"
              << nl << endl;
-
-        if (checkWrite(runTime))
-        {
-            ITHACAstream::exportSolution(U, name(counter), folder);
-            std::ofstream of(folder + name(counter) + "/" +
-                             runTime.timeName());
-            Ufield.append(U);
-            counter++;
-            nextWrite += writeEvery;
-            writeMu(mu_now);
-            // --- Fill in the mu_samples with parameters (time, mu) to be used for the PODI sample points
-            mu_samples.conservativeResize(mu_samples.rows() + 1, mu_now.size() + 1);
-            mu_samples(mu_samples.rows() - 1, 0) = atof(runTime.timeName().c_str());
-
-            for (label i = 0; i < mu_now.size(); i++)
-            {
-                mu_samples(mu_samples.rows() - 1, i + 1) = mu_now[i];
-            }
-        }
     }
 
     // Resize to Unitary if not initialized by user (i.e. non-parametric problem)
@@ -170,6 +172,8 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
         ITHACAstream::exportMatrix(mu_samples, "mu_samples", "eigen",
                                    folder);
     }
+    ITHACAstream::exportMatrix(mu_samples, "mu_samples", "eigen",
+                                   folder);
 }
 
 // Method to compute the lifting function
@@ -288,7 +292,6 @@ void Burgers::project(fileName folder, label NU)
     }
     else
     {
-        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 291 #################### " << endl;
         L_Umodes.append(_U0);
     }
 
@@ -511,10 +514,9 @@ void Burgers::change_viscosity(double mu)
 
 void Burgers::change_initial_velocity(double mu)
 {
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 514 #################### " << mu << endl;
-    volVectorField& U0 =  _U0();
-    // volScalarField& U0_dummy = const_cast<volScalarField&>(U0);
-    U0 *= mu;
+    _U = _U0.clone();
+    *_U *= mu;
+    // ITHACAstream::exportSolution(_U(), name(mu), "./initial_data/");
 }
 
 //CHECK_end
@@ -631,10 +633,9 @@ void Burgers::restart()
 bool Burgers::checkWrite(Time& timeObject)
 {
     scalar diffnow = mag(nextWrite - atof(timeObject.timeName().c_str()));
-    scalar diffnext = mag(nextWrite - atof(timeObject.timeName().c_str()) -
-                          timeObject.deltaTValue());
-
-    if ( diffnow < diffnext)
+    // scalar diffnext = mag(nextWrite - atof(timeObject.timeName().c_str()) - timeObject.deltaTValue());
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 637 #################### " << diffnow << " " << timeObject.deltaTValue() << endl;
+    if ( diffnow < timeObject.deltaTValue())
     {
         return true;
     }

@@ -83,7 +83,7 @@ public:
             {
                 mu_now[0] = mu(0, i);
                 change_initial_velocity(mu(0, i));
-                truthSolve(mu_now, "./ITHACA-FV/solutions");
+                truthSolve(mu_now);
             }
         }
     }
@@ -197,10 +197,11 @@ void one_parameter_initial_velocity(tutorial00 example)
     example.startTime = 0;
     example.finalTime = 2;
     example.timeStep = 0.001;
-    example.writeEvery = 0.1;
+    example.writeEvery = 0.0013;
 
     // Perform The Offline Solve;
     example.offlineSolveInitialVelocity();
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 204 #################### " << "Number of total modes" << example.Ufield.size() << endl;
 
     // Perform a POD decomposition for velocity and pressure
     ITHACAPOD::getModes(example.Ufield, example.Umodes, example._U().name(),
