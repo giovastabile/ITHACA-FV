@@ -23,3 +23,7 @@ tutorials_dev
 **/__pycache__
 
 *.json
+
+tutorials/CFD/00burgers/0/
+
+tutorials/CFD/00burgers/constant/polyMesh/

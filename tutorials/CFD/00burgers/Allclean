@@ -10,3 +10,5 @@ rm -r ITHACAoutput
 #rm -r *.foam
 #rm log.*
 $WM_PROJECT_DIR/platforms/linux64GccDPInt32Opt/bin/foamListTimes -rm
+rm npSnapshots*
+rm log

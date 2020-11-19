@@ -45,9 +45,9 @@ ReducedBurgers::ReducedBurgers(Burgers& FOMproblem)
     :
     problem(&FOMproblem)
 {
-    N_BC = problem->inletIndex.rows();//CHECK
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 48 #################### " << endl;//N_BC = problem->inletIndex.rows();//CHECK
     Nphi_u = problem->B_matrix.rows();
-
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 50 #################### " << endl;
     // for (int k = 0; k < problem->liftfield.size(); k++)
     // {
     //     Umodes.append(problem->liftfield[k]);
@@ -56,6 +56,7 @@ ReducedBurgers::ReducedBurgers(Burgers& FOMproblem)
     for (int k = 0; k < problem->NUmodes; k++)
     {
         Umodes.append(problem->Umodes[k]);
+        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 59 #################### " << endl;
     }
 
     newton_object = newton_burgers(Nphi_u, Nphi_u, FOMproblem);
@@ -138,161 +139,161 @@ int newton_burgers::df(const Eigen::VectorXd& x,
 
 // * * * * * * * * * * * * * * * Solve Functions  * * * * * * * * * * * * * //
 
-void ReducedBurgers::solveOnline(Eigen::MatrixXd vel,
-                                        int startSnap)
-{
-    M_Assert(exportEvery >= dt,
-             "The time step dt must be smaller than exportEvery.");
-    M_Assert(storeEvery >= dt,
-             "The time step dt must be smaller than storeEvery.");
-    M_Assert(ITHACAutilities::isInteger(storeEvery / dt) == true,
-             "The variable storeEvery must be an integer multiple of the time step dt.");
-    M_Assert(ITHACAutilities::isInteger(exportEvery / dt) == true,
-             "The variable exportEvery must be an integer multiple of the time step dt.");
-    M_Assert(ITHACAutilities::isInteger(exportEvery / storeEvery) == true,
-             "The variable exportEvery must be an integer multiple of the variable storeEvery.");
-    int numberOfStores = round(storeEvery / dt);
+// void ReducedBurgers::solveOnline(Eigen::MatrixXd vel,
+//                                         int startSnap)
+// {
+//     M_Assert(exportEvery >= dt,
+//              "The time step dt must be smaller than exportEvery.");
+//     M_Assert(storeEvery >= dt,
+//              "The time step dt must be smaller than storeEvery.");
+//     M_Assert(ITHACAutilities::isInteger(storeEvery / dt) == true,
+//              "The variable storeEvery must be an integer multiple of the time step dt.");
+//     M_Assert(ITHACAutilities::isInteger(exportEvery / dt) == true,
+//              "The variable exportEvery must be an integer multiple of the time step dt.");
+//     M_Assert(ITHACAutilities::isInteger(exportEvery / storeEvery) == true,
+//              "The variable exportEvery must be an integer multiple of the variable storeEvery.");
+//     int numberOfStores = round(storeEvery / dt);
 
-    if (problem->bcMethod == "lift")
-    {
-        vel_now = setOnlineVelocity(vel);
-    }
-    else if (problem->bcMethod == "penalty")
-    {
-        vel_now = vel;
-    }
+//     if (problem->bcMethod == "lift")
+//     {
+//         vel_now = setOnlineVelocity(vel);
+//     }
+//     else if (problem->bcMethod == "penalty")
+//     {
+//         vel_now = vel;
+//     }
 
-    // Create and resize the solution vector
-    y.resize(Nphi_u, 1);
-    y.setZero();
-    y.head(Nphi_u) = ITHACAutilities::getCoeffs(problem->Ufield[startSnap],
-                     Umodes);
+//     // Create and resize the solution vector
+//     y.resize(Nphi_u, 1);
+//     y.setZero();
+//     y.head(Nphi_u) = ITHACAutilities::getCoeffs(problem->Ufield[startSnap],
+//                      Umodes);
 
-    int nextStore = 0;
-    int counter2 = 0;
+//     int nextStore = 0;
+//     int counter2 = 0;
 
-    // Change initial condition for the lifting function
-    if (problem->bcMethod == "lift")
-    {
-        for (int j = 0; j < N_BC; j++)
-        {
-            y(j) = vel_now(j, 0);
-        }
-    }
+//     // Change initial condition for the lifting function
+//     if (problem->bcMethod == "lift")
+//     {
+//         for (int j = 0; j < N_BC; j++)
+//         {
+//             y(j) = vel_now(j, 0);
+//         }
+//     }
 
-    // Set some properties of the newton object
-    newton_object.nu = nu;
-    newton_object.y_old = y;
-    newton_object.yOldOld = newton_object.y_old;
-    newton_object.dt = dt;
-    newton_object.BC.resize(N_BC);
-    newton_object.tauU = tauU;
+//     // Set some properties of the newton object
+//     newton_object.nu = nu;
+//     newton_object.y_old = y;
+//     newton_object.yOldOld = newton_object.y_old;
+//     newton_object.dt = dt;
+//     newton_object.BC.resize(N_BC);
+//     newton_object.tauU = tauU;
 
-    for (int j = 0; j < N_BC; j++)
-    {
-        newton_object.BC(j) = vel_now(j, 0);
-    }
+//     for (int j = 0; j < N_BC; j++)
+//     {
+//         newton_object.BC(j) = vel_now(j, 0);
+//     }
 
-    // Set number of online solutions
-    int Ntsteps = static_cast<int>((finalTime - tstart) / dt);
-    int onlineSize = static_cast<int>(Ntsteps / numberOfStores);
-    online_solution.resize(onlineSize);
-    // Set the initial time
-    time = tstart;
-    // Counting variable
-    int counter = 0;
-    // Create vector to store temporal solution and save initial condition as first solution
-    Eigen::MatrixXd tmp_sol(Nphi_u + 1, 1);
-    tmp_sol(0) = time;
-    tmp_sol.col(0).tail(y.rows()) = y;
-    online_solution[counter] = tmp_sol;
-    counter ++;
-    counter2++;
-    nextStore += numberOfStores;
-    // Create nonlinear solver object
-    Eigen::HybridNonLinearSolver<newton_burgers> hnls(newton_object);
-    // Set output colors for fancy output
-    Color::Modifier red(Color::FG_RED);
-    Color::Modifier green(Color::FG_GREEN);
-    Color::Modifier def(Color::FG_DEFAULT);
+//     // Set number of online solutions
+//     int Ntsteps = static_cast<int>((finalTime - tstart) / dt);
+//     int onlineSize = static_cast<int>(Ntsteps / numberOfStores);
+//     online_solution.resize(onlineSize);
+//     // Set the initial time
+//     time = tstart;
+//     // Counting variable
+//     int counter = 0;
+//     // Create vector to store temporal solution and save initial condition as first solution
+//     Eigen::MatrixXd tmp_sol(Nphi_u + 1, 1);
+//     tmp_sol(0) = time;
+//     tmp_sol.col(0).tail(y.rows()) = y;
+//     online_solution[counter] = tmp_sol;
+//     counter ++;
+//     counter2++;
+//     nextStore += numberOfStores;
+//     // Create nonlinear solver object
+//     Eigen::HybridNonLinearSolver<newton_burgers> hnls(newton_object);
+//     // Set output colors for fancy output
+//     Color::Modifier red(Color::FG_RED);
+//     Color::Modifier green(Color::FG_GREEN);
+//     Color::Modifier def(Color::FG_DEFAULT);
 
-    while (time < finalTime)
-    {
-        time = time + dt;
+//     while (time < finalTime)
+//     {
+//         time = time + dt;
 
-        // Set time-dependent BCs
-        if (problem->timedepbcMethod == "yes" )
-        {
-            for (int j = 0; j < N_BC; j++)
-            {
-                newton_object.BC(j) = vel_now(j, counter);
-            }
-        }
+//         // Set time-dependent BCs
+//         if (problem->timedepbcMethod == "yes" )
+//         {
+//             for (int j = 0; j < N_BC; j++)
+//             {
+//                 newton_object.BC(j) = vel_now(j, counter);
+//             }
+//         }
 
-        Eigen::VectorXd res(y);
-        res.setZero();
-        hnls.solve(y);
+//         Eigen::VectorXd res(y);
+//         res.setZero();
+//         hnls.solve(y);
 
-        if (problem->bcMethod == "lift")
-        {
-            for (int j = 0; j < N_BC; j++)
-            {
-                if (problem->timedepbcMethod == "no" )
-                {
-                    y(j) = vel_now(j, 0);
-                }
-                else if (problem->timedepbcMethod == "yes" )
-                {
-                    y(j) = vel_now(j, counter);
-                }
-            }
-        }
+//         if (problem->bcMethod == "lift")
+//         {
+//             for (int j = 0; j < N_BC; j++)
+//             {
+//                 if (problem->timedepbcMethod == "no" )
+//                 {
+//                     y(j) = vel_now(j, 0);
+//                 }
+//                 else if (problem->timedepbcMethod == "yes" )
+//                 {
+//                     y(j) = vel_now(j, counter);
+//                 }
+//             }
+//         }
 
-        newton_object.operator()(y, res);
-        newton_object.yOldOld = newton_object.y_old;
-        newton_object.y_old = y;
-        std::cout << "################## Online solve N° " << counter <<
-                  " ##################" << std::endl;
-        Info << "Time = " << time << endl;
+//         newton_object.operator()(y, res);
+//         newton_object.yOldOld = newton_object.y_old;
+//         newton_object.y_old = y;
+//         std::cout << "################## Online solve N° " << counter <<
+//                   " ##################" << std::endl;
+//         Info << "Time = " << time << endl;
 
-        if (res.norm() < 1e-5)
-        {
-            std::cout << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << std::endl << std::endl;
-        }
-        else
-        {
-            std::cout << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << std::endl << std::endl;
-        }
+//         if (res.norm() < 1e-5)
+//         {
+//             std::cout << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
+//                       hnls.iter << " iterations " << def << std::endl << std::endl;
+//         }
+//         else
+//         {
+//             std::cout << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
+//                       hnls.iter << " iterations " << def << std::endl << std::endl;
+//         }
 
-        tmp_sol(0) = time;
-        tmp_sol.col(0).tail(y.rows()) = y;
+//         tmp_sol(0) = time;
+//         tmp_sol.col(0).tail(y.rows()) = y;
 
-        if (counter == nextStore)
-        {
-            if (counter2 >= online_solution.size())
-            {
-                online_solution.append(tmp_sol);
-            }
-            else
-            {
-                online_solution[counter2] = tmp_sol;
-            }
+//         if (counter == nextStore)
+//         {
+//             if (counter2 >= online_solution.size())
+//             {
+//                 online_solution.append(tmp_sol);
+//             }
+//             else
+//             {
+//                 online_solution[counter2] = tmp_sol;
+//             }
 
-            nextStore += numberOfStores;
-            counter2 ++;
-        }
+//             nextStore += numberOfStores;
+//             counter2 ++;
+//         }
 
-        counter ++;
-    }
+//         counter ++;
+//     }
 
-    // Export the solution
-    ITHACAstream::exportMatrix(online_solution, "red_coeff", "python",
-                               "./ITHACAoutput/red_coeff");
-    ITHACAstream::exportMatrix(online_solution, "red_coeff", "matlab",
-                               "./ITHACAoutput/red_coeff");
-}
+//     // Export the solution
+//     ITHACAstream::exportMatrix(online_solution, "red_coeff", "python",
+//                                "./ITHACAoutput/red_coeff");
+//     ITHACAstream::exportMatrix(online_solution, "red_coeff", "matlab",
+//                                "./ITHACAoutput/red_coeff");
+// }
 
 void ReducedBurgers::solveOnline(int startSnap)
 {
@@ -449,7 +450,7 @@ void ReducedBurgers::solveOnline(int startSnap)
                                "./ITHACAoutput/red_coeff");
 }
 
-void ReducedBurgers::solveOnline(double initialVelocity, int startSnap)
+void ReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
 {
     M_Assert(exportEvery >= dt,
              "The time step dt must be smaller than exportEvery.");
@@ -461,139 +462,129 @@ void ReducedBurgers::solveOnline(double initialVelocity, int startSnap)
              "The variable exportEvery must be an integer multiple of the time step dt.");
     M_Assert(ITHACAutilities::isInteger(exportEvery / storeEvery) == true,
              "The variable exportEvery must be an integer multiple of the variable storeEvery.");
+
     int numberOfStores = round(storeEvery / dt);
 
-    // Create and resize the solution vector
-    y.resize(Nphi_u, 1);
-    y.setZero();
-    y.head(Nphi_u) = ITHACAutilities::getCoeffs(problem->Ufield[startSnap],Umodes);
-
-    int nextStore = 0;
+    // Counter of the number of online solutions saved, accounting also time as parameter
     int counter2 = 0;
-
-    // set the multypling scalar of the initial velocity
-    y(0) = initialVelocity;
-    // Change initial condition for the lifting function
-    // if (problem->bcMethod == "lift")
-    // {
-    //     for (int j = 0; j < N_BC; j++)
-    //     {
-    //         y(j) = vel_now(j, 0);
-    //     }
-    // }
-
-    // Set some properties of the newton object
-    newton_object.nu = nu;
-    newton_object.y_old = y;
-    newton_object.yOldOld = newton_object.y_old;
-    newton_object.dt = dt;
-    // newton_object.BC.resize(N_BC);//CHECK
-    newton_object.tauU = tauU;
-
-    // for (int j = 0; j < N_BC; j++)
-    // {
-    //     newton_object.BC(j) = vel_now(j, 0);
-    // }
 
     // Set number of online solutions
     int Ntsteps = static_cast<int>((finalTime - tstart) / dt);
     int onlineSize = static_cast<int>(Ntsteps / numberOfStores);
-    online_solution.resize(onlineSize);
-    // Set the initial time
-    time = tstart;
-    // Counting variable
-    int counter = 0;
-    // Create vector to store temporal solution and save initial condition as first solution
-    Eigen::MatrixXd tmp_sol(Nphi_u + 1, 1);
-    tmp_sol(0) = time;
-    tmp_sol.col(0).tail(y.rows()) = y;
-    online_solution[counter] = tmp_sol;
-    counter ++;
-    counter2++;
-    nextStore += numberOfStores;
-    // Create nonlinear solver object
-    Eigen::HybridNonLinearSolver<newton_burgers> hnls(newton_object);
-    // Set output colors for fancy output
-    Color::Modifier red(Color::FG_RED);
-    Color::Modifier green(Color::FG_GREEN);
-    Color::Modifier def(Color::FG_DEFAULT);
+    online_solution.resize((mu.cols())*(onlineSize+1));
 
-    while (time < finalTime)
+    // Iterate online solution for each parameter saved row-wise in mu
+    for (int n_param = 0; n_param < mu.cols(); n_param++)
     {
-        time = time + dt;
+        // Set the initial time
+        time = tstart;
 
-        // Set time-dependent BCs
-        if (problem->timedepbcMethod == "yes" )
-        {
-            for (int j = 0; j < N_BC; j++)
-            {
-                newton_object.BC(j) = vel_now(j, counter);
-            }
-        }
+        // Counter of the number of saved time steps for the present parameter with index k
+        int counter = 0;
+        int nextStore = 0;
 
-        Eigen::VectorXd res(y);
-        res.setZero();
-        hnls.solve(y);
+        // Create and resize the solution vector
+        y.resize(Nphi_u, 1);
+        y.setZero();
+        y.head(Nphi_u) = ITHACAutilities::getCoeffs(problem->Ufield[startSnap],Umodes);
 
-        if (problem->bcMethod == "lift")
-        {
-            for (int j = 0; j < N_BC; j++)
-            {
-                if (problem->timedepbcMethod == "no" )
-                {
-                    y(j) = vel_now(j, 0);
-                }
-                else if (problem->timedepbcMethod == "yes" )
-                {
-                    y(j) = vel_now(j, counter);
-                }
-            }
-        }
+        // set the multypling scalar of the initial velocity
+        y(0) = mu(0, n_param);
 
-        newton_object.operator()(y, res);
-        newton_object.yOldOld = newton_object.y_old;
+        // Set some properties of the newton object
+        newton_object.nu = nu;
         newton_object.y_old = y;
-        std::cout << "################## Online solve N° " << counter <<
-                  " ##################" << std::endl;
-        Info << "Time = " << time << endl;
+        newton_object.yOldOld = newton_object.y_old;
+        newton_object.dt = dt;
+        newton_object.tauU = tauU;
 
-        if (res.norm() < 1e-5)
-        {
-            std::cout << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << std::endl << std::endl;
-        }
-        else
-        {
-            std::cout << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << std::endl << std::endl;
-        }
-
+        // Create vector to store temporal solution and save initial condition as first solution
+        Eigen::MatrixXd tmp_sol(Nphi_u + 1, 1);
         tmp_sol(0) = time;
         tmp_sol.col(0).tail(y.rows()) = y;
 
-        if (counter == nextStore)
+        online_solution[counter2] = tmp_sol;
+        counter2++;
+        counter++;
+        nextStore += numberOfStores;
+        // Create nonlinear solver object
+        Eigen::HybridNonLinearSolver<newton_burgers> hnls(newton_object);
+        // Set output colors for fancy output
+        Color::Modifier red(Color::FG_RED);
+        Color::Modifier green(Color::FG_GREEN);
+        Color::Modifier def(Color::FG_DEFAULT);
+
+        while (time < finalTime)
         {
-            if (counter2 >= online_solution.size())
+            time = time + dt;
+
+            // Set time-dependent BCs
+            if (problem->timedepbcMethod == "yes" )
             {
-                online_solution.append(tmp_sol);
+                for (int j = 0; j < N_BC; j++)
+                {
+                    newton_object.BC(j) = vel_now(j, counter);
+                }
+            }
+
+            Eigen::VectorXd res(y);
+            res.setZero();
+            hnls.solve(y);
+
+            if (problem->bcMethod == "lift")
+            {
+                for (int j = 0; j < N_BC; j++)
+                {
+                    if (problem->timedepbcMethod == "no" )
+                    {
+                        y(j) = vel_now(j, 0);
+                    }
+                    else if (problem->timedepbcMethod == "yes" )
+                    {
+                        y(j) = vel_now(j, counter);
+                    }
+                }
+            }
+
+            newton_object.operator()(y, res);
+            newton_object.yOldOld = newton_object.y_old;
+            newton_object.y_old = y;
+            std::cout << "################## Online solve N° " << counter <<
+                    " ##################" << std::endl;
+            Info << "Time = " << time << endl;
+
+            if (res.norm() < 1e-5)
+            {
+                std::cout << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
+                        hnls.iter << " iterations " << def << std::endl << std::endl;
             }
             else
             {
-                online_solution[counter2] = tmp_sol;
+                std::cout << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
+                        hnls.iter << " iterations " << def << std::endl << std::endl;
             }
 
-            nextStore += numberOfStores;
-            counter2 ++;
+            tmp_sol(0) = time;
+            tmp_sol.col(0).tail(y.rows()) = y;
+
+            if (counter == nextStore)
+            {
+                if (counter2 >= online_solution.size())
+                {
+                    online_solution.append(tmp_sol);
+                }
+                else
+                {
+                    online_solution[counter2] = tmp_sol;
+                }
+
+                nextStore += numberOfStores;
+                counter2 ++;
+            }
+
+            counter ++;
         }
-
-        counter ++;
     }
-
-    // Export the solution
-    ITHACAstream::exportMatrix(online_solution, "red_coeff", "python",
-                               "./ITHACAoutput/red_coeff");
-    ITHACAstream::exportMatrix(online_solution, "red_coeff", "matlab",
-                               "./ITHACAoutput/red_coeff");
 }
 
 
@@ -750,6 +741,50 @@ void ReducedBurgers::reconstruct(bool exportFields, fileName folder)
     }
 
     volVectorField uRec("uRec", Umodes[0] * 0);
+    uRecFields = problem->L_Umodes.reconstruct(uRec, CoeffU, "uRec");
+
+    if (exportFields)
+    {
+        ITHACAstream::exportFields(uRecFields, folder,
+                                   "uRec");
+    }
+}
+
+void ReducedBurgers::reconstruct(bool exportFields, fileName folder, Eigen::MatrixXd redCoeff)
+{
+    if (exportFields)
+    {
+        mkDir(folder);
+        ITHACAutilities::createSymLink(folder);
+    }
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 759 #################### " << endl;
+    int counter = 0;
+    int nextwrite = 0;
+    List < Eigen::MatrixXd> CoeffU;
+    List <double> tValues;
+    CoeffU.resize(0);
+    tValues.resize(0);
+    int exportEveryIndex = round(exportEvery / storeEvery);
+
+    for (int i = 0; i < redCoeff.size(); i++)
+    {
+        if (counter == nextwrite)
+        {
+            Eigen::MatrixXd currentUCoeff;
+            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 773 #################### " << endl;
+            currentUCoeff = redCoeff.block(i, 1, i, Nphi_u);
+            CoeffU.append(currentUCoeff);
+            nextwrite += exportEveryIndex;
+            double timeNow = redCoeff(i, 0);
+            tValues.append(timeNow);
+            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 779 #################### " << endl;
+        }
+
+        counter++;
+    }
+
+    volVectorField uRec("uRec", Umodes[0] * 0);
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 786 #################### " << endl;
     uRecFields = problem->L_Umodes.reconstruct(uRec, CoeffU, "uRec");
 
     if (exportFields)

@@ -18,7 +18,7 @@ class Encoder(nn.Module):
     def __init__(self, z_dim, hidden_dim):
         super().__init__()
         # setup the three linear transformations used
-        self.fc1 = nn.Linear(30000, hidden_dim)
+        self.fc1 = nn.Linear(120000, hidden_dim)
         self.fc21 = nn.Linear(hidden_dim, z_dim)
         self.fc22 = nn.Linear(hidden_dim, z_dim)
         # setup the non-linearities
@@ -27,7 +27,7 @@ class Encoder(nn.Module):
     def forward(self, x):
         # define the forward computation on the image x
         # first shape the mini-batch to have pixels in the rightmost dimension
-        x = x.reshape(30000, -1).T
+        x = x.reshape(120000, -1).T
         # then compute the hidden units
         hidden = self.softplus(self.fc1(x))
         # then return a mean vector and a (positive) square root covariance
@@ -44,8 +44,8 @@ class Decoder(nn.Module):
         super().__init__()
         # setup the two linear transformations used
         self.fc1 = nn.Linear(z_dim, hidden_dim)
-        self.fc21 = nn.Linear(hidden_dim, 30000)
-        self.fc22 = nn.Linear(hidden_dim, 30000)
+        self.fc21 = nn.Linear(hidden_dim, 120000)
+        self.fc22 = nn.Linear(hidden_dim, 120000)
         # setup the non-linearities
         self.softplus = nn.Softplus()
 

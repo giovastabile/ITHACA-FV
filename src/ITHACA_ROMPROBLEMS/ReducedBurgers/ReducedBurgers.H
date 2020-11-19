@@ -211,7 +211,7 @@ class ReducedBurgers: public reducedProblem
         /// @param[in]  startSnap The first snapshot taken from the offline snapshots
         /// and used to get the reduced initial condition.
         ///
-        void solveOnline(Eigen::MatrixXd vel_now, int startSnap = 0);
+        //void solveOnline(Eigen::MatrixXd vel_now, int startSnap = 0);
 
         /// Method to perform an online solve using a supremizer stabilisation method
         ///
@@ -231,7 +231,7 @@ class ReducedBurgers: public reducedProblem
         /// @param[in]  startSnap The first snapshot taken from the offline snapshots
         /// and used to get the reduced initial condition.
         ///
-        void solveOnline(double initialVelocity, int startSnap = 0);
+        void solveOnline(Eigen::MatrixXd mu, int startSnap = 0);
 
         ///
         /// Method to reconstruct the solutions from an online solve.
@@ -242,6 +242,15 @@ class ReducedBurgers: public reducedProblem
         ///
         void reconstruct(bool exportFields = false,
                          fileName folder = "./ITHACAoutput/online_rec");
+
+        ///
+        /// Method to reconstruct the solutions from an online solve.
+        ///
+        /// @param[in]  exportFields  A boolean variable which determines whether to export fields or not
+        /// @param[in]  folder        The folder where to output the solutions in case on wants to
+        /// @param[in]  printevery    The printevery variabel, when it is 1 the function outputs all stored fields
+        ///
+        void reconstruct(bool exportFields, fileName folder, Eigen::MatrixXd redCoeff);
 
         ///
         /// @brief      Sets the online velocity.

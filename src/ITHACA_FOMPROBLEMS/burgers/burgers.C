@@ -112,6 +112,14 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
     counter++;
     nextWrite += writeEvery;
 
+    // Save also the couple (initialTime, mu_now)
+    mu_samples.conservativeResize(mu_samples.rows() + 1, mu_now.size() + 1);
+    mu_samples(mu_samples.rows() - 1, 0) = atof(runTime.timeName().c_str());
+    for (label i = 0; i < mu_now.size(); i++)
+    {
+        mu_samples(mu_samples.rows() - 1, i + 1) = mu_now[i];
+    }
+
     // Start the time loop
     while (runTime.run())
     {
@@ -136,8 +144,6 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
 
             if (checkWrite(runTime))
             {
-                // Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 144 #################### " << runTime.timeName().c_str() << nextWrite << "counter" << counter << endl;
-
                 ITHACAstream::exportSolution(U, name(counter), folder);
                 std::ofstream of(folder + name(counter) + "/" +
                                 runTime.timeName());
@@ -167,7 +173,8 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
         mu.resize(1, 1);
     }
 
-    if (mu_samples.rows() == counter * mu.cols())
+    // counter+1 because also the initial time was saved
+    if (mu_samples.rows() == (counter+1) * mu.cols())
     {
         ITHACAstream::exportMatrix(mu_samples, "mu_samples", "eigen",
                                    folder);

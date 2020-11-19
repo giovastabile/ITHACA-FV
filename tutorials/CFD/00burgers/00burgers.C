@@ -37,6 +37,7 @@ SourceFiles
 #include <math.h>
 #include <iomanip>
 #include <string>
+#include <algorithm>
 
 class tutorial00 : public Burgers
 {
@@ -69,13 +70,15 @@ public:
         }
     }
 
-    void offlineSolveInitialVelocity()
+    void offlineSolveInitialVelocity(fileName folder = "./ITHACAoutput/Offline/")
     {
         List<scalar> mu_now(1);
 
         if (offline)
         {
-            ITHACAstream::read_fields(Ufield, U, "./ITHACAoutput/Offline/");
+            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 79 #################### " << endl;
+            ITHACAstream::read_fields(Ufield, U, folder);
+            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 81 #################### " << Ufield.size() << endl;
         }
         else
         {
@@ -83,7 +86,7 @@ public:
             {
                 mu_now[0] = mu(0, i);
                 change_initial_velocity(mu(0, i));
-                truthSolve(mu_now);
+                truthSolve(mu_now, folder);
             }
         }
     }
@@ -94,28 +97,42 @@ public:
 \*---------------------------------------------------------------------------*/
 
 void one_parameter_viscosity(tutorial00);
-void one_parameter_initial_velocity(tutorial00);
+void train_one_parameter_initial_velocity(tutorial00);
+void test_one_parameter_initial_velocity(tutorial00);
+
 
 int main(int argc, char *argv[])
 {
-    // Construct the tutorial00 object
-    tutorial00 example(argc, argv);
-    one_parameter_initial_velocity(example);
+    if (argc == 1)
+    {
+        std::cout << "Pass train or test." << endl;
+        exit(0);
+    }
+    // processed arguments
+    int argc_proc = argc-1;
+    char* argv_proc[argc_proc];
+    argv_proc[0] = argv[0];
 
-    // if (argv[1] == std::string("oneinitial"))
-    // {
-    //     one_parameter_initial_velocity(example);
-    // }
-    // else if (argv[1] == std::string("oneviscosity"))
-    // {
-    //     one_parameter_viscosity(example);
-    // }
-    // else
-    // {
-    //     std::cout << "Pass oneviscosity or oneinitial as arguments." << endl;
-    // }
+    if (argc > 2){std::copy(argv+2, argv+argc, argv_proc+1);}
 
-
+    if (std::strcmp(argv[1],"train")==0)
+    {
+        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 113 #################### " << endl;
+        // save mu_samples and training snapshots reduced coefficients
+        tutorial00 example(argc_proc, argv_proc);
+        train_one_parameter_initial_velocity(example);
+    }
+    else if (std::strcmp(argv[1],"test")==0)
+    {
+        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 121 #################### " << endl;
+        // compute FOM, ROM-intrusive, ROM-nonintrusive and evaluate errors
+        tutorial00 test_FOM(argc_proc, argv_proc);
+        test_one_parameter_initial_velocity(test_FOM);
+    }
+    else
+    {
+        std::cout << "Pass train or test." << endl;
+    }
 
     exit(0);
 }
@@ -164,7 +181,7 @@ void one_parameter_viscosity(tutorial00 example)
     reduced.finalTime = 2;
     reduced.dt = 0.001;
     reduced.storeEvery = 0.005;
-    reduced.exportEvery = 0.1;
+    reduced.exportEvery = 0.0013;
 
     reduced.solveOnline(1);
 
@@ -172,7 +189,7 @@ void one_parameter_viscosity(tutorial00 example)
     reduced.reconstruct(true, "./ITHACAoutput/Reconstruction/");
 }
 
-void one_parameter_initial_velocity(tutorial00 example)
+void train_one_parameter_initial_velocity(tutorial00 example)
 {
     // Read parameters from ITHACAdict file
     ITHACAparameters *para = ITHACAparameters::getInstance(example._mesh(),
@@ -188,26 +205,27 @@ void one_parameter_initial_velocity(tutorial00 example)
     /// Pnumber-by-2 matrix mu_range for the ranges
     example.setParameters();
     // Set the parameter ranges
-    example.mu_range(0, 0) = 0.8;
-    example.mu_range(0, 1) = 1.2;
+    example.mu_range(0, 0) = 0.5;
+    example.mu_range(0, 1) = 1.5;
     // Generate a number of Tnumber linearly equispaced samples inside the parameter range
     example.genEquiPar();
+    cnpy::save(example.mu, "parTrain.npy");
 
     // Time parameters
     example.startTime = 0;
     example.finalTime = 2;
     example.timeStep = 0.001;
-    example.writeEvery = 0.0013;
+    example.writeEvery = 0.1;
 
     // Perform The Offline Solve;
-    example.offlineSolveInitialVelocity();
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 204 #################### " << "Number of total modes" << example.Ufield.size() << endl;
+    example.offlineSolveInitialVelocity("./ITHACAoutput/Offline/Training");
 
     // Perform a POD decomposition for velocity and pressure
     ITHACAPOD::getModes(example.Ufield, example.Umodes, example._U().name(),
                         example.podex, 0, 0, NmodesUout);
 
     Eigen::MatrixXd SnapMatrix = Foam2Eigen::PtrList2Eigen(example.Ufield);
+    Info << "snapshots size: " << SnapMatrix.size() << endl;
     cnpy::save(SnapMatrix, "npSnapshots.npy");
 
     example.project("./Matrices", NmodesUproj);
@@ -219,13 +237,87 @@ void one_parameter_initial_velocity(tutorial00 example)
     reduced.tstart = 0;
     reduced.finalTime = 2;
     reduced.dt = 0.001;
-    reduced.storeEvery = 0.005;
+    reduced.storeEvery = 0.1;
     reduced.exportEvery = 0.1;
 
-    reduced.solveOnline(1.0, 1);
+    reduced.solveOnline(example.mu, 1);
+    ITHACAstream::exportMatrix(reduced.online_solution, "red_coeff", "python", "./ITHACAoutput/red_coeff");
 
+    // sample test set
+    example.setParameters();
+    // Set the parameter ranges
+    example.mu_range(0, 0) = 0.5 - 0.25;
+    example.mu_range(0, 1) = 1.5 + 0.25;
+    // Generate a number of Tnumber linearly equispaced samples inside the parameter range
+    example.genEquiPar();
+    cnpy::save(example.mu, "parTest.npy");
+
+}
+
+void test_one_parameter_initial_velocity(tutorial00 test_FOM)
+{
+    // Read parameters from ITHACAdict file
+    ITHACAparameters *para = ITHACAparameters::getInstance(test_FOM._mesh(),
+                                                           test_FOM._runTime());
+    int NmodesUout = para->ITHACAdict->lookupOrDefault<int>("NmodesUout", 15);
+    int NmodesUproj = para->ITHACAdict->lookupOrDefault<int>("NmodesUproj", 10);
+    int NmodesUtest = para->ITHACAdict->lookupOrDefault<int>("NmodesUtest", 100);
+
+    /// Set the number of parameters
+    test_FOM.Pnumber = 1;
+    /// Set the dimension of the test set
+    test_FOM.Tnumber = NmodesUtest;
+    /// Instantiates a void Pnumber-by-Tnumber matrix mu for the parameters and a void
+    /// Pnumber-by-2 matrix mu_range for the ranges
+    test_FOM.setParameters();
+    // Set the parameter ranges
+    test_FOM.mu_range(0, 0) = 0.5;
+    test_FOM.mu_range(0, 1) = 1.5;
+    // Generate a number of Tnumber linearly equispaced samples inside the parameter range
+    Eigen::MatrixXd mu;
+    test_FOM.mu = cnpy::load(mu, "parTest.npy");
+
+    // Time parameters
+    test_FOM.startTime = 0;
+    test_FOM.finalTime = 2;
+    test_FOM.timeStep = 0.001;
+    test_FOM.writeEvery = 0.1;
+
+    // Perform The Offline Solve;
+    test_FOM.offlineSolveInitialVelocity("./ITHACAoutput/Offline/Test");
+
+    test_FOM.NUmodes = NmodesUproj;
+    ITHACAstream::read_fields(test_FOM.Umodes, test_FOM.U, "./ITHACAoutput/POD");
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 291 #################### " << test_FOM.NUmodes << " " << test_FOM.Umodes.size()<< endl;
+
+    ReducedBurgers reduced_test(test_FOM);
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 288 #################### " << endl;
+    // Set values of the reduced_test model
+    reduced_test.nu = 0.0001;
+    reduced_test.tstart = 0;
+    reduced_test.finalTime = 2;
+    reduced_test.dt = 0.001;
+    reduced_test.storeEvery = 0.1;
+    reduced_test.exportEvery = 0.1;
+
+    Eigen::MatrixXd nonIntrusiveCoeff;
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 298 #################### " << endl;
+    nonIntrusiveCoeff = cnpy::load(nonIntrusiveCoeff, "nonIntrusiveCoeff.npy", "rowMajor");
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 299 #################### " << nonIntrusiveCoeff.rows() << " "  << endl;
     // Reconstruct the solution and export it
-    reduced.reconstruct(true, "./ITHACAoutput/Reconstruction/");
+    reduced_test.reconstruct(true, "./ITHACAoutput/Reconstruction/", nonIntrusiveCoeff);
+
+    Eigen::MatrixXd errFrobU = ITHACAutilities::errorFrobRel(test_FOM.Ufield,
+                               reduced_test.uRecFields);
+
+    ITHACAstream::exportMatrix(errFrobU, "errFrobU", "matlab",
+                               "./ITHACAoutput/ErrorsFrob/");
+
+    Eigen::MatrixXd errL2U = ITHACAutilities::errorL2Rel(test_FOM.Ufield,
+                             reduced_test.uRecFields);
+
+    ITHACAstream::exportMatrix(errL2U, "errL2U", "matlab",
+                               "./ITHACAoutput/ErrorsL2/");
 }
 
 /// \dir 04unsteadyNS Folder of the turorial 4
