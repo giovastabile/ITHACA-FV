@@ -53,9 +53,9 @@ ReducedBurgers::ReducedBurgers(Burgers& FOMproblem)
     //     Umodes.append(problem->liftfield[k]);
     // }
 
-    for (int k = 0; k < problem->NUmodes; k++)
+    for (int k = 0; k < problem->NL_Umodes; k++)
     {
-        Umodes.append(problem->Umodes[k]);
+        Umodes.append(problem->L_Umodes[k]);
         Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 59 #################### " << endl;
     }
 
@@ -452,6 +452,7 @@ void ReducedBurgers::solveOnline(int startSnap)
 
 void ReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
 {
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 455 #################### " << endl;
     M_Assert(exportEvery >= dt,
              "The time step dt must be smaller than exportEvery.");
     M_Assert(storeEvery >= dt,
@@ -471,6 +472,7 @@ void ReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
     // Set number of online solutions
     int Ntsteps = static_cast<int>((finalTime - tstart) / dt);
     int onlineSize = static_cast<int>(Ntsteps / numberOfStores);
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 474 #################### " << mu.cols() << " " << onlineSize << " " << Nphi_u << endl;
     online_solution.resize((mu.cols())*(onlineSize+1));
 
     // Iterate online solution for each parameter saved row-wise in mu
@@ -486,11 +488,12 @@ void ReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
         // Create and resize the solution vector
         y.resize(Nphi_u, 1);
         y.setZero();
+        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 489 #################### " << Umodes.size() << endl;
         y.head(Nphi_u) = ITHACAutilities::getCoeffs(problem->Ufield[startSnap],Umodes);
-
+        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 490 #################### " << endl;
         // set the multypling scalar of the initial velocity
         y(0) = mu(0, n_param);
-
+        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 496 #################### " << endl;
         // Set some properties of the newton object
         newton_object.nu = nu;
         newton_object.y_old = y;
@@ -514,8 +517,10 @@ void ReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
         Color::Modifier green(Color::FG_GREEN);
         Color::Modifier def(Color::FG_DEFAULT);
 
+        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 520 #################### " << endl;
         while (time < finalTime)
         {
+            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 523 #################### " << endl;
             time = time + dt;
 
             // Set time-dependent BCs
@@ -526,7 +531,7 @@ void ReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
                     newton_object.BC(j) = vel_now(j, counter);
                 }
             }
-
+            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 534 #################### " << endl;
             Eigen::VectorXd res(y);
             res.setZero();
             hnls.solve(y);
@@ -545,7 +550,7 @@ void ReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
                     }
                 }
             }
-
+            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 553 #################### " << endl;
             newton_object.operator()(y, res);
             newton_object.yOldOld = newton_object.y_old;
             newton_object.y_old = y;
@@ -716,7 +721,7 @@ void ReducedBurgers::reconstruct(bool exportFields, fileName folder)
         mkDir(folder);
         ITHACAutilities::createSymLink(folder);
     }
-
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 719 #################### " << Nphi_u << endl;
     int counter = 0;
     int nextwrite = 0;
     List < Eigen::MatrixXd> CoeffU;
@@ -757,7 +762,7 @@ void ReducedBurgers::reconstruct(bool exportFields, fileName folder, Eigen::Matr
         mkDir(folder);
         ITHACAutilities::createSymLink(folder);
     }
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 759 #################### " << endl;
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 759 #################### " << Nphi_u << endl;
     int counter = 0;
     int nextwrite = 0;
     List < Eigen::MatrixXd> CoeffU;
@@ -766,18 +771,21 @@ void ReducedBurgers::reconstruct(bool exportFields, fileName folder, Eigen::Matr
     tValues.resize(0);
     int exportEveryIndex = round(exportEvery / storeEvery);
 
-    for (int i = 0; i < redCoeff.size(); i++)
+    for (int i = 0; i < redCoeff.rows(); i++)
     {
         if (counter == nextwrite)
         {
-            Eigen::MatrixXd currentUCoeff;
-            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 773 #################### " << endl;
-            currentUCoeff = redCoeff.block(i, 1, i, Nphi_u);
+            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 773 #################### " << redCoeff(i, 0) << " " << redCoeff(i, 1) << " " << redCoeff(i, 2) << " " << redCoeff(i, 3) << endl;
+            Eigen::MatrixXd currentUCoeff(Nphi_u, 1);
+            currentUCoeff = Eigen::MatrixXd::Ones(Nphi_u, 1);
+            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 775 #################### " << currentUCoeff.rows() << " " << redCoeff.row(i).tail(Nphi_u).cols() << " " << redCoeff.row(i).tail(Nphi_u).transpose().rows() << endl;
+            currentUCoeff.col(0) = redCoeff.row(i).tail(Nphi_u).transpose();
+            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 776 #################### " << currentUCoeff.rows() << endl;//currentUCoeff(0, 0) << " " << currentUCoeff(1, 0) << " " << currentUCoeff(2, 0) << endl;
             CoeffU.append(currentUCoeff);
             nextwrite += exportEveryIndex;
             double timeNow = redCoeff(i, 0);
             tValues.append(timeNow);
-            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 779 #################### " << endl;
+            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 779 #################### " << counter << endl;
         }
 
         counter++;
@@ -786,7 +794,7 @@ void ReducedBurgers::reconstruct(bool exportFields, fileName folder, Eigen::Matr
     volVectorField uRec("uRec", Umodes[0] * 0);
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 786 #################### " << endl;
     uRecFields = problem->L_Umodes.reconstruct(uRec, CoeffU, "uRec");
-
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 787 #################### " << endl;
     if (exportFields)
     {
         ITHACAstream::exportFields(uRecFields, folder,

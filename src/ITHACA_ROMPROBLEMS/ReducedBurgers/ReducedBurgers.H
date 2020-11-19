@@ -56,9 +56,18 @@ struct newton_burgers: public newton_argument<double>
 
             newton_argument<double>(Nx,Ny),
             problem(&problem),
-            Nphi_u(problem.NUmodes + problem.liftfield.size()),
             N_BC(problem.inletIndex.rows())
-        {}
+        {
+            if (problem.liftfield.size()!=0)
+            {
+                Nphi_u = problem.NUmodes + problem.liftfield.size();
+            }
+            else
+            {
+                Nphi_u = problem.NUmodes + 1;
+            }
+
+        }
 
         int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) const;
         int df(const Eigen::VectorXd& x,  Eigen::MatrixXd& fjac) const;

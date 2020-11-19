@@ -289,6 +289,7 @@ void Burgers::project(fileName folder, label NU)
 {
     NUmodes = NU;
     L_Umodes.resize(0);
+    NL_Umodes = NUmodes;
 
     if (liftfield.size() != 0)
     {
@@ -296,12 +297,15 @@ void Burgers::project(fileName folder, label NU)
         {
             L_Umodes.append(liftfield[k]);
         }
+        NL_Umodes += liftfield.size();
     }
     else
     {
         L_Umodes.append(_U0);
+        NL_Umodes += 1;
     }
 
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 308 #################### " << NL_Umodes << endl;
 
     if (NUmodes != 0)
     {
@@ -310,61 +314,10 @@ void Burgers::project(fileName folder, label NU)
             L_Umodes.append(Umodes[k]);
         }
     }
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 317 #################### " << endl;
 
-    if (ITHACAutilities::check_folder("./ITHACAoutput/Matrices/"))
-    {
-        word B_str = "B_" + name(liftfield.size()) + "_" + name(NUmodes);
-
-        if (ITHACAutilities::check_file("./ITHACAoutput/Matrices/" + B_str))
-        {
-            ITHACAstream::ReadDenseMatrix(B_matrix, "./ITHACAoutput/Matrices/", B_str);
-        }
-        else
-        {
-            B_matrix = diffusive_term(NUmodes);
-        }
-
-        word M_str = "M_" + name(liftfield.size()) + "_" + name(NUmodes);
-
-        if (ITHACAutilities::check_file("./ITHACAoutput/Matrices/" + M_str))
-        {
-            ITHACAstream::ReadDenseMatrix(M_matrix, "./ITHACAoutput/Matrices/", M_str);
-        }
-        else
-        {
-            M_matrix = mass_term(NUmodes);
-        }
-
-        word C_str = "C_" + name(liftfield.size()) + "_" + name(NUmodes) + "_t";
-
-        if (ITHACAutilities::check_file("./ITHACAoutput/Matrices/" + C_str))
-        {
-            ITHACAstream::ReadDenseTensor(C_tensor, "./ITHACAoutput/Matrices/", C_str);
-        }
-        else
-        {
-            C_tensor = convective_term_tens(NUmodes);
-        }
-
-        // if (bcMethod == "penalty")
-        // {
-        //     bcVelVec = bcVelocityVec(NUmodes);
-        //     bcVelMat = bcVelocityMat(NUmodes);
-        // }
-    }
-    else
-    {
-        B_matrix = diffusive_term(NUmodes);
-        C_tensor = convective_term_tens(NUmodes);
-        M_matrix = mass_term(NUmodes);
-
-        // if (bcMethod == "penalty")
-        // {
-        //     bcVelVec = bcVelocityVec(NUmodes);
-        //     bcVelMat = bcVelocityMat(NUmodes);
-        // }
-    }
-
+    evaluateMatrices();
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 320 #################### " << endl;
     // Export the matrices
     if (para->exportPython)
     {
@@ -390,12 +343,13 @@ void Burgers::project(fileName folder, label NU)
 
 // * * * * * * * * * * * * * * Momentum Eq. Methods * * * * * * * * * * * * * //
 
-Eigen::MatrixXd Burgers::diffusive_term(label NUmodes)
+Eigen::MatrixXd Burgers::diffusive_term(label NL_Umodes)
 {
-    label Bsize = NUmodes + liftfield.size();
+    label Bsize = NL_Umodes;
+
     Eigen::MatrixXd B_matrix;
     B_matrix.resize(Bsize, Bsize);
-
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 414 #################### " << Bsize << endl;
     // Project everything
     for (label i = 0; i < Bsize; i++)
     {
@@ -412,13 +366,14 @@ Eigen::MatrixXd Burgers::diffusive_term(label NUmodes)
     }
 
     ITHACAstream::SaveDenseMatrix(B_matrix, "./ITHACAoutput/Matrices/",
-                                  "B_" + name(liftfield.size()) + "_" + name(NUmodes));
+                                  "B_" + name(liftfield.size()) + "_" + name(NL_Umodes));
     return B_matrix;
 }
 
-List <Eigen::MatrixXd> Burgers::convective_term(label NUmodes)
+List <Eigen::MatrixXd> Burgers::convective_term(label NL_Umodes)
 {
-    label Csize = NUmodes + liftfield.size();
+    label Csize = NL_Umodes;
+
     List <Eigen::MatrixXd> C_matrix;
     C_matrix.setSize(Csize);
 
@@ -457,9 +412,10 @@ List <Eigen::MatrixXd> Burgers::convective_term(label NUmodes)
     return C_matrix;
 }
 
-Eigen::Tensor<double, 3> Burgers::convective_term_tens(label NUmodes)
+Eigen::Tensor<double, 3> Burgers::convective_term_tens(label NL_Umodes)
 {
-    label Csize = NUmodes + liftfield.size();
+    label Csize = NL_Umodes;
+
     Eigen::Tensor<double, 3> C_tensor;
     C_tensor.resize(Csize, Csize, Csize);
 
@@ -483,13 +439,14 @@ Eigen::Tensor<double, 3> Burgers::convective_term_tens(label NUmodes)
 
     // Export the tensor
     ITHACAstream::SaveDenseTensor(C_tensor, "./ITHACAoutput/Matrices/",
-                                  "C_" + name(liftfield.size()) + "_" + name(NUmodes) + "_t");
+                                  "C_" + name(liftfield.size()) + "_" + name(NL_Umodes) + "_t");
     return C_tensor;
 }
 
-Eigen::MatrixXd Burgers::mass_term(label NUmodes)
+Eigen::MatrixXd Burgers::mass_term(label NL_Umodes)
 {
-    label Msize = NUmodes + liftfield.size();
+    label Msize = NL_Umodes;
+
     Eigen::MatrixXd M_matrix(Msize, Msize);
 
     // Project everything
@@ -508,7 +465,7 @@ Eigen::MatrixXd Burgers::mass_term(label NUmodes)
     }
 
     ITHACAstream::SaveDenseMatrix(M_matrix, "./ITHACAoutput/Matrices/",
-                                  "M_" + name(liftfield.size()) + "_" + name(NUmodes));
+                                  "M_" + name(liftfield.size()) + "_" + name(NL_Umodes));
     return M_matrix;
 }
 
@@ -649,5 +606,66 @@ bool Burgers::checkWrite(Time& timeObject)
     else
     {
         return false;
+    }
+}
+
+void Burgers::evaluateMatrices()
+{
+    if (ITHACAutilities::check_folder("./ITHACAoutput/Matrices/"))
+    {
+        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 320 #################### " << endl;
+        word B_str = "B_" + name(liftfield.size()) + "_" + name(NL_Umodes);
+
+        if (ITHACAutilities::check_file("./ITHACAoutput/Matrices/" + B_str))
+        {
+            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 324 #################### " << endl;
+            ITHACAstream::ReadDenseMatrix(B_matrix, "./ITHACAoutput/Matrices/", B_str);
+        }
+        else
+        {
+            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 328 #################### " << endl;
+            B_matrix = diffusive_term(NL_Umodes);
+            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 330 #################### " << endl;
+        }
+
+        word M_str = "M_" + name(liftfield.size()) + "_" + name(NL_Umodes);
+
+        if (ITHACAutilities::check_file("./ITHACAoutput/Matrices/" + M_str))
+        {
+            ITHACAstream::ReadDenseMatrix(M_matrix, "./ITHACAoutput/Matrices/", M_str);
+        }
+        else
+        {
+            M_matrix = mass_term(NL_Umodes);
+        }
+
+        word C_str = "C_" + name(liftfield.size()) + "_" + name(NL_Umodes) + "_t";
+
+        if (ITHACAutilities::check_file("./ITHACAoutput/Matrices/" + C_str))
+        {
+            ITHACAstream::ReadDenseTensor(C_tensor, "./ITHACAoutput/Matrices/", C_str);
+        }
+        else
+        {
+            C_tensor = convective_term_tens(NL_Umodes);
+        }
+
+        // if (bcMethod == "penalty")
+        // {
+        //     bcVelVec = bcVelocityVec(NUmodes);
+        //     bcVelMat = bcVelocityMat(NUmodes);
+        // }
+    }
+    else
+    {
+        B_matrix = diffusive_term(NL_Umodes);
+        C_tensor = convective_term_tens(NL_Umodes);
+        M_matrix = mass_term(NL_Umodes);
+
+        // if (bcMethod == "penalty")
+        // {
+        //     bcVelVec = bcVelocityVec(NUmodes);
+        //     bcVelMat = bcVelocityMat(NUmodes);
+        // }
     }
 }

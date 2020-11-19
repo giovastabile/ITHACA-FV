@@ -110,6 +110,9 @@ class Burgers: public reductionProblem
         /// Number of velocity modes used for the projection
         label NUmodes;
 
+        /// Number of velocity modes plus lifting or initial condition modes
+        label NL_Umodes;
+
         // Reduced Matrices
 
         /// Diffusion term
@@ -237,40 +240,40 @@ class Burgers: public reductionProblem
         ///
         /// @return     reduced matrix in Eigen::MatrixXd format for the diffusion term.
         ///
-        Eigen::MatrixXd diffusive_term(label NUmodes);
+        Eigen::MatrixXd diffusive_term(label NL_Umodes);
 
         //--------------------------------------------------------------------------
         /// Convective Term
         ///
-        /// @param[in]  NUmodes    The number of velocity modes.
+        /// @param[in]  NL_Umodes    The number of velocity modes.
         /// @param[in]  NPmodes    The number of pressure modes.
         /// @param[in]  NSUPmodes  The number of supremizer modes.
         ///
         /// @return     reduced third order tensor in List <Eigen::MatrixXd> format for the convective term.
         ///
-        List < Eigen::MatrixXd >  convective_term(label NUmodes);
+        List < Eigen::MatrixXd >  convective_term(label NL_Umodes);
 
         //--------------------------------------------------------------------------
         /// @brief      Export convective term as a tensor
         ///
-        /// @param[in]  NUmodes    The N of velocity modes
+        /// @param[in]  NL_Umodes    The N of velocity modes
         /// @param[in]  NPmodes    The N of pressure modes
         /// @param[in]  NSUPmodes  The N of supremizer modes
         ///
         /// @return     tensor_C
         ///
-        Eigen::Tensor<double, 3 > convective_term_tens(label NUmodes);
+        Eigen::Tensor<double, 3 > convective_term_tens(label NL_Umodes);
 
         //--------------------------------------------------------------------------
         /// Mass Term
         ///
-        /// @param[in]  NUmodes    The number of velocity modes.
+        /// @param[in]  NL_Umodes    The number of velocity modes.
         /// @param[in]  NPmodes    The number of pressure modes.
         /// @param[in]  NSUPmodes  The number of supremizer modes.
         ///
         /// @return     reduced matrix in Eigen::MatrixXd format for the mass matrix.
         ///
-        Eigen::MatrixXd  mass_term(label NUmodes);
+        Eigen::MatrixXd  mass_term(label NL_Umodes);
 
         //--------------------------------------------------------------------------
         /// @brief      Boundary integral modes on boundary used by the penaly method
@@ -317,6 +320,8 @@ class Burgers: public reductionProblem
         /// @return     1 if we must write 0 elsewhere.
         ///
         bool checkWrite(Time& timeObject);
+
+        void evaluateMatrices();
 };
 
 #endif
