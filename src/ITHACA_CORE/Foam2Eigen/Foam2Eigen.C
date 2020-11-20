@@ -359,7 +359,7 @@ Field<vector> Foam2Eigen::Eigen2field(Field<vector>& field,
 {
     label sizeBC = field.size();
     M_Assert(matrix.cols() == 3,
-             "The number of columns of the Input members is not correct, it should be 1");
+             "The number of columns of the Input members is not correct, it should be 3");
 
     if (matrix.rows() == 1)
     {

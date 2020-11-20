@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 
+
 class AE(nn.Module):
     # by default our latent space is 50-dimensional
     # and we use 400 hidden units
@@ -66,3 +67,24 @@ class Decoder(nn.Module):
         out = self.layer1(out)
         out = self.layer2(out)
         return out
+
+def plot_snapshot(snap, idx_train, idx_coord):
+    x, y = np.meshgrid(np.arange(150), np.arange(150))
+    z = snap[idx_train, idx_coord, x, y]
+    plt.contourf(x, y, z)
+
+def plot_compare(snap, snap_reconstruct, n_train, idx_coord=0, n_samples=5):
+    x, y = np.meshgrid(np.arange(150), np.arange(150))
+    index_list = np.random.randint(0, n_train, n_samples)
+    z = [snap[n, idx_coord, x, y] for n in index_list]
+    z_reconstruct = [snap_reconstruct[n, idx_coord, x, y] for n in index_list]
+
+    fig, axes = plt.subplots(2, n_samples, figsize=(n_samples*4, 20))
+    fig.suptitle("comparison of snapshots and reconstructed snapshots")
+    for i, image in enumerate(z):
+        axes[0, i].contourf(x, y, image)
+    for i, image in enumerate(z_reconstruct):
+        axes[1, i].contourf(x, y, image)
+
+    plt.show()
+
