@@ -68,7 +68,7 @@ class Decoder(nn.Module):
         out = self.layer2(out)
         return out
 
-def plot_snapshot(snap, idx_train, idx_coord):
+def plot_snapshot(snap, idx_train, idx_coord=0):
     x, y = np.meshgrid(np.arange(150), np.arange(150))
     z = snap[idx_train, idx_coord, x, y]
     plt.contourf(x, y, z)

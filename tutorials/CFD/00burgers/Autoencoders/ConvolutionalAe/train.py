@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from convae import *
 
-NUM_EPOCHS = 100
+NUM_EPOCHS = 40
 HIDDEN_DIM = 4
 BATCH_SIZE = 20
 LEARNING_RATE = 0.001
@@ -27,7 +27,6 @@ print("device is: ", device)
 train_loader = torch.utils.data.DataLoader(dataset=snapshots,
                                            batch_size=BATCH_SIZE,
                                            shuffle=True)
-
 
 model = AE(HIDDEN_DIM).to(device)
 

@@ -270,6 +270,13 @@ class ReducedBurgers: public reducedProblem
         ///
         Eigen::MatrixXd setOnlineVelocity(Eigen::MatrixXd vel);
 
+        ///
+        /// @brief      Projects and reconstructs the snapshots in Umodes.
+        ///
+        /// @param[in]  folder     The folder where to output the solution
+        ///
+        void trueProjection(fileName folder);
+
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

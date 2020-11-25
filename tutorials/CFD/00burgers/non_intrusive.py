@@ -27,9 +27,9 @@ print("outputs shape: ", output.shape)
 print("time samples: ", time_samples.shape)
 
 # perform GP regression
-kern = GPy.kern.RBF(input_dim=2, ARD=True)
+kern = GPy.kern.RBF(input_dim=2, ARD=True, lengthscale=0.4)
 gp = GPy.models.GPRegression(x, output)
-gp.optimize_restarts(15)
+gp.optimize_restarts(5)
 
 # load test set
 test_params = np.load("parTest.npy").reshape(-1)

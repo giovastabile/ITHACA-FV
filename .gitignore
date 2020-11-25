@@ -53,3 +53,9 @@ tutorials/CFD/00burgers/Autoencoders/ConvolutionalAe/model.ckpt
 tutorials/CFD/00burgers/npTrueSnapshots.npy
 
 tutorials/CFD/00burgers/snapshotsReconstructedConvAe.npy
+
+tutorials/CFD/00burgers/Autoencoders/ConvolutionalAe/errL2UconvAeProjection.npy
+
+tutorials/CFD/00burgers/npInitialAndModes.npy
+
+tutorials/CFD/00burgers/snapshotsConvAeTrueProjection.npy

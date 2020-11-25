@@ -8,7 +8,8 @@ from convae import *
 WM_PROJECT = "../../"
 HIDDEN_DIM = 4
 
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+# device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+device = 'cpu'
 print("device is: ", device)
 
 # reshape as (train_samples, channel, y, x)
@@ -29,7 +30,7 @@ model.eval()
 # reconstruct snapshots
 snap_rec = model.forward(snapshots)
 print("non linear reduction training coeffs: ", snap_rec.size())
-plot_compare(snapshots_numpy, snap_rec.cpu().detach().numpy(), n_train)
+#plot_compare(snapshots_numpy, snap_rec.cpu().detach().numpy(), n_train)
 
 # evaluate hidden variables
 nl_red_coeff = model.encoder.forward(snapshots)
@@ -63,9 +64,9 @@ print("outputs shape: ", output.shape)
 print("time samples: ", time_samples.shape)
 
 # perform GP regression
-kern = GPy.kern.RBF(input_dim=2, ARD=True)
+kern = GPy.kern.RBF(input_dim=2, ARD=True, lengthscale=0.4)
 gp = GPy.models.GPRegression(x, nl_red_coeff)
-gp.optimize_restarts(15)
+gp.optimize_restarts(5)
 
 ##################################### TEST GPR
 # load test set
@@ -88,4 +89,20 @@ print("predictions shape: ", predictions.shape)
 
 predicted_snapshots = model.decoder.forward(torch.from_numpy(predictions).to(device, dtype=torch.float)).cpu().detach().numpy().reshape(-1, n_train)
 print("predicted snapshots shape: ", predicted_snapshots.shape)
-tmp = np.save(WM_PROJECT+"snapshotsReconstructedConvAe.npy",predicted_snapshots)
+np.save(WM_PROJECT+"snapshotsReconstructedConvAe.npy",predicted_snapshots)
+
+
+#################################### PROJECTION ERROR
+snap_true = np.load(WM_PROJECT+"npTrueSnapshots.npy")
+print("true test snapshots shape: ", snap_true.shape)
+n_test = snap_true.shape[1]
+snap_true = snap_true.T
+snap_true_numpy = snap_true.reshape((n_train, 3, 150, 150))
+snap_true = torch.from_numpy(snap_true_numpy).to(device, dtype=torch.float)
+print("snapshots shape: ", snap_true.size())
+
+# reconstruct snapshots
+snap_true_rec = model.forward(snap_true)
+print("non linear reduction training coeffs: ", snap_true_rec.size())
+plot_compare(snap_true_numpy, snap_true_rec.cpu().detach().numpy(), n_train)
+np.save(WM_PROJECT+"snapshotsConvAeTrueProjection.npy",snap_true_rec.cpu().detach().numpy())

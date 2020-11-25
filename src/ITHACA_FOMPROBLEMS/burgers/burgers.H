@@ -322,6 +322,7 @@ class Burgers: public reductionProblem
         bool checkWrite(Time& timeObject);
 
         void evaluateMatrices();
+
 };
 
 #endif
