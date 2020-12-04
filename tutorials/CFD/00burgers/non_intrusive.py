@@ -24,7 +24,7 @@ print("number of time samples: ", n_time_samples)
 time_samples = output_pre[:n_time_samples, 0]
 output = output_pre[:, 1:]
 print("outputs shape: ", output.shape)
-print("time samples: ", time_samples.shape)
+print("time samples: ", time_samples)
 
 # perform GP regression
 kern = GPy.kern.RBF(input_dim=2, ARD=True, lengthscale=0.4)

@@ -95,7 +95,7 @@ class Foam2Eigen
         ///                               can be dense or sparse
         ///
         /// @tparam     type_foam_matrix  The type of foam matrix can be
-        ///                               fvScalarMatrix or fvVectorMatrix
+        ///                               Foam::Scalar<double> or Foam::Vector<double>
         /// @tparam     type_A            The type of matrix or the list of
         ///                               matrices, can be dense
         ///                               (Eigen::MatrixXd) or sparse

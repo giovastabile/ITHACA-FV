@@ -27,6 +27,7 @@ EXE_INC = \
     -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/ReducedLaplacian \
     -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/NonLinearSolvers \
     -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/ReducedBurgers \
+    -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers \
     -I$(LIB_ITHACA_SRC)/ITHACA_CORE/ITHACAutilities \
     -I$(LIB_ITHACA_SRC)/ITHACA_CORE/ITHACAPOD \
     -I$(LIB_ITHACA_SRC)/ITHACA_CORE/ITHACAparallel \
@@ -37,6 +38,9 @@ EXE_INC = \
     -I$(LIB_ITHACA_SRC)/thirdparty/Eigen \
     -I$(LIB_ITHACA_SRC)/thirdparty/spectra/include \
     -I$(LIB_ITHACA_SRC)/ITHACA_THIRD_PARTY/splinter/include \
+    -I$(LIB_ITHACA_SRC)/ITHACA_TORCH \
+    -I$(TORCH_LIBRARIES)/include \
+    -I$(TORCH_LIBRARIES)/include/torch/csrc/api/include \
     -Wno-comment \
     -w \
     -DOFVER=$${WM_PROJECT_VERSION%.*} \
@@ -57,4 +61,9 @@ EXE_LIBS = \
     -lITHACA_CORE \
     -lburgersFoam \
     -lburgersReduced \
-    -L$(FOAM_USER_LIBBIN)
+    -lburgersNonlinearReduced \
+    -L$(FOAM_USER_LIBBIN) \
+    -lITHACA_TORCH \
+    -Wl,-rpath,$(TORCH_LIBRARIES)/lib $(TORCH_LIBRARIES)/lib/libtorch.so $(TORCH_LIBRARIES)/lib/libc10.so \
+    -Wl,--no-as-needed,$(TORCH_LIBRARIES)/lib/libcaffe2_detectron_ops.so \
+    -Wl,--as-needed $(TORCH_LIBRARIES)/lib/libc10.so \

@@ -21,6 +21,7 @@ EigenSolver eigen;
 NmodesUout 4;
 NmodesUproj 3;
 NmodesUtest 100;
+NnonlinearModes 4;
 
 // Output format to save market vectors.
 OutPrecision 20;

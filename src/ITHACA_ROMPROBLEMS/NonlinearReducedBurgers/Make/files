@@ -1,0 +1,3 @@
+NonlinearReducedBurgers.C
+
+LIB = $(FOAM_USER_LIBBIN)/libburgersNonlinearReduced

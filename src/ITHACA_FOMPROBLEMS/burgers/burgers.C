@@ -110,6 +110,7 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
                      runTime.timeName());
     Ufield.append(U);
     counter++;
+    int write_counter{0};
     nextWrite += writeEvery;
 
     // Save also the couple (initialTime, mu_now)
@@ -129,8 +130,7 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
 // #include "setDeltaT.H"
         Info<< "deltaT = " <<  runTime.deltaTValue() << endl;
         runTime.setEndTime(finalTime);
-        runTime++;
-        Info << "Time = " << runTime.timeName() << nl << endl;
+        // Info << "Time = " << runTime.timeName() << nl << endl;
 
         // --- Pressure-velocity PIMPLE corrector loop
         while (simple.loop())
@@ -142,14 +142,15 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
 #include "UEqn.H"
             }
 
-            if (checkWrite(runTime))
+            write_counter++;
+            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 147 #################### " << write_counter << " " << writeEvery << " " << counter <<  endl;
+            if (write_counter >= writeEvery)
             {
                 ITHACAstream::exportSolution(U, name(counter), folder);
                 std::ofstream of(folder + name(counter) + "/" +
                                 runTime.timeName());
                 Ufield.append(U);
                 counter++;
-                nextWrite += writeEvery;
                 writeMu(mu_now);
                 // --- Fill in the mu_samples with parameters (time, mu) to be used for the PODI sample points
                 mu_samples.conservativeResize(mu_samples.rows() + 1, mu_now.size() + 1);
@@ -159,6 +160,7 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
                 {
                     mu_samples(mu_samples.rows() - 1, i + 1) = mu_now[i];
                 }
+                write_counter = 0;
             }
         }
 
@@ -173,9 +175,11 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
         mu.resize(1, 1);
     }
 
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 176 #################### " << mu_samples.rows() << " " << counter << " " << mu.cols() << endl;
     // counter+1 because also the initial time was saved
-    if (mu_samples.rows() == (counter+1) * mu.cols())
+    if (mu_samples.rows() == counter * mu.cols())
     {
+        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 183 #################### " << endl;
         ITHACAstream::exportMatrix(mu_samples, "mu_samples", "eigen",
                                    folder);
     }
@@ -305,7 +309,7 @@ void Burgers::project(fileName folder, label NU)
         NL_Umodes += 1;
     }
 
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 308 #################### " << NL_Umodes << endl;
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 308 #################### " << NL_Umodes << " " << Umodes.size() << endl;
 
     if (NUmodes != 0)
     {
@@ -349,7 +353,9 @@ Eigen::MatrixXd Burgers::diffusive_term(label NL_Umodes)
 
     Eigen::MatrixXd B_matrix;
     B_matrix.resize(Bsize, Bsize);
+
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 414 #################### " << Bsize << endl;
+
     // Project everything
     for (label i = 0; i < Bsize; i++)
     {
@@ -367,6 +373,7 @@ Eigen::MatrixXd Burgers::diffusive_term(label NL_Umodes)
 
     ITHACAstream::SaveDenseMatrix(B_matrix, "./ITHACAoutput/Matrices/",
                                   "B_" + name(liftfield.size()) + "_" + name(NL_Umodes));
+
     return B_matrix;
 }
 
@@ -599,8 +606,9 @@ bool Burgers::checkWrite(Time& timeObject)
     scalar diffnow = mag(nextWrite - atof(timeObject.timeName().c_str()));
     // scalar diffnext = mag(nextWrite - atof(timeObject.timeName().c_str()) - timeObject.deltaTValue());
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 637 #################### " << diffnow << " " << timeObject.deltaTValue() << endl;
-    if ( diffnow < timeObject.deltaTValue())
+    if ( diffnow <= timeObject.deltaTValue())
     {
+        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 605 #################### " << endl;
         return true;
     }
     else

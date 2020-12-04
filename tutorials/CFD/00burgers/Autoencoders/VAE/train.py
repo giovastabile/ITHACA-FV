@@ -6,8 +6,6 @@ from torchsummary import summary
 import argparse
 from convae import *
 
-domain_size = 60
-
 def main(args):
     NUM_EPOCHS = args.num_epochs
     HIDDEN_DIM = args.latent_dim
@@ -19,7 +17,7 @@ def main(args):
 
     # reshape as (train_samples, channel, y, x)
     snapshots = snapshots.T
-    snapshots = snapshots.reshape((n_train, 3, domain_size, domain_size))
+    snapshots = snapshots.reshape((n_train, 3, 150, 150))
     max_sn = np.max(np.abs(snapshots))
     snapshots /= max_sn
     snapshots = torch.from_numpy(snapshots)
@@ -57,7 +55,7 @@ def main(args):
             snapshot = snapshot.to(device, dtype=torch.float)
             # Forward pass
             outputs = model(snapshot)
-            loss = criterion(outputs.reshape((-1, 3, domain_size, domain_size)), snapshot)
+            loss = criterion(outputs, snapshot)
 
             # Backward and optimize
             optimizer.zero_grad()
@@ -66,31 +64,26 @@ def main(args):
 
         loss_list.append(loss)
 
-        # plt.ion()
         if epoch % args.iter == 0:
-            plot_snapshot(max_sn*outputs.detach().cpu().numpy().reshape((-1, 3, domain_size, domain_size)), 0)
-            plot_snapshot(max_sn*snapshot.detach().cpu().numpy().reshape((-1, 3, domain_size, domain_size)), 0)
-            # plt.show()
+            plot_snapshot(max_sn*outputs.detach().cpu().numpy(), 0)
+            plt.show()
             print ('Epoch [{}/{}], Step [{}/{}], Loss: {:.6f}'
                 .format(epoch, NUM_EPOCHS, epoch, total_step, loss.item()))
             plt.plot(range(epoch//args.iter), np.log10(loss_list[::args.iter]))
-            # plt.savefig('./train_cae.png')
-            # plt.draw()
-            # plt.pause(0.05)
-            plt.show()
+            plt.savefig('./train_cae.png')
+            plt.close('all')
 
     plt.plot(range(1, NUM_EPOCHS), np.log10(loss_list))
     plt.show()
     # Save the model checkpoint
     torch.save(model.state_dict(), 'model.ckpt')
-    summary(model, input_size=(3, domain_size, domain_size))
+    summary(model, input_size=(3, 150, 150))
 
     # save decoder
     device = 'cpu'
     model.decoder.to(device)
     sm = torch.jit.script(model.decoder)
     sm.save('decoder.pt')
-
 
 
 if __name__ == '__main__':

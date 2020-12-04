@@ -59,3 +59,25 @@ tutorials/CFD/00burgers/Autoencoders/ConvolutionalAe/errL2UconvAeProjection.npy
 tutorials/CFD/00burgers/npInitialAndModes.npy
 
 tutorials/CFD/00burgers/snapshotsConvAeTrueProjection.npy
+
+src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/Make/options_reduced
+
+src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/Make/options_rom
+
+tutorials/CFD/00burgers/Autoencoders/ConvolutionalAe/decoder.pt
+
+tutorials/CFD/00burgers/Autoencoders/ConvolutionalAe/model.pt
+
+tutorials/CFD/00burgers/Autoencoders/Shallow/__pycache__/convae.cpython-38.pyc
+
+tutorials/CFD/00burgers/NNdata.txt
+
+tutorials/CFD/00burgers/REF/0
+
+tutorials/CFD/00burgers/REF/1/g0
+
+tutorials/CFD/00burgers/REF/2/g0
+
+tutorials/CFD/00burgers/REF/constant
+
+tutorials/CFD/00burgers/REF/system

@@ -473,7 +473,7 @@ void ReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
     int Ntsteps = static_cast<int>((finalTime - tstart) / dt);
     int onlineSize = static_cast<int>(Ntsteps / numberOfStores);
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 474 #################### " << mu.cols() << " " << onlineSize << " " << Nphi_u << endl;
-    online_solution.resize((mu.cols())*(onlineSize+1));
+    online_solution.resize((mu.cols())*(onlineSize));
 
     // Iterate online solution for each parameter saved row-wise in mu
     for (int n_param = 0; n_param < mu.cols(); n_param++)
@@ -518,10 +518,13 @@ void ReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
         Color::Modifier def(Color::FG_DEFAULT);
 
         Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 520 #################### " << endl;
+
+        time = time + dt;
+
         while (time < finalTime)
         {
             Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 523 #################### " << endl;
-            time = time + dt;
+
 
             // Set time-dependent BCs
             if (problem->timedepbcMethod == "yes" )
@@ -557,7 +560,7 @@ void ReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
             std::cout << "################## Online solve N° " << counter <<
                     " ##################" << std::endl;
             Info << "Time = " << time << endl;
-
+            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 560 #################### " << counter2 << endl;
             if (res.norm() < 1e-5)
             {
                 std::cout << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
@@ -576,6 +579,7 @@ void ReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
             {
                 if (counter2 >= online_solution.size())
                 {
+                    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 579 #################### " << endl;
                     online_solution.append(tmp_sol);
                 }
                 else
@@ -588,6 +592,7 @@ void ReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
             }
 
             counter ++;
+            time = time + dt;
         }
     }
 }

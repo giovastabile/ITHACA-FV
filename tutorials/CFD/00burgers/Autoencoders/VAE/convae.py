@@ -79,11 +79,11 @@ import torch.nn as nn
 class AE(nn.Module):
     # by default our latent space is 50-dimensional
     # and we use 400 hidden units
-    def __init__(self, hidden_dim=400, use_cuda=True, domain_size=60):
+    def __init__(self, hidden_dim=400, use_cuda=True):
         super(AE, self).__init__()
         # create the encoder and decoder networks
-        self.encoder = Encoder(hidden_dim, domain_size)
-        self.decoder = Decoder(hidden_dim, domain_size, self.encoder.hl)
+        self.encoder = Encoder(hidden_dim)
+        self.decoder = Decoder(hidden_dim)
 
         if use_cuda:
             # calling cuda() here will put all the parameters of
@@ -98,11 +98,8 @@ class AE(nn.Module):
         return x_out
 
 class Encoder(nn.Module):
-    def __init__(self, hidden_dim, domain_size):
+    def __init__(self, hidden_dim):
         super(Encoder, self).__init__()
-        self.ds = domain_size
-        self.hl = int(self.eval_size())
-
         self.layer1 = nn.Sequential(
             nn.Conv2d(3, 16, kernel_size=5, stride=1, padding=2),
             nn.BatchNorm2d(16),
@@ -113,7 +110,7 @@ class Encoder(nn.Module):
             nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2))
-        self.fc = nn.Linear(32*(self.hl)**2, hidden_dim)
+        self.fc = nn.Linear(37*37*32, hidden_dim)
 
     def forward(self, x):
         out = self.layer1(x)
@@ -122,20 +119,13 @@ class Encoder(nn.Module):
         out = self.fc(out)
         return out
 
-    def eval_size(self):
-        convlayer = lambda x: np.floor((x + 2 * 2 - 5)/ 1 + 1)
-        poolayer = lambda x: np.floor((x - 2)/2 +1)
-        return poolayer(convlayer(poolayer(convlayer(self.ds))))
-
 class Decoder(nn.Module):
-    def __init__(self, hidden_dim, domain_size, hidden_length):
+    def __init__(self, hidden_dim):
         super(Decoder, self).__init__()
-        self.ds = domain_size
-        self.hl = hidden_length
 
-        self.fc = nn.Linear(hidden_dim, 32*(self.hl)**2)
+        self.fc = nn.Linear(hidden_dim, 37*37*32)
         self.layer1 = nn.Sequential(
-            nn.ConvTranspose2d(32, 16, kernel_size=4, stride=2, padding=1),
+            nn.ConvTranspose2d(32, 16, kernel_size=5, stride=2, padding=1),
             nn.BatchNorm2d(16),
             nn.ReLU())
         self.layer2 = nn.Sequential(
@@ -145,25 +135,20 @@ class Decoder(nn.Module):
 
     def forward(self, z):
         out = self.fc(z)
-        out = out.reshape(-1, 32,self.hl ,self.hl )
+        out = out.reshape(-1, 32, 37, 37)
         out = self.layer1(out)
-        out = self.layer2(out).reshape(-1, self.ds*self.ds*3)
+        out = self.layer2(out)
         return out
 
 def plot_snapshot(snap, idx_train, idx_coord=0):
     m = snap.shape[2]
     x, y = np.meshgrid(np.arange(m), np.arange(m))
     z = snap[idx_train, idx_coord, x, y]
-    plt.figure(figsize=(7, 6))
-    pl = plt.contourf(x, y, z)
-    v1 = np.linspace(0, np.max(z), 15)
-    cb = plt.colorbar(pl,fraction=0.046, pad=0.04, ticks=v1)
-    cb.ax.tick_params(labelsize='large')
-    cb.ax.set_yticklabels(["{:2.1f}".format(i) for i in v1])
+    plt.contourf(x, y, z)
+    plt.colorbar()
 
 def plot_compare(snap, snap_reconstruct, n_train, idx_coord=0, n_samples=5):
-    domain_size = snap.shape[2]
-    x, y = np.meshgrid(np.arange(domain_size), np.arange(domain_size))
+    x, y = np.meshgrid(np.arange(150), np.arange(150))
     index_list = np.random.randint(0, n_train, n_samples)
     z = [snap[n, idx_coord, x, y] for n in index_list]
     z_reconstruct = [snap_reconstruct[n, idx_coord, x, y] for n in index_list]

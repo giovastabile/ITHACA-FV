@@ -27,11 +27,16 @@ SourceFiles
     00burgers.C
 \*---------------------------------------------------------------------------*/
 
+#include <torch/script.h>
+#include <torch/torch.h>
+#include "torch2Eigen.H"
+#include "Foam2Eigen.H"
+
 #include "burgers.H"
 #include "ITHACAPOD.H"
 #include "ReducedBurgers.H"
+#include "NonlinearReducedBurgers.H"
 #include "ITHACAstream.H"
-#include "Foam2Eigen.H"
 #include "cnpy.H"
 #include <chrono>
 #include <math.h>
@@ -76,10 +81,8 @@ public:
 
         if (offline)
         {
-            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 79 #################### " << folder << endl;
             ITHACAstream::read_fields(Ufield, "U", folder);
-            ITHACAstream::exportFields(Ufield, "./TRAIN", "uTrain");
-            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 81 #################### " << Ufield.size() << endl;
+            // ITHACAstream::exportFields(Ufield, "./TRAIN", "uTrain");
         }
         else
         {
@@ -100,7 +103,7 @@ public:
 void one_parameter_viscosity(tutorial00);
 void train_one_parameter_initial_velocity(tutorial00);
 void test_one_parameter_initial_velocity(tutorial00);
-
+void nonlinear_one_parameter_initial_velocity(tutorial00);
 
 int main(int argc, char *argv[])
 {
@@ -116,19 +119,35 @@ int main(int argc, char *argv[])
 
     if (argc > 2){std::copy(argv+2, argv+argc, argv_proc+1);}
 
+    tutorial00 example(argc_proc, argv_proc);
+
     if (std::strcmp(argv[1],"train")==0)
     {
-        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 113 #################### " << endl;
         // save mu_samples and training snapshots reduced coefficients
-        tutorial00 example(argc_proc, argv_proc);
         train_one_parameter_initial_velocity(example);
     }
     else if (std::strcmp(argv[1],"test")==0)
     {
-        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 121 #################### " << endl;
         // compute FOM, ROM-intrusive, ROM-nonintrusive and evaluate errors
-        tutorial00 test_FOM(argc_proc, argv_proc);
-        test_one_parameter_initial_velocity(test_FOM);
+        test_one_parameter_initial_velocity(example);
+    }
+    else if (std::strcmp(argv[1],"nonlinear")==0)
+    {
+        // predict with NM-LSPG
+        nonlinear_one_parameter_initial_velocity(example);
+        // auto decoder = torch::jit::load("./Autoencoders/ConvolutionalAe/decoder.pt");
+        // std::vector<torch::jit::IValue> input;
+
+
+        // torch::Tensor zero_latent_vector = torch::zeros({1, 4});
+        // input.push_back(zero_latent_vector);
+
+        // at::Tensor tensor = decoder.forward(input).toTensor();
+
+        // std::ofstream NNFile;
+        // NNFile.open ("./NNdata.txt");
+        // NNFile << tensor.slice(0, 3, 1);
+        // NNFile.close();
     }
     else
     {
@@ -190,58 +209,58 @@ void one_parameter_viscosity(tutorial00 example)
     reduced.reconstruct(true, "./ITHACAoutput/Reconstruction/");
 }
 
-void train_one_parameter_initial_velocity(tutorial00 example)
+void train_one_parameter_initial_velocity(tutorial00 train_FOM)
 {
     // Read parameters from ITHACAdict file
-    ITHACAparameters *para = ITHACAparameters::getInstance(example._mesh(),
-                                                           example._runTime());
+    ITHACAparameters *para = ITHACAparameters::getInstance(train_FOM._mesh(),
+                                                           train_FOM._runTime());
     int NmodesUout = para->ITHACAdict->lookupOrDefault<int>("NmodesUout", 15);
     int NmodesUproj = para->ITHACAdict->lookupOrDefault<int>("NmodesUproj", 10);
 
     /// Set the number of parameters
-    example.Pnumber = 1;
+    train_FOM.Pnumber = 1;
     /// Set the dimension of the training set
-    example.Tnumber = NmodesUout;
+    train_FOM.Tnumber = NmodesUout;
     /// Instantiates a void Pnumber-by-Tnumber matrix mu for the parameters and a void
     /// Pnumber-by-2 matrix mu_range for the ranges
-    example.setParameters();
+    train_FOM.setParameters();
     // Set the parameter ranges
-    example.mu_range(0, 0) = 0.5;
-    example.mu_range(0, 1) = 1.5;
+    train_FOM.mu_range(0, 0) = 0.5;
+    train_FOM.mu_range(0, 1) = 1.5;
     // Generate a number of Tnumber linearly equispaced samples inside the parameter range
-    example.genEquiPar();
-    cnpy::save(example.mu, "parTrain.npy");
+    train_FOM.genEquiPar();
+    cnpy::save(train_FOM.mu, "parTrain.npy");
 
     // Time parameters
-    example.startTime = 0;
-    example.finalTime = 2;
-    example.timeStep = 0.001;
-    example.writeEvery = 0.01;
+    train_FOM.startTime = 0;
+    train_FOM.finalTime = 2;
+    train_FOM.timeStep = 0.001;
+    train_FOM.writeEvery = 10;
 
     // Perform The Offline Solve;
-    example.offlineSolveInitialVelocity("./ITHACAoutput/Offline/Training/");
+    train_FOM.offlineSolveInitialVelocity("./ITHACAoutput/Offline/Training/");
 
     // Perform a POD decomposition for velocity
-    ITHACAPOD::getModes(example.Ufield, example.Umodes, example._U().name(),
-                        example.podex, 0, 0, NmodesUout);
+    ITHACAPOD::getModes(train_FOM.Ufield, train_FOM.Umodes, train_FOM._U().name(),
+                        train_FOM.podex, 0, 0, NmodesUout);
 
-    Eigen::MatrixXd SnapMatrix = Foam2Eigen::PtrList2Eigen(example.Ufield);
+    Eigen::MatrixXd SnapMatrix = Foam2Eigen::PtrList2Eigen(train_FOM.Ufield);
     Info << "snapshots size: " << SnapMatrix.size() << endl;
     cnpy::save(SnapMatrix, "npSnapshots.npy");
 
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 231 #################### " << endl;
-    example.project("./Matrices", NmodesUproj);
+    train_FOM.project("./Matrices", NmodesUproj);
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 233 #################### " << endl;
 
     // The initial conditions are used as the first mode
-    ITHACAstream::exportFields(example.L_Umodes, "./ITHACAoutput/POD_and_initial/", "U");
+    ITHACAstream::exportFields(train_FOM.L_Umodes, "./ITHACAoutput/POD_and_initial/", "U");
 
-    Eigen::MatrixXd modes = Foam2Eigen::PtrList2Eigen(example.L_Umodes);
+    Eigen::MatrixXd modes = Foam2Eigen::PtrList2Eigen(train_FOM.L_Umodes);
     Info << "snapshots size: " << modes.size() << endl;
     cnpy::save(modes, "npInitialAndModes.npy");
 
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 236 #################### " << endl;
-    ReducedBurgers reduced(example);
+    ReducedBurgers reduced(train_FOM);
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 238 #################### " << endl;
 
     // Set values of the reduced model
@@ -253,18 +272,18 @@ void train_one_parameter_initial_velocity(tutorial00 example)
     reduced.exportEvery = 0.01;
 
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 247 #################### " << endl;
-    reduced.solveOnline(example.mu, 0);
+    reduced.solveOnline(train_FOM.mu, 0);
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 248 #################### " << endl;
     ITHACAstream::exportMatrix(reduced.online_solution, "red_coeff", "python", "./ITHACAoutput/red_coeff");
 
     // sample test set
-    example.setParameters();
+    train_FOM.setParameters();
     // Set the parameter ranges
-    example.mu_range(0, 0) = 0.5 - 0.25;
-    example.mu_range(0, 1) = 1.5 + 0.25;
+    train_FOM.mu_range(0, 0) = 0.5 - 0.25;
+    train_FOM.mu_range(0, 1) = 1.5 + 0.25;
     // Generate a number of Tnumber linearly equispaced samples inside the parameter range
-    example.genEquiPar();
-    cnpy::save(example.mu, "parTest.npy");
+    train_FOM.genEquiPar();
+    cnpy::save(train_FOM.mu, "parTest.npy");
 
 }
 
@@ -295,7 +314,7 @@ void test_one_parameter_initial_velocity(tutorial00 test_FOM)
     test_FOM.startTime = 0;
     test_FOM.finalTime = 2;
     test_FOM.timeStep = 0.001;
-    test_FOM.writeEvery = 0.01;
+    test_FOM.writeEvery = 10;
 
     // Perform The Offline Solve;
     if (!ITHACAutilities::check_folder("./ITHACAoutput/Offline/Test/80"))
@@ -312,7 +331,7 @@ void test_one_parameter_initial_velocity(tutorial00 test_FOM)
     ITHACAstream::read_fields(test_FOM.L_Umodes, "U", "./ITHACAoutput/POD_and_initial/", 0, NmodesUout);
 
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 291 #################### " << test_FOM.NUmodes << " " << test_FOM.L_Umodes.size()<< endl;
-    ITHACAstream::exportFields(test_FOM.L_Umodes, "./TEST", "uTest");
+    // ITHACAstream::exportFields(test_FOM.L_Umodes, "./TEST", "uTest");
 
     test_FOM.NL_Umodes = test_FOM.L_Umodes.size();
     test_FOM.evaluateMatrices();
@@ -389,164 +408,88 @@ void test_one_parameter_initial_velocity(tutorial00 test_FOM)
     Eigen::MatrixXd errL2UtrueProjection = ITHACAutilities::errorL2Rel(test_FOM.Ufield,
                              reduced_intrusive.uRecFields);
 
-    ITHACAstream::exportMatrix(errL2UnonIntrusive, "errL2UtrueProjectionROM", "matlab",
+    ITHACAstream::exportMatrix(errL2UtrueProjection, "errL2UtrueProjectionROM", "matlab",
                                "./ITHACAoutput/ErrorsL2/");
-    cnpy::save(errL2UnonIntrusive, "./ITHACAoutput/ErrorsL2/errL2UtrueProjectionROM.npy");
-
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 357 #################### " << endl;
+    cnpy::save(errL2UtrueProjection, "./ITHACAoutput/ErrorsL2/errL2UtrueProjectionROM.npy");
 
 }
 
-/// \dir 04unsteadyNS Folder of the turorial 4
-/// \file
-/// \brief Implementation of tutorial 4 for an unsteady Navier-Stokes problem
+void nonlinear_one_parameter_initial_velocity(tutorial00 test_FOM)
+{
+    // Read parameters from ITHACAdict file
+    ITHACAparameters *para = ITHACAparameters::getInstance(test_FOM._mesh(),
+                                                           test_FOM._runTime());
+    int NmodesUout = para->ITHACAdict->lookupOrDefault<int>("NmodesUout", 15);
+    int NmodesUproj = para->ITHACAdict->lookupOrDefault<int>("NmodesUproj", 10);
+    int NmodesUtest = para->ITHACAdict->lookupOrDefault<int>("NmodesUtest", 100);
+    int NnonlinearModes = para->ITHACAdict->lookupOrDefault<int>("NnonlinearModes", 4);
 
-/// \example 04unsteadyNS.C
-/// \section intro_unsreadyNS Introduction to tutorial 4
-/// In this tutorial we implement a parametrized unsteady Navier-Stokes 2D problem where the parameter is the kinematic viscosity.
-/// The physical problem represents an incompressible flow passing around a very long cylinder. The simulation domain is rectangular
-/// with spatial bounds of [-4, 30], and [-5, 5] in the X and Y directions, respectively. The cylinder has a radius of
-/// 0.5 unit length and is located at the origin. The system has a prescribed uniform inlet velocity of 1 m/s which is constant through the whole simulation.
-///
-/// The following image illustrates the simulated system at time = 50 s and Re = 100.
-/// \image html cylinder.png
-///
-/// \section code04 A detailed look into the code
-///
-/// In this section we explain the main steps necessary to construct the tutorial N°4
-///
-/// \subsection header ITHACA-FV header files
-///
-/// First of all let's have a look at the header files that need to be included and what they are responsible for.
-///
-/// The header files of ITHACA-FV necessary for this tutorial are: <unsteadyNS.H> for the full order unsteady NS problem,
-/// <ITHACAPOD.H> for the POD decomposition, <reducedUnsteadyNS.H> for the construction of the reduced order problem,
-/// and finally <ITHACAstream.H> for some ITHACA input-output operations.
-///
-/// \dontinclude 04unsteadyNS.C
-/// \skip unsteadyNS
-/// \until ITHACAstream
-///
-/// \subsection classtutorial04 Definition of the tutorial04 class
-///
-/// We define the tutorial04 class as a child of the unsteadyNS class.
-/// The constructor is defined with members that are the fields need to be manipulated
-/// during the resolution of the full order problem using pimpleFoam. Such fields are
-/// also initialized with the same initial conditions in the solver.
-/// \skipline tutorial04
-/// \until {}
-///
-/// Inside the tutorial04 class we define the offlineSolve method according to the
-/// specific parametrized problem that needs to be solved. If the offline solve has
-/// been previously performed then the method just reads the existing snapshots from the Offline directory.
-/// Otherwise it loops over all the parameters, changes the system viscosity with the iterable parameter
-/// then performs the offline solve.
-///
-/// \skipline offlineSolve
-/// \until }
-/// \skipline else
-/// \until }
-/// \skipline }
-/// \skipline }
-///
-/// We note that in the commented line we show that it is possible to parametrize the boundary conditions.
-/// For further details we refer to the classes: reductionProblem, and unsteadyNS.
-///
-/// \subsection main Definition of the main function
-///
-/// In this section we show the definition of the main function.
-/// First we construct the object "example" of type tutorial04:
-///
-/// \skipline example
-///
-/// Then we parse the ITHACAdict file to determine the number of modes
-/// to be written out and also the ones to be used for projection of
-/// the velocity, pressure, and the supremizer:
-/// \skipline ITHACAparameters
-/// \until NmodesSUPproj
-///
-/// we note that a default value can be assigned in case the parser did
-/// not find the corresponding string in the ITHACAdict file.
-///
-/// Now we would like to perform 10 parametrized simulations where the kinematic viscosity
-/// is the sole parameter to change, and it lies in the range of {0.1, 0.01} m^2/s equispaced.
-/// Alternatively, we can also think of those simulations as that they are performed for fluid
-/// flow that has Re changes from Re=10 to Re=100 with step size = 10. In fact, both definitions
-/// are the same since the inlet velocity and the domain geometry are both kept fixed through all
-/// simulations.
-///
-/// In our implementation, the parameter (viscosity) can be defined by specifying that
-/// Nparameters=1, Nsamples=10, and the parameter ranges from 0.1 to 0.01 equispaced, i.e.
-///
-/// \skipline example.Pnumber
-/// \until example.genEquiPar()
-///
-/// After that we set the inlet boundaries where we have the non homogeneous BC:
-///
-/// \skipline example.inlet
-/// \until example.inletIndex(0, 1) = 0;
-///
-/// And we set the parameters for the time integration, so as to simulate 20 seconds for each
-/// simulation, with a step size = 0.01 seconds, and the data are dumped every 1.0 seconds, i.e.
-///
-/// \skipline example.startTime
-/// \until example.writeEvery
-///
-/// Now we are ready to perform the offline stage:
-///
-/// \skipline Solve()
-///
-/// and to solve the supremizer problem:
-///
-/// \skipline supremizer()
-///
-/// In order to search and compute the lifting function (which should be a step function of value
-/// equals to the unitary inlet velocity), we perform the following:
-///
-/// \skipline liftSolve()
-///
-/// Then we create homogenuous basis functions for the velocity:
-///
-/// \skipline computeLift
-///
-/// After that, the modes for velocity, pressure and supremizers are obtained:
-///
-/// \skipline getModes
-/// \until supfield
-///
-/// then the projection onto the POD modes is performed with:
-///
-/// \skipline projectSUP
-///
-/// Now that we obtained all the necessary information from the POD decomposition and the reduced matrices,
-/// we are now ready to construct the dynamical system for the reduced order model (ROM). We proceed
-/// by constructing the object "reduced" of type reducedUnsteadyNS:
-///
-/// \skipline reducedUnsteadyNS
-///
-/// And then we can use the new constructed ROM to perform the online procedure, from which we can simulate the
-/// problem at new set of parameters. For instance, we solve the problem with a viscosity=0.055 for a 15
-/// seconds of physical time:
-///
-/// \skipline reduced.nu
-/// \until reduced.dt
-///
-/// and then the online solve is performed. In this tutorial, the value of the online velocity
-/// is in fact a multiplication factor of the step lifting function for the unitary inlet velocity.
-/// Therefore the online velocity sets the new BC at the inlet, hence we solve the ROM at new BC.
-///
-/// \skipline Eigen::
-/// \until solveOnline_sup
-///
-/// Finally the ROM solution is reconstructed and exported:
-///
-/// \skipline reconstruct_sup
-///
-/// We note that all the previous evaluations of the pressure were based on the supremizers approach.
-/// We can also use the Pressure Poisson Equation (PPE) instead of SUP so as to be implemented for the
-/// projections, the online solve, and the fields reconstructions.
-///
-///
-/// \section plaincode The plain program
-/// Here there's the plain code
-///
+    /// Set the number of parameters
+    test_FOM.Pnumber = 1;
+
+    /// Set the dimension of the test set
+    test_FOM.Tnumber = NmodesUtest;
+
+    /// Instantiates a void Pnumber-by-Tnumber matrix mu for the parameters and a void
+    /// Pnumber-by-2 matrix mu_range for the ranges
+    test_FOM.setParameters();
+
+    // Set the parameter ranges
+    test_FOM.mu_range(0, 0) = 0.5;
+    test_FOM.mu_range(0, 1) = 1.5;
+
+    // load the test samples
+    Eigen::MatrixXd mu;
+    test_FOM.mu = cnpy::load(mu, "parTest.npy");
+
+    // Time parameters
+    test_FOM.startTime = 0;
+    test_FOM.finalTime = 2;
+    test_FOM.timeStep = 0.001;
+    test_FOM.writeEvery = 10;
+
+    // Perform The Offline Solve;
+    if (!ITHACAutilities::check_folder("./ITHACAoutput/Offline/Test/"))
+        {
+            test_FOM.offline = false;
+            Info << "Offline Test data already exist, reading existing data" << endl;
+        }
+
+    test_FOM.offlineSolveInitialVelocity("./ITHACAoutput/Offline/Test/");
+
+    // // save the snapshots matrix
+    // Eigen::MatrixXd trueSnapMatrix = Foam2Eigen::PtrList2Eigen(test_FOM.Ufield);
+    // cnpy::save(trueSnapMatrix, "npTrueSnapshots.npy");
+
+    // load modes from training
+    test_FOM.NUmodes = NmodesUproj;
+    ITHACAstream::read_fields(test_FOM.L_Umodes, "U", "./ITHACAoutput/POD_and_initial/", 0, NmodesUout);
+    test_FOM.NL_Umodes = test_FOM.L_Umodes.size();
+
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 468 #################### " << endl;
+    NonlinearReducedBurgers reduced_nm_lspg(test_FOM, "./Autoencoders/ConvolutionalAe/decoder.pt", NnonlinearModes);
+
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 479 #################### " << reduced_nm_lspg.newton_object.embedding->latent_dim << " " << reduced_nm_lspg.newton_object.embedding->latent_dim << endl;
+
+    // Set values of the reduced model
+    reduced_nm_lspg.nu = 0.0001;
+    reduced_nm_lspg.tstart = 0;
+    reduced_nm_lspg.finalTime = 2;
+    reduced_nm_lspg.dt = 0.001;
+    reduced_nm_lspg.storeEvery = 0.01;
+    reduced_nm_lspg.exportEvery = 0.01;
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 479 #################### " << reduced_nm_lspg.newton_object.embedding->latent_dim << " " << reduced_nm_lspg.newton_object.embedding->latent_dim << endl;
+
+    reduced_nm_lspg.solveOnline(test_FOM.mu, 1);
+    ITHACAstream::exportMatrix(reduced_nm_lspg.online_solution, "red_coeff", "python", "./ITHACAoutput/red_coeff_NM_LSPG");
+
+    // Reconstruct the solution and export it
+    reduced_nm_lspg.reconstruct(true, "./ITHACAoutput/ReconstructionNMLSPG/");
+
+    Eigen::MatrixXd errL2UNMLSPG = ITHACAutilities::errorL2Rel(test_FOM.Ufield,
+                             reduced_nm_lspg.uRecFields);
+
+    ITHACAstream::exportMatrix(errL2UNMLSPG, "errL2UNMLSPG", "matlab",
+                               "./ITHACAoutput/ErrorsL2/");
+    cnpy::save(errL2UNMLSPG, "./ITHACAoutput/ErrorsL2/errL2UNMLSPG.npy");
+}

@@ -133,7 +133,7 @@ class Burgers: public reductionProblem
 
         // Other Variables
         /// Counter used for the output of the full order solutions
-        label counter = 1;
+        label counter = 0;
 
         /// Velocity field
         autoPtr<volVectorField> _U;

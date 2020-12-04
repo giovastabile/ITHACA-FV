@@ -20,7 +20,7 @@ n_train = snapshots.shape[1]
 snapshots = snapshots.T
 snapshots_numpy = snapshots.reshape((n_train, 3, 150, 150))
 sn_max = np.max(np.abs(snapshots_numpy))
-snapshots = torch.from_numpy(snapshots_numpy/sn_max).to(device, dtype=torch.float)
+snapshots = torch.from_numpy((snapshots_numpy-sn_mean)/sn_max).to(device, dtype=torch.float)
 print("snapshots shape: ", snapshots.size())
 
 # load autoencoder
