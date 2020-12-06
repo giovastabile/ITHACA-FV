@@ -73,26 +73,32 @@ public:
     /// value of the decoder at the zero vector
     autoPtr<volVectorField> _g0;
 
+    ///
+    Eigen::MatrixXd latent_initial;
+
+    /// DEBUG commodity counter
+    int counter = 0;
+
     Embedding() {Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.H, line 73 #################### " << endl;}
-    Embedding(int latent_dim, fileName decoder_path, volVectorField &U0);
+    Embedding(int latent_dim, fileName decoder_path, volVectorField &U0, Eigen::MatrixXd lat_init);
 
-    Embedding(Embedding &embedding) : latent_dim{embedding.latent_dim},
-                                      output_dim{embedding.output_dim},
-                                      decoder{embedding.decoder},
-                                      _U0{embedding._U0},
-                                      _g0{embedding._g0}
-    {
-        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.H, line 81 #################### " << endl;
-    }
+    // Embedding(Embedding &embedding) : latent_dim{embedding.latent_dim},
+    //                                   output_dim{embedding.output_dim},
+    //                                   decoder{embedding.decoder},
+    //                                   _U0{embedding._U0},
+    //                                   _g0{embedding._g0}
+    // {
+    //     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.H, line 81 #################### " << endl;
+    // }
 
-    Embedding(Embedding &&embedding) : latent_dim{std::move(embedding.latent_dim)},
-                                       output_dim{embedding.output_dim},
-                                      decoder{std::move(embedding.decoder)},
-                                      _U0{std::move(embedding._U0)},
-                                      _g0{std::move(embedding._g0)}
-    {
-        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.H, line 81 #################### " << endl;
-    }
+    // Embedding(Embedding &&embedding) : latent_dim{std::move(embedding.latent_dim)},
+    //                                    output_dim{embedding.output_dim},
+    //                                   decoder{std::move(embedding.decoder)},
+    //                                   _U0{std::move(embedding._U0)},
+    //                                   _g0{std::move(embedding._g0)}
+    // {
+    //     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.H, line 81 #################### " << endl;
+    // }
 
     std::pair<autoPtr<volVectorField>, autoPtr<Eigen::MatrixXd>> forward_with_gradient(const Eigen::VectorXd &x, const scalar mu);
 
@@ -159,7 +165,7 @@ public:
     /// @param[in]  problem  a full order steadyNS problem
     /// @param[in]  tipo     Type of pressure stabilisation method you want to use "SUP" for supremizer, "PPE" for pressure Poisson equation.
     ///
-    explicit NonlinearReducedBurgers(Burgers &problem, fileName decoder_path, int latent_dim);
+    explicit NonlinearReducedBurgers(Burgers &problem, fileName decoder_path, int latent_dim, Eigen::MatrixXd lat_init);
 
     ~NonlinearReducedBurgers(){};
 

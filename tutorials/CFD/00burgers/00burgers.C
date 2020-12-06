@@ -467,9 +467,10 @@ void nonlinear_one_parameter_initial_velocity(tutorial00 test_FOM)
     test_FOM.NL_Umodes = test_FOM.L_Umodes.size();
 
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 468 #################### " << endl;
-    NonlinearReducedBurgers reduced_nm_lspg(test_FOM, "./Autoencoders/ConvolutionalAe/decoder.pt", NnonlinearModes);
 
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 479 #################### " << reduced_nm_lspg.newton_object.embedding->latent_dim << " " << reduced_nm_lspg.newton_object.embedding->latent_dim << endl;
+    Eigen::MatrixXd initial_latent;
+    cnpy::load(initial_latent, "./Autoencoders/ConvolutionalAe/latent_initial.npy");
+    NonlinearReducedBurgers reduced_nm_lspg(test_FOM, "./Autoencoders/ConvolutionalAe/decoder.pt", NnonlinearModes, initial_latent);
 
     // Set values of the reduced model
     reduced_nm_lspg.nu = 0.0001;
@@ -478,8 +479,7 @@ void nonlinear_one_parameter_initial_velocity(tutorial00 test_FOM)
     reduced_nm_lspg.dt = 0.001;
     reduced_nm_lspg.storeEvery = 0.01;
     reduced_nm_lspg.exportEvery = 0.01;
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 479 #################### " << reduced_nm_lspg.newton_object.embedding->latent_dim << " " << reduced_nm_lspg.newton_object.embedding->latent_dim << endl;
-
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 482 #################### " << endl;
     reduced_nm_lspg.solveOnline(test_FOM.mu, 1);
     ITHACAstream::exportMatrix(reduced_nm_lspg.online_solution, "red_coeff", "python", "./ITHACAoutput/red_coeff_NM_LSPG");
 

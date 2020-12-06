@@ -5,7 +5,7 @@ import torch.nn as nn
 from torchsummary import summary
 import argparse
 from convae import *
-
+import clock
 domain_size = 60
 
 def main(args):
@@ -17,16 +17,18 @@ def main(args):
     snapshots = np.load("../../npSnapshots.npy")
     n_train = snapshots.shape[1]
 
+    print("use cuda is: ", args.device)
     # reshape as (train_samples, channel, y, x)
     snapshots = snapshots.T
-    snapshots = snapshots.reshape((n_train, 3, domain_size, domain_size))
+    snapshots = np.vstack((snapshots, snapshots[150:200, :], snapshots[350:400, :], snapshots[550:600, :], snapshots[750:800, :]))
+    snapshots = snapshots.reshape((-1, 3, domain_size, domain_size))
     max_sn = np.max(np.abs(snapshots))
     snapshots /= max_sn
     snapshots = torch.from_numpy(snapshots)
-    print("snapshots shape: ", snapshots.size())
+    print("snapshots shape: ", snapshots.size(), snapshots[0, :, :, :].size())
 
     # Device configuration
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda:0' if args.device else 'cpu')
     # device = 'cpu'
     print("device is: ", device)
 
@@ -35,7 +37,7 @@ def main(args):
                                             batch_size=BATCH_SIZE,
                                             shuffle=True)
 
-    model = AE(HIDDEN_DIM).to(device)
+    model = AE(HIDDEN_DIM, scale=max_sn, domain_size=domain_size, use_cuda=args.device).to(device)
 
     # Loss and optimizer
     criterion = nn.L1Loss()
@@ -81,11 +83,17 @@ def main(args):
 
     plt.plot(range(1, NUM_EPOCHS), np.log10(loss_list))
     plt.show()
+
     # Save the model checkpoint
     torch.save(model.state_dict(), 'model.ckpt')
     summary(model, input_size=(3, domain_size, domain_size))
 
-    # save decoder
+    # Save the initial value of the latent variable
+    initial = model.encoder(snapshots[:1, :, :, :].to(device, dtype=torch.float)).detach().cpu().numpy()
+    print("initial latent variable shape : ", initial)
+    np.save("latent_initial.npy", initial)
+
+    # Save decoder
     device = 'cpu'
     model.decoder.to(device)
     sm = torch.jit.script(model.decoder)
@@ -100,7 +108,7 @@ if __name__ == '__main__':
     parser.add_argument('-lr', '--learning_rate', default=1.0e-3, type=float, help='learning rate')
     parser.add_argument('-batch', '--batch_size', default=20, type=int, help='learning rate')
     parser.add_argument('-dim', '--latent_dim', default=4, type=int, help='learning rate')
-    parser.add_argument('--cuda', action='store_true', default=True, help='whether to use cuda')
+    parser.add_argument('-device', '--device', default=1, type=int, help='whether to use cuda')
     parser.add_argument('-i', '--iter', default=2, type=int, help='epoch when visualization runs')
     args = parser.parse_args()
 

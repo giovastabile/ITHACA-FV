@@ -7,7 +7,7 @@ from convae import *
 
 WM_PROJECT = "../../"
 HIDDEN_DIM = 4
-
+domain_size = 60
 # device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 device = 'cpu'
 print("device is: ", device)
@@ -18,22 +18,21 @@ print("snapshots shape: ", snapshots.shape)
 
 n_train = snapshots.shape[1]
 snapshots = snapshots.T
-snapshots_numpy = snapshots.reshape((n_train, 3, 150, 150))
+snapshots_numpy = snapshots.reshape((n_train, 3, domain_size, domain_size))
 sn_max = np.max(np.abs(snapshots_numpy))
 snapshots = torch.from_numpy(snapshots_numpy/sn_max).to(device, dtype=torch.float)
 print("snapshots shape: ", snapshots.size())
 
 # load autoencoder
-model = AE(HIDDEN_DIM).to(device)
+model = AE(HIDDEN_DIM, scale=sn_max, domain_size=domain_size, use_cuda=True).to(device)
 model.load_state_dict(torch.load("./model.ckpt"))
 model.eval()
 
 # reconstruct snapshots
 snap_rec = model.forward(snapshots).cpu().detach().numpy()
-snap_rec *= sn_max
 
 print("non linear reduction training coeffs: ", snap_rec.shape)
-plot_compare(snapshots_numpy, snap_rec, n_train)
+plot_compare(snapshots_numpy, snap_rec.reshape(-1, 3, domain_size, domain_size), n_train)
 
 # evaluate hidden variables
 nl_red_coeff = model.encoder.forward(snapshots)
@@ -100,12 +99,13 @@ snap_true = np.load(WM_PROJECT+"npTrueSnapshots.npy")
 print("true test snapshots shape: ", snap_true.shape)
 n_test = snap_true.shape[1]
 snap_true = snap_true.T
-snap_true_numpy = snap_true.reshape((n_train, 3, 150, 150))
+snap_true_numpy = snap_true.reshape((n_train, 3, domain_size, domain_size))
 snap_true = torch.from_numpy(snap_true_numpy).to(device, dtype=torch.float)
 print("snapshots shape: ", snap_true.size())
 
 # reconstruct snapshots
-snap_true_rec = model.forward(snap_true)
-print("non linear reduction training coeffs: ", snap_true_rec.size())
-plot_compare(snap_true_numpy, snap_true_rec.cpu().detach().numpy(), n_train)
-np.save(WM_PROJECT+"snapshotsConvAeTrueProjection.npy",snap_true_rec.cpu().detach().numpy())
+snap_true_rec = model.forward(snap_true).cpu().detach().numpy()
+snap_true_rec = snap_true_rec.reshape(-1, 3, domain_size, domain_size)
+print("non linear reduction training coeffs: ", snap_true_rec.shape)
+plot_compare(snap_true_numpy, snap_true_rec, n_train)
+np.save(WM_PROJECT+"snapshotsConvAeTrueProjection.npy",snap_true_rec)
