@@ -477,8 +477,8 @@ void nonlinear_one_parameter_initial_velocity(tutorial00 test_FOM)
     reduced_nm_lspg.tstart = 0;
     reduced_nm_lspg.finalTime = 2;
     reduced_nm_lspg.dt = 0.001;
-    reduced_nm_lspg.storeEvery = 0.01;
-    reduced_nm_lspg.exportEvery = 0.01;
+    reduced_nm_lspg.storeEvery = 0.001;
+    reduced_nm_lspg.exportEvery = 0.001;
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 482 #################### " << endl;
     reduced_nm_lspg.solveOnline(test_FOM.mu, 1);
     ITHACAstream::exportMatrix(reduced_nm_lspg.online_solution, "red_coeff", "python", "./ITHACAoutput/red_coeff_NM_LSPG");

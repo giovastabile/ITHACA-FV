@@ -82,23 +82,26 @@ public:
     Embedding() {Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.H, line 73 #################### " << endl;}
     Embedding(int latent_dim, fileName decoder_path, volVectorField &U0, Eigen::MatrixXd lat_init);
 
-    // Embedding(Embedding &embedding) : latent_dim{embedding.latent_dim},
-    //                                   output_dim{embedding.output_dim},
-    //                                   decoder{embedding.decoder},
-    //                                   _U0{embedding._U0},
-    //                                   _g0{embedding._g0}
-    // {
-    //     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.H, line 81 #################### " << endl;
-    // }
+    Embedding(Embedding &embedding) : latent_dim{embedding.latent_dim},
+                                      output_dim{embedding.output_dim},
+                                      decoder{embedding.decoder},
+                                      _U0{embedding._U0},
+                                      _g0{embedding._g0}
+    {
+        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.H, line 81 #################### " << endl;
+    }
 
-    // Embedding(Embedding &&embedding) : latent_dim{std::move(embedding.latent_dim)},
-    //                                    output_dim{embedding.output_dim},
-    //                                   decoder{std::move(embedding.decoder)},
-    //                                   _U0{std::move(embedding._U0)},
-    //                                   _g0{std::move(embedding._g0)}
-    // {
-    //     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.H, line 81 #################### " << endl;
-    // }
+    Embedding(Embedding &&embedding) : latent_dim{std::move(embedding.latent_dim)},
+                                       output_dim{embedding.output_dim},
+                                      decoder{std::move(embedding.decoder)},
+                                      _U0{std::move(embedding._U0)},
+                                      _g0{std::move(embedding._g0)}
+    {
+        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.H, line 81 #################### " << endl;
+    }
+
+    autoPtr<volVectorField> forward(const Eigen::VectorXd &x, const scalar mu);
+    autoPtr<Eigen::MatrixXd> jacobian(const Eigen::VectorXd &x, const scalar mu);
 
     std::pair<autoPtr<volVectorField>, autoPtr<Eigen::MatrixXd>> forward_with_gradient(const Eigen::VectorXd &x, const scalar mu);
 
@@ -112,12 +115,13 @@ struct newton_nmlspg_burgers : public newton_argument<double>
 {
 public:
     newton_nmlspg_burgers() {}
-    newton_nmlspg_burgers(int Nx, int Ny, Burgers &problem, Embedding &embedding) :
+    newton_nmlspg_burgers(int Nx, int Ny, Burgers &problem, Embedding &embedding, volVectorField& field) :
     newton_argument<double>(Nx, Ny),
     problem(&problem),
     N_BC(problem.inletIndex.rows()),
     embedding(&embedding)
     {
+
         if (problem.liftfield.size() != 0)
         {
             Nphi_u = problem.NUmodes + problem.liftfield.size();
@@ -139,6 +143,7 @@ public:
     scalar mu;
 
     Embedding *embedding;
+
     Eigen::VectorXd y_old;
     Eigen::VectorXd yOldOld;
     Eigen::VectorXd BC;

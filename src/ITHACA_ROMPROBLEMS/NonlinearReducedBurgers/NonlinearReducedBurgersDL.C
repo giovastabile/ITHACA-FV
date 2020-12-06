@@ -207,26 +207,32 @@ std::pair<autoPtr<volVectorField>, autoPtr<Eigen::MatrixXd>> Embedding::forward_
 // Operator to evaluate the residual
 int newton_nmlspg_burgers::operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const
 {
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.C, line 210 #################### residual call" << endl;
-    auto g = embedding->forward(x.head(Nphi_u), mu);
-    volVectorField& a_tmp = g();
+    auto pair = embedding->forward_with_gradient(x.head(Nphi_u), mu);
+    volVectorField &a_tmp = pair.first();
+    Eigen::MatrixXd a_grad = pair.second();
 
-    fvMesh& mesh = problem->_mesh();
+    fvMesh &mesh = problem->_mesh();
     auto phi = linearInterpolate(a_tmp) & mesh.Sf();
 
     auto start = std::chrono::system_clock::now();
     fvVectorMatrix resEqn(
-        fvm::ddt(a_tmp) + 0.5 * fvm::div(phi, a_tmp) - fvm::laplacian(dimensionedScalar(dimViscosity, nu.value()), a_tmp));
+        fvm::ddt(a_tmp) + 0.5 * fvm::div(phi(), a_tmp) - fvm::laplacian(dimensionedScalar(dimViscosity, nu.value()), a_tmp));
 
-    a_tmp.field() = resEqn.residual();
+    a_tmp.ref().field() = resEqn.residual();
     auto end = std::chrono::system_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.C, line 214 #################### residual " << elapsed.count() << " ms" << endl;
 
-    fvec = Foam2Eigen::field2Eigen(a_tmp).col(0).head(this->embedding->output_dim * 2);
+    // fvec = Foam2Eigen::field2Eigen(a_tmp).col(0).head(this->embedding->output_dim * 2);
+    // Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.C, line 241 #################### " << fvec.rows() << " x " << fvec.cols() << " " << fvec.size() <<endl;
 
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.C, line 241 #################### " << fvec.rows() << " x " << fvec.cols() << " " << fvec.size() <<endl;
+    Eigen::VectorXd res = Foam2Eigen::field2Eigen(a_tmp);
 
+    start = std::chrono::system_clock::now();
+    fvec = a_grad.transpose() * res.block(0, 0, this->embedding->output_dim * 2, 1);
+    end = std::chrono::system_clock::now();
+    elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.C, line 224 #################### residual matrix multiplication " << elapsed.count() << " ms" << endl;
     return 0;
 }
 
@@ -250,7 +256,8 @@ int newton_nmlspg_burgers::df(const Eigen::VectorXd &x,
     Foam2Eigen::fvMatrix2EigenM<Foam::Vector<double>, decltype(dres)>(resEqn, dres);
 
     auto start = std::chrono::system_clock::now();
-    fjac = dres.block(0, 0, this->embedding->output_dim * 2, this->embedding->output_dim * 2) * a_grad;
+    Eigen::MatrixXd dresJac = dres.block(0, 0, this->embedding->output_dim * 2, this->embedding->output_dim * 2) * a_grad;
+    fjac = dresJac.transpose() * dresJac;
     auto end = std::chrono::system_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.C, line 254 #################### jacobian system " << elapsed.count() << " ms" << endl;
@@ -316,7 +323,7 @@ void NonlinearReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
         counter++;
         nextStore += numberOfStores;
         // Create nonlinear solver object
-        Eigen::LevenbergMarquardt<newton_nmlspg_burgers> lm(newton_object);
+        Eigen::HybridNonLinearSolver<newton_nmlspg_burgers> hnls(newton_object);
         // Set output colors for fancy output
         Color::Modifier red(Color::FG_RED);
         Color::Modifier green(Color::FG_GREEN);
@@ -327,7 +334,7 @@ void NonlinearReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
         while (time < finalTime)
         {
             auto start = std::chrono::system_clock::now();
-            lm.minimize(y);
+            hnls.solve(y);
             auto end = std::chrono::system_clock::now();
             auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
             Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.C, line 334 #################### solve " << elapsed.count() << " ms" << endl;
@@ -347,12 +354,12 @@ void NonlinearReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
 
             if (res.norm() < 1e-5)
             {
-                std::cout << green << "|F(x)| = " << res.norm() << " - Minimun reached in " << lm.iter << " iterations " << def << std::endl
+                std::cout << green << "|F(x)| = " << res.norm() << " - Minimun reached in " << hnls.iter << " iterations " << def << std::endl
                           << std::endl;
             }
             else
             {
-                std::cout << red << "|F(x)| = " << res.norm() << " - Minimun reached in " << lm.iter << " iterations " << def << std::endl
+                std::cout << red << "|F(x)| = " << res.norm() << " - Minimun reached in " << hnls.iter << " iterations " << def << std::endl
                           << std::endl;
             }
 
