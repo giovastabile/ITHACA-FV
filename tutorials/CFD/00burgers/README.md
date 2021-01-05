@@ -1,23 +1,55 @@
-## Instructions
+# Instructions
 
+## Compute the modes
+
+~~~bash
 cp -r 0.original 0
-
-blockMesh && checkMesh
-
-setExprFields
-
+blockMesh && checkMesh && setExprFields
 00burgers train
+cd ITHACAoutput/red_coeff/
+python3 red_coeff_mat.py
+~~~
 
-python3 ITHACAoutput/red_coeff/red_coeff_mat.py
+## POD-Galerkin Non-intrusive LSTM
 
-python3 non_intrusive.py
+~~~bash
+cd NonIntrusive
+python3 non_intrusive_lstm.py
+python3 predict.py
+~~~
 
+## POD-Galerkin Intrusive
+
+~~~bash
 00burgers test
+~~~
 
-python3 Autoencoders/ConvolutionalAe/train.py
+## Dimension reduction with Convolutional Autoencoder  and Non-intrusive model
 
-python3 Autoencoders/ConvolutionalAe/predict.py
+~~~bash
+cd Autoencoders/ConvolutionalAe/
+python3 train.py
+python3 predict_lstm.py
+python3 compute_error.py
+~~~
 
-python3 Autoencoders/ConvolutionalAe/compute_error.py
+## Nonlinear Manifold LSPG
 
-python3 plot_error.py
+~~~bash
+00burgers nonlinear
+~~~
+
+## Plot errors
+
+~~~bash
+python3 plot_errors.py
+~~~
+
+
+
+# TODO
+
+1. **FIX**: 00burgers nonlinear does not update solution when the true Jacobian from the decoder is employed (ok with Eigen numDiff and options Forward and Central)
+2. Dimension reduction with variational autoencoders
+3. Dimension reduction with shallow net as decoder
+

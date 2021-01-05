@@ -32,6 +32,7 @@ License
 /// Source file of the ReducedBurgers class
 
 #include "ReducedBurgers.H"
+#include <chrono>
 
 // * * * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * * * //
 
@@ -517,14 +518,12 @@ void ReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
         Color::Modifier green(Color::FG_GREEN);
         Color::Modifier def(Color::FG_DEFAULT);
 
-        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 520 #################### " << endl;
+
 
         time = time + dt;
 
         while (time < finalTime)
         {
-            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 523 #################### " << endl;
-
 
             // Set time-dependent BCs
             if (problem->timedepbcMethod == "yes" )
@@ -534,7 +533,8 @@ void ReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
                     newton_object.BC(j) = vel_now(j, counter);
                 }
             }
-            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 534 #################### " << endl;
+
+            auto start = std::chrono::system_clock::now();
             Eigen::VectorXd res(y);
             res.setZero();
             hnls.solve(y);
@@ -553,14 +553,18 @@ void ReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
                     }
                 }
             }
-            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 553 #################### " << endl;
+
             newton_object.operator()(y, res);
             newton_object.yOldOld = newton_object.y_old;
             newton_object.y_old = y;
+            auto end = std::chrono::system_clock::now();
+            auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+            Info << "Elapsed: " << elapsed.count() << " mus" << endl;
+
             std::cout << "################## Online solve N° " << counter <<
                     " ##################" << std::endl;
             Info << "Time = " << time << endl;
-            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 560 #################### " << counter2 << endl;
+
             if (res.norm() < 1e-5)
             {
                 std::cout << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
@@ -575,15 +579,16 @@ void ReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
             tmp_sol(0) = time;
             tmp_sol.col(0).tail(y.rows()) = y;
 
+            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 582 #################### " << counter << " " << counter2 << endl;
             if (counter == nextStore)
             {
                 if (counter2 >= online_solution.size())
                 {
-                    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 579 #################### " << endl;
                     online_solution.append(tmp_sol);
                 }
                 else
                 {
+                    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 590 #################### " << endl;
                     online_solution[counter2] = tmp_sol;
                 }
 
@@ -814,6 +819,7 @@ void ReducedBurgers::reconstruct(bool exportFields, fileName folder, Eigen::Matr
         ITHACAstream::exportFields(uRecFields, folder,
                                    "uRec");
     }
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/ReducedBurgers/ReducedBurgers.C, line 820 #################### " << endl;
 }
 
 Eigen::MatrixXd ReducedBurgers::setOnlineVelocity(Eigen::MatrixXd vel)

@@ -44,7 +44,7 @@ EXE_INC = \
     -Wno-comment \
     -w \
     -DOFVER=$${WM_PROJECT_VERSION%.*} \
-    -std=c++11
+    -std=c++14
 
 EXE_LIBS = \
     -lturbulenceModels \
@@ -65,5 +65,4 @@ EXE_LIBS = \
     -L$(FOAM_USER_LIBBIN) \
     -lITHACA_TORCH \
     -Wl,-rpath,$(TORCH_LIBRARIES)/lib $(TORCH_LIBRARIES)/lib/libtorch.so $(TORCH_LIBRARIES)/lib/libc10.so \
-    -Wl,--no-as-needed,$(TORCH_LIBRARIES)/lib/libcaffe2_detectron_ops.so \
     -Wl,--as-needed $(TORCH_LIBRARIES)/lib/libc10.so \

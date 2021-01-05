@@ -181,7 +181,7 @@ void one_parameter_viscosity(tutorial00 example)
     // Time parameters
     example.startTime = 0;
     example.finalTime = 2;
-    example.timeStep = 0.001;
+    example.timeStep = 0.0001;
     example.writeEvery = 0.1;
 
     // Perform The Offline Solve;
@@ -220,13 +220,13 @@ void train_one_parameter_initial_velocity(tutorial00 train_FOM)
     /// Set the number of parameters
     train_FOM.Pnumber = 1;
     /// Set the dimension of the training set
-    train_FOM.Tnumber = NmodesUout;
+    train_FOM.Tnumber = 6;
     /// Instantiates a void Pnumber-by-Tnumber matrix mu for the parameters and a void
     /// Pnumber-by-2 matrix mu_range for the ranges
     train_FOM.setParameters();
     // Set the parameter ranges
-    train_FOM.mu_range(0, 0) = 0.5;
-    train_FOM.mu_range(0, 1) = 1.5;
+    train_FOM.mu_range(0, 0) = 0.8;
+    train_FOM.mu_range(0, 1) = 1.2;
     // Generate a number of Tnumber linearly equispaced samples inside the parameter range
     train_FOM.genEquiPar();
     cnpy::save(train_FOM.mu, "parTrain.npy");
@@ -235,7 +235,7 @@ void train_one_parameter_initial_velocity(tutorial00 train_FOM)
     train_FOM.startTime = 0;
     train_FOM.finalTime = 2;
     train_FOM.timeStep = 0.001;
-    train_FOM.writeEvery = 10;
+    train_FOM.writeEvery = 1;
 
     // Perform The Offline Solve;
     train_FOM.offlineSolveInitialVelocity("./ITHACAoutput/Offline/Training/");
@@ -248,41 +248,37 @@ void train_one_parameter_initial_velocity(tutorial00 train_FOM)
     Info << "snapshots size: " << SnapMatrix.size() << endl;
     cnpy::save(SnapMatrix, "npSnapshots.npy");
 
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 231 #################### " << endl;
     train_FOM.project("./Matrices", NmodesUproj);
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 233 #################### " << endl;
 
     // The initial conditions are used as the first mode
     ITHACAstream::exportFields(train_FOM.L_Umodes, "./ITHACAoutput/POD_and_initial/", "U");
 
     Eigen::MatrixXd modes = Foam2Eigen::PtrList2Eigen(train_FOM.L_Umodes);
-    Info << "snapshots size: " << modes.size() << endl;
+    Info << "modes size: " << modes.size() << endl;
     cnpy::save(modes, "npInitialAndModes.npy");
 
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 236 #################### " << endl;
     ReducedBurgers reduced(train_FOM);
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 238 #################### " << endl;
 
     // Set values of the reduced model
     reduced.nu = 0.0001;
     reduced.tstart = 0;
     reduced.finalTime = 2;
     reduced.dt = 0.001;
-    reduced.storeEvery = 0.01;
-    reduced.exportEvery = 0.01;
+    reduced.storeEvery = 0.001;
+    reduced.exportEvery = 0.001;
 
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 247 #################### " << endl;
     reduced.solveOnline(train_FOM.mu, 0);
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 248 #################### " << endl;
     ITHACAstream::exportMatrix(reduced.online_solution, "red_coeff", "python", "./ITHACAoutput/red_coeff");
 
+    /// Set the dimension of the training set
+    train_FOM.Tnumber = 1;
     // sample test set
     train_FOM.setParameters();
     // Set the parameter ranges
-    train_FOM.mu_range(0, 0) = 0.5 - 0.25;
-    train_FOM.mu_range(0, 1) = 1.5 + 0.25;
+    train_FOM.mu_range(0, 0) = 0.8;
+    train_FOM.mu_range(0, 1) = 1.2;
     // Generate a number of Tnumber linearly equispaced samples inside the parameter range
-    train_FOM.genEquiPar();
+    train_FOM.genRandPar();
     cnpy::save(train_FOM.mu, "parTest.npy");
 
 }
@@ -304,8 +300,8 @@ void test_one_parameter_initial_velocity(tutorial00 test_FOM)
     /// Pnumber-by-2 matrix mu_range for the ranges
     test_FOM.setParameters();
     // Set the parameter ranges
-    test_FOM.mu_range(0, 0) = 0.5;
-    test_FOM.mu_range(0, 1) = 1.5;
+    test_FOM.mu_range(0, 0) = 0.8;
+    test_FOM.mu_range(0, 1) = 1.2;
     // Generate a number of Tnumber linearly equispaced samples inside the parameter range
     Eigen::MatrixXd mu;
     test_FOM.mu = cnpy::load(mu, "parTest.npy");
@@ -314,23 +310,21 @@ void test_one_parameter_initial_velocity(tutorial00 test_FOM)
     test_FOM.startTime = 0;
     test_FOM.finalTime = 2;
     test_FOM.timeStep = 0.001;
-    test_FOM.writeEvery = 10;
+    test_FOM.writeEvery = 1;
 
     // Perform The Offline Solve;
-    if (!ITHACAutilities::check_folder("./ITHACAoutput/Offline/Test/80"))
+    if (!ITHACAutilities::check_folder("./ITHACAoutput/Offline/Test/"))
         {
             test_FOM.offline = false;
             Info << "Offline Test data already exist, reading existing data" << endl;
         }
     test_FOM.offlineSolveInitialVelocity("./ITHACAoutput/Offline/Test/");
     Eigen::MatrixXd trueSnapMatrix = Foam2Eigen::PtrList2Eigen(test_FOM.Ufield);
-    Info << "snapshots size: " << trueSnapMatrix.size() << endl;
+    Info << "snapshots size: " << trueSnapMatrix.size() << test_FOM.Ufield.size() << endl;
     cnpy::save(trueSnapMatrix, "npTrueSnapshots.npy");
 
     test_FOM.NUmodes = NmodesUproj;
     ITHACAstream::read_fields(test_FOM.L_Umodes, "U", "./ITHACAoutput/POD_and_initial/", 0, NmodesUout);
-
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 291 #################### " << test_FOM.NUmodes << " " << test_FOM.L_Umodes.size()<< endl;
     // ITHACAstream::exportFields(test_FOM.L_Umodes, "./TEST", "uTest");
 
     test_FOM.NL_Umodes = test_FOM.L_Umodes.size();
@@ -338,38 +332,27 @@ void test_one_parameter_initial_velocity(tutorial00 test_FOM)
 
     ReducedBurgers reduced_nonIntrusive(test_FOM);
 
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 288 #################### " << endl;
-
     // Set values of the reduced_nonIntrusive model
     reduced_nonIntrusive.nu = 0.0001;
     reduced_nonIntrusive.tstart = 0;
     reduced_nonIntrusive.finalTime = 2;
     reduced_nonIntrusive.dt = 0.001;
-    reduced_nonIntrusive.storeEvery = 0.01;
-    reduced_nonIntrusive.exportEvery = 0.01;
+    reduced_nonIntrusive.storeEvery = 0.001;
+    reduced_nonIntrusive.exportEvery = 0.001;
     //reduced_nonIntrusive.Nphi_u = NmodesUproj;// the initial condition is added to the modes
 
     Eigen::MatrixXd nonIntrusiveCoeff;
 
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 298 #################### " << endl;
-
     nonIntrusiveCoeff = cnpy::load(nonIntrusiveCoeff, "nonIntrusiveCoeff.npy", "rowMajor");
-
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 299 #################### " << nonIntrusiveCoeff.rows() << " "  << nonIntrusiveCoeff.cols() << endl;
 
     // Reconstruct the solution and export it
     reduced_nonIntrusive.reconstruct(true, "./ITHACAoutput/Reconstruction/", nonIntrusiveCoeff);
-
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 310 #################### " << test_FOM.Ufield.size() << " " << reduced_nonIntrusive.uRecFields.size() << endl;
-
-    Eigen::MatrixXd errL2UnonIntrusive = ITHACAutilities::errorL2Rel(test_FOM.Ufield,
-                             reduced_nonIntrusive.uRecFields);
-
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 350 #################### " << reduced_nonIntrusive.uRecFields.size() << " " << test_FOM.Ufield.size() << endl;
+    Eigen::MatrixXd errL2UnonIntrusive = ITHACAutilities::errorL2Rel(test_FOM.Ufield, reduced_nonIntrusive.uRecFields);
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 352 #################### " << endl;
     ITHACAstream::exportMatrix(errL2UnonIntrusive, "errL2UnonIntrusive", "matlab",
                                "./ITHACAoutput/ErrorsL2/");
     cnpy::save(errL2UnonIntrusive, "./ITHACAoutput/ErrorsL2/errL2UnonIntrusive.npy");
-
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 345 #################### " << endl;
 
     ReducedBurgers reduced_intrusive(test_FOM);
 
@@ -378,21 +361,19 @@ void test_one_parameter_initial_velocity(tutorial00 test_FOM)
     reduced_intrusive.tstart = 0;
     reduced_intrusive.finalTime = 2;
     reduced_intrusive.dt = 0.001;
-    reduced_intrusive.storeEvery = 0.01;
-    reduced_intrusive.exportEvery = 0.01;
-
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 341 #################### " << endl;
+    reduced_intrusive.storeEvery = 0.001;
+    reduced_intrusive.exportEvery = 0.001;
 
     reduced_intrusive.solveOnline(test_FOM.mu, 1);
     ITHACAstream::exportMatrix(reduced_intrusive.online_solution, "red_coeff", "python", "./ITHACAoutput/red_coeff_intrusive");
 
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 344 #################### " << endl;
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 371 #################### " << endl;
 
     // Reconstruct the solution and export it
     reduced_intrusive.reconstruct(true, "./ITHACAoutput/ReconstructionIntrusive/");
+    ITHACAstream::exportFields(reduced_intrusive.uRecFields, "./ITHACAoutput/ReconstructionIntrusive/", "uRec");
 
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 347 #################### " << endl;
-
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 374 #################### " << reduced_intrusive.uRecFields.size() << " " << test_FOM.Ufield.size() << endl;
     Eigen::MatrixXd errL2Uintrusive = ITHACAutilities::errorL2Rel(test_FOM.Ufield,
                              reduced_intrusive.uRecFields);
 
@@ -402,9 +383,7 @@ void test_one_parameter_initial_velocity(tutorial00 test_FOM)
 
     // Evaluate the true projection error
     reduced_intrusive.trueProjection("./ITHACAoutput/Reconstruction/");
-
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 310 #################### " << test_FOM.Ufield.size() << " " << reduced_intrusive.uRecFields.size() << endl;
-
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 383 #################### " << endl;
     Eigen::MatrixXd errL2UtrueProjection = ITHACAutilities::errorL2Rel(test_FOM.Ufield,
                              reduced_intrusive.uRecFields);
 
@@ -435,8 +414,8 @@ void nonlinear_one_parameter_initial_velocity(tutorial00 test_FOM)
     test_FOM.setParameters();
 
     // Set the parameter ranges
-    test_FOM.mu_range(0, 0) = 0.5;
-    test_FOM.mu_range(0, 1) = 1.5;
+    test_FOM.mu_range(0, 0) = 0.8;
+    test_FOM.mu_range(0, 1) = 1.2;
 
     // load the test samples
     Eigen::MatrixXd mu;
@@ -446,31 +425,26 @@ void nonlinear_one_parameter_initial_velocity(tutorial00 test_FOM)
     test_FOM.startTime = 0;
     test_FOM.finalTime = 2;
     test_FOM.timeStep = 0.001;
-    test_FOM.writeEvery = 10;
+    test_FOM.writeEvery = 1;
+
+    Eigen::MatrixXd initial_latent;
+    cnpy::load(initial_latent, "./Autoencoders/ConvolutionalAe/latent_initial.npy");
 
     // Perform The Offline Solve;
     if (!ITHACAutilities::check_folder("./ITHACAoutput/Offline/Test/"))
-        {
-            test_FOM.offline = false;
-            Info << "Offline Test data already exist, reading existing data" << endl;
-        }
+    {
+        test_FOM.offline = false;
+        Info << "Offline Test data already exist, reading existing data" << endl;
+    }
 
     test_FOM.offlineSolveInitialVelocity("./ITHACAoutput/Offline/Test/");
-
-    // // save the snapshots matrix
-    // Eigen::MatrixXd trueSnapMatrix = Foam2Eigen::PtrList2Eigen(test_FOM.Ufield);
-    // cnpy::save(trueSnapMatrix, "npTrueSnapshots.npy");
 
     // load modes from training
     test_FOM.NUmodes = NmodesUproj;
     ITHACAstream::read_fields(test_FOM.L_Umodes, "U", "./ITHACAoutput/POD_and_initial/", 0, NmodesUout);
     test_FOM.NL_Umodes = test_FOM.L_Umodes.size();
 
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 468 #################### " << endl;
-
-    Eigen::MatrixXd initial_latent;
-    cnpy::load(initial_latent, "./Autoencoders/ConvolutionalAe/latent_initial.npy");
-    NonlinearReducedBurgers reduced_nm_lspg(test_FOM, "./Autoencoders/ConvolutionalAe/decoder.pt", NnonlinearModes, initial_latent);
+    NonlinearReducedBurgers reduced_nm_lspg(test_FOM, "./Autoencoders/ConvolutionalAe/decoder_gpu.pt", NnonlinearModes, initial_latent);
 
     // Set values of the reduced model
     reduced_nm_lspg.nu = 0.0001;
@@ -479,12 +453,15 @@ void nonlinear_one_parameter_initial_velocity(tutorial00 test_FOM)
     reduced_nm_lspg.dt = 0.001;
     reduced_nm_lspg.storeEvery = 0.001;
     reduced_nm_lspg.exportEvery = 0.001;
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 482 #################### " << endl;
+
     reduced_nm_lspg.solveOnline(test_FOM.mu, 1);
     ITHACAstream::exportMatrix(reduced_nm_lspg.online_solution, "red_coeff", "python", "./ITHACAoutput/red_coeff_NM_LSPG");
 
     // Reconstruct the solution and export it
-    reduced_nm_lspg.reconstruct(true, "./ITHACAoutput/ReconstructionNMLSPG/");
+    ITHACAstream::exportFields(reduced_nm_lspg.uRecFields, "./ITHACAoutput/ReconstructionNMLSPG/", "uRec");
+    // reduced_nm_lspg.reconstruct(true,"./ITHACAoutput/ReconstructionNMLSPG/");
+
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 482 #################### " << test_FOM.Ufield.size() << " " <<  reduced_nm_lspg.uRecFields.size() << " " << reduced_nm_lspg.online_solution.size() << endl;
 
     Eigen::MatrixXd errL2UNMLSPG = ITHACAutilities::errorL2Rel(test_FOM.Ufield,
                              reduced_nm_lspg.uRecFields);

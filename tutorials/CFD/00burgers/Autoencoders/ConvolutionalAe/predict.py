@@ -8,6 +8,7 @@ from convae import *
 WM_PROJECT = "../../"
 HIDDEN_DIM = 4
 domain_size = 60
+DIM = 2
 # device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 device = 'cpu'
 print("device is: ", device)
@@ -16,29 +17,57 @@ print("device is: ", device)
 snapshots = np.load(WM_PROJECT+"npSnapshots.npy")
 print("snapshots shape: ", snapshots.shape)
 
+# reshape snapshots
 n_train = snapshots.shape[1]
 snapshots = snapshots.T
-snapshots_numpy = snapshots.reshape((n_train, 3, domain_size, domain_size))
-sn_max = np.max(np.abs(snapshots_numpy))
-snapshots = torch.from_numpy(snapshots_numpy/sn_max).to(device, dtype=torch.float)
+snapshots_numpy = snapshots.reshape((n_train, 3, domain_size, domain_size))[:, :DIM,:, :]
+print("max, min ", np.max(snapshots_numpy), np.min(snapshots_numpy))
+
+# scale snapshots
+sn_max = np.max(snapshots_numpy)
+sn_min = np.min(snapshots_numpy)
+snapshots_numpy = (snapshots_numpy-sn_min)/(sn_max-sn_min)
+print("max, min ", np.max(snapshots_numpy), np.min(snapshots_numpy))
+snapshots = torch.from_numpy(snapshots_numpy).to(device, dtype=torch.float)
 print("snapshots shape: ", snapshots.size())
 
 # load autoencoder
-model = AE(HIDDEN_DIM, scale=sn_max, domain_size=domain_size, use_cuda=True).to(device)
+model = AE(HIDDEN_DIM, scale=(sn_min, sn_max), domain_size=domain_size, use_cuda=True).to(device)
 model.load_state_dict(torch.load("./model.ckpt"))
 model.eval()
 
+# show filtersopen
+# filters = model.encoder.layer1[0].weight.detach().cpu().numpy()
+# print(filters.shape)
+# for i in range(8):
+#     for j in range(2):
+#         plt.imshow(filters[i, j, :, :])
+#         plt.show()
+
+# show initial
+inputs = torch.from_numpy(np.load("latent_initial.npy")).to(device, dtype=torch.float)
+output = model.decoder.forward(inputs)
+print("shapeoutput", output.shape)
+# plot_snapshot(output.detach().cpu().numpy().reshape(1, 2, 60, 60), 0, idx_coord=1)
+
 # reconstruct snapshots
 snap_rec = model.forward(snapshots).cpu().detach().numpy()
-
 print("non linear reduction training coeffs: ", snap_rec.shape)
-plot_compare(snapshots_numpy, snap_rec.reshape(-1, 3, domain_size, domain_size), n_train)
+# plot_compare(snapshots_numpy, snap_rec.reshape(-1, DIM, domain_size, domain_size), n_train)
 
 # evaluate hidden variables
 nl_red_coeff = model.encoder.forward(snapshots)
 print("non linear reduction training coeffs: ", nl_red_coeff.size())
 nl_red_coeff = nl_red_coeff.cpu().detach().numpy()
 
+# test max error
+err = snap_rec.reshape(-1, DIM, domain_size, domain_size)-snapshots_numpy*(sn_max-sn_min)+sn_min
+plot_snapshot(err, 11000, idx_coord=1)
+print(snapshots_numpy.shape, snap_rec.shape)
+err_max = np.max(np.abs(err.reshape(n_train, -1)), axis=1)
+norm_max = np.max(np.abs(snapshots_numpy.reshape(n_train, -1)), axis=1)
+error_max = err_max/norm_max
+print("error max: ", err_max, norm_max, error_max, np.max(error_max), np.min(error_max))
 
 ##################################### TRAIN GPR
 # load training inputs
@@ -66,7 +95,7 @@ print("outputs shape: ", output.shape)
 print("time samples: ", time_samples.shape)
 
 # perform GP regression
-kern = GPy.kern.RBF(input_dim=2, ARD=True, lengthscale=0.4)
+kern = GPy.kern.RBF(input_dim=2, ARD=True, lengthscale=0.04)
 gp = GPy.models.GPRegression(x, nl_red_coeff)
 gp.optimize_restarts(5)
 
@@ -99,13 +128,15 @@ snap_true = np.load(WM_PROJECT+"npTrueSnapshots.npy")
 print("true test snapshots shape: ", snap_true.shape)
 n_test = snap_true.shape[1]
 snap_true = snap_true.T
-snap_true_numpy = snap_true.reshape((n_train, 3, domain_size, domain_size))
+snap_true_numpy = snap_true.reshape(n_train, 3, domain_size, domain_size)[:, :2, :, :]
+snap_true_numpy -= sn_min
+snap_true_numpy /= sn_max-sn_min
 snap_true = torch.from_numpy(snap_true_numpy).to(device, dtype=torch.float)
 print("snapshots shape: ", snap_true.size())
 
 # reconstruct snapshots
 snap_true_rec = model.forward(snap_true).cpu().detach().numpy()
-snap_true_rec = snap_true_rec.reshape(-1, 3, domain_size, domain_size)
+snap_true_rec = snap_true_rec.reshape(-1, 2, domain_size, domain_size)
 print("non linear reduction training coeffs: ", snap_true_rec.shape)
 plot_compare(snap_true_numpy, snap_true_rec, n_train)
 np.save(WM_PROJECT+"snapshotsConvAeTrueProjection.npy",snap_true_rec)

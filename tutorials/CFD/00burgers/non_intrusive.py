@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import GPy
+import torch.nn as nn
 
 # load training inputs
 array=[]
@@ -27,10 +28,11 @@ print("outputs shape: ", output.shape)
 print("time samples: ", time_samples)
 
 # perform GP regression
-kern = GPy.kern.RBF(input_dim=2, ARD=True, lengthscale=0.4)
-gp = GPy.models.GPRegression(x, output)
-gp.optimize_restarts(5)
-
+kern = GPy.kern.RBF(input_dim=2, ARD=True, lengthscale=0.05)
+gp = GPy.models.GPRegression(x[:, :2], output[:, :1])
+gp.optimize_restarts(1)
+gp.plot()
+plt.show()
 # load test set
 test_params = np.load("parTest.npy").reshape(-1)
 print("test parameters shape: ", test_params.shape, test_params)

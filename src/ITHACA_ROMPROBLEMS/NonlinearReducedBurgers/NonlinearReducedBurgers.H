@@ -143,6 +143,7 @@ public:
     scalar mu;
 
     Embedding *embedding;
+    autoPtr<volVectorField> g_old;
 
     Eigen::VectorXd y_old;
     Eigen::VectorXd yOldOld;

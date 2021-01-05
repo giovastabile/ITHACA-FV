@@ -33,6 +33,7 @@
 /// Source file of the Burgers class.
 
 #include "burgers.H"
+#include <chrono>
 
 // * * * * * * * * * * * * * * * Constructors * * * * * * * * * * * * * * * * //
 // Constructor
@@ -128,22 +129,24 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
 #include "readTimeControls.H"
 #include "CourantNo.H"
 // #include "setDeltaT.H"
-        Info<< "deltaT = " <<  runTime.deltaTValue() << endl;
+        Info<< "deltaT = " <<  runTime.deltaTValue()  << endl;
         runTime.setEndTime(finalTime);
-        // Info << "Time = " << runTime.timeName() << nl << endl;
 
-        // --- Pressure-velocity PIMPLE corrector loop
         while (simple.loop())
         {
-            Info<< "Time = " << runTime.timeName() << nl << endl;
+            Info<< "Time = " << runTime.timeName() << nl << " size " << Ufield.size() << endl;
 
+            auto start = std::chrono::system_clock::now();
             while (simple.correctNonOrthogonal())//CHECK
             {
 #include "UEqn.H"
             }
+            auto end = std::chrono::system_clock::now();
+            auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+            Info<< "Elapsed = " << elapsed.count() << " mus" << endl;
 
             write_counter++;
-            Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 147 #################### " << write_counter << " " << writeEvery << " " << counter <<  endl;
+
             if (write_counter >= writeEvery)
             {
                 ITHACAstream::exportSolution(U, name(counter), folder);
