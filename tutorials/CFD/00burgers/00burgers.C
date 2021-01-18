@@ -290,18 +290,13 @@ void test_one_parameter_initial_velocity(tutorial00 test_FOM)
                                                            test_FOM._runTime());
     int NmodesUout = para->ITHACAdict->lookupOrDefault<int>("NmodesUout", 15);
     int NmodesUproj = para->ITHACAdict->lookupOrDefault<int>("NmodesUproj", 10);
-    int NmodesUtest = para->ITHACAdict->lookupOrDefault<int>("NmodesUtest", 100);
+    int NmodesUtest = para->ITHACAdict->lookupOrDefault<int>("NmodesUtest", 1);
 
     /// Set the number of parameters
     test_FOM.Pnumber = 1;
     /// Set the dimension of the test set
     test_FOM.Tnumber = NmodesUtest;
-    /// Instantiates a void Pnumber-by-Tnumber matrix mu for the parameters and a void
-    /// Pnumber-by-2 matrix mu_range for the ranges
-    test_FOM.setParameters();
-    // Set the parameter ranges
-    test_FOM.mu_range(0, 0) = 0.8;
-    test_FOM.mu_range(0, 1) = 1.2;
+
     // Generate a number of Tnumber linearly equispaced samples inside the parameter range
     Eigen::MatrixXd mu;
     test_FOM.mu = cnpy::load(mu, "parTest.npy");
@@ -314,18 +309,19 @@ void test_one_parameter_initial_velocity(tutorial00 test_FOM)
 
     // Perform The Offline Solve;
     if (!ITHACAutilities::check_folder("./ITHACAoutput/Offline/Test/"))
-        {
-            test_FOM.offline = false;
-            Info << "Offline Test data already exist, reading existing data" << endl;
-        }
+    {
+        test_FOM.offline = false;
+        Info << "Offline Test data already exist, reading existing data" << endl;
+    }
+
     test_FOM.offlineSolveInitialVelocity("./ITHACAoutput/Offline/Test/");
     Eigen::MatrixXd trueSnapMatrix = Foam2Eigen::PtrList2Eigen(test_FOM.Ufield);
     Info << "snapshots size: " << trueSnapMatrix.size() << test_FOM.Ufield.size() << endl;
     cnpy::save(trueSnapMatrix, "npTrueSnapshots.npy");
 
     test_FOM.NUmodes = NmodesUproj;
-    ITHACAstream::read_fields(test_FOM.L_Umodes, "U", "./ITHACAoutput/POD_and_initial/", 0, NmodesUout);
-    // ITHACAstream::exportFields(test_FOM.L_Umodes, "./TEST", "uTest");
+    ITHACAstream::read_fields(test_FOM.L_Umodes, "U", "./ITHACAoutput/POD_and_initial/");
+    ITHACAstream::exportFields(test_FOM.L_Umodes, "./TEST", "uTest");
 
     test_FOM.NL_Umodes = test_FOM.L_Umodes.size();
     test_FOM.evaluateMatrices();
@@ -346,7 +342,7 @@ void test_one_parameter_initial_velocity(tutorial00 test_FOM)
     nonIntrusiveCoeff = cnpy::load(nonIntrusiveCoeff, "nonIntrusiveCoeff.npy", "rowMajor");
 
     // Reconstruct the solution and export it
-    reduced_nonIntrusive.reconstruct(true, "./ITHACAoutput/Reconstruction/", nonIntrusiveCoeff);
+    reduced_nonIntrusive.reconstruct(true, "./ITHACAoutput/ReconstructionNonIntrusive/", nonIntrusiveCoeff);
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 350 #################### " << reduced_nonIntrusive.uRecFields.size() << " " << test_FOM.Ufield.size() << endl;
     Eigen::MatrixXd errL2UnonIntrusive = ITHACAutilities::errorL2Rel(test_FOM.Ufield, reduced_nonIntrusive.uRecFields);
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 352 #################### " << endl;
@@ -409,14 +405,6 @@ void nonlinear_one_parameter_initial_velocity(tutorial00 test_FOM)
     /// Set the dimension of the test set
     test_FOM.Tnumber = NmodesUtest;
 
-    /// Instantiates a void Pnumber-by-Tnumber matrix mu for the parameters and a void
-    /// Pnumber-by-2 matrix mu_range for the ranges
-    test_FOM.setParameters();
-
-    // Set the parameter ranges
-    test_FOM.mu_range(0, 0) = 0.8;
-    test_FOM.mu_range(0, 1) = 1.2;
-
     // load the test samples
     Eigen::MatrixXd mu;
     test_FOM.mu = cnpy::load(mu, "parTest.npy");
@@ -428,7 +416,7 @@ void nonlinear_one_parameter_initial_velocity(tutorial00 test_FOM)
     test_FOM.writeEvery = 1;
 
     Eigen::MatrixXd initial_latent;
-    cnpy::load(initial_latent, "./Autoencoders/ConvolutionalAe/latent_initial.npy");
+    cnpy::load(initial_latent, "./Autoencoders/ConvolutionalAe/latent_initial_4.npy");
 
     // Perform The Offline Solve;
     if (!ITHACAutilities::check_folder("./ITHACAoutput/Offline/Test/"))
@@ -444,7 +432,28 @@ void nonlinear_one_parameter_initial_velocity(tutorial00 test_FOM)
     ITHACAstream::read_fields(test_FOM.L_Umodes, "U", "./ITHACAoutput/POD_and_initial/", 0, NmodesUout);
     test_FOM.NL_Umodes = test_FOM.L_Umodes.size();
 
-    NonlinearReducedBurgers reduced_nm_lspg(test_FOM, "./Autoencoders/ConvolutionalAe/decoder_gpu.pt", NnonlinearModes, initial_latent);
+    // nonIntrusive ConvAe nonlinear reduction
+    // Eigen::MatrixXd nonIntrusiveConvAe;
+
+    // nonIntrusiveConvAe = cnpy::load(nonIntrusiveConvAe, "nonIntrusiveCoeffConvAeOF.npy", "rowMajor");
+    // PtrList<volVectorField> snap_rec;
+    // volVectorField tmp = test_FOM.L_Umodes[0];
+    // Eigen::VectorXd single_snap;
+
+    // for(int i=0; i < nonIntrusiveConvAe.cols(); ++i)
+    //     single_snap = nonIntrusiveConvAe.row(i);
+    //     Foam2Eigen::Eigen2field(tmp, single_snap);
+    //     snap_rec.append(tmp);
+
+    // ITHACAstream::exportFields(snap_rec, "./ITHACAoutput/ReconstructConvAe", "U");
+
+    // Eigen::MatrixXd errL2UnonIntrusiveConvAe = ITHACAutilities::errorL2Rel(test_FOM.Ufield, snap_rec);
+
+    // ITHACAstream::exportMatrix(errL2UnonIntrusiveConvAe, "errL2UnonIntrusiveConvAe", "matlab", "./ITHACAoutput/ErrorsL2/");
+    // cnpy::save(errL2UnonIntrusiveConvAe, "./ITHACAoutput/ErrorsL2/errL2UnonIntrusiveConvAe.npy");
+
+    // NM-LSPG
+    NonlinearReducedBurgers reduced_nm_lspg(test_FOM, "./Autoencoders/ConvolutionalAe/decoder_gpu_4.pt", NnonlinearModes, initial_latent);
 
     // Set values of the reduced model
     reduced_nm_lspg.nu = 0.0001;

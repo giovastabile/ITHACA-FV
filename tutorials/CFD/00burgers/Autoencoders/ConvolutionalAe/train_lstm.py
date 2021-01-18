@@ -10,30 +10,42 @@ from convae import *
 
 def main(args):
     WM_PROJECT = "../../"
-    HIDDEN_DIM = 4
-    domain_size = 60
+    HIDDEN_DIM = args.latent_dim
+    DOMAIN_SIZE = 60
     DIM = 2
 
     # Device configuration
     device = torch.device('cpu')
     print("device is: ", device)
 
-    # reshape as (train_samples, channel, y, x)
-    snapshots = np.load(WM_PROJECT+"npSnapshots.npy")
-    print("snapshots shape: ", snapshots.shape)
+    # snapshots have to be clipped before
+    snap_vec = np.load(WM_PROJECT + "npSnapshots.npy")
+    assert np.min(snap_vec) >= 0., "Snapshots should be clipped"
 
-    n_train = snapshots.shape[1]
-    snapshots = snapshots.T
-    snapshots_numpy = snapshots.reshape((n_train, 3, domain_size, domain_size))[:, :DIM,:, :]
-    sn_max = np.max(np.abs(snapshots_numpy))
-    sn_min = np.min(np.abs(snapshots_numpy))
-    snapshots = torch.from_numpy((snapshots_numpy-sn_min)/(sn_max-sn_min)).to(device, dtype=torch.float)
-    print("snapshots shape: ", snapshots.size())
+    n_total = snap_vec.shape[1]
+    n_train = n_total-n_total//6
+
+    # scale the snapshots
+    nor = Normalize(snap_vec, center_fl=True)
+    snap_framed = nor.framesnap(snap_vec)
+    snap_scaled = nor.scale(snap_framed)
+    snap_torch = torch.from_numpy(snap_scaled).to("cpu", dtype=torch.float)
+    print("snapshots shape", snap_scaled.shape)
+    print("Min max after scaling: ", np.min(snap_scaled), np.max(snap_scaled))
 
     # load autoencoder
-    model = AE(HIDDEN_DIM, scale=(sn_min, sn_max), domain_size=domain_size, use_cuda=True).to(device)
-    model.load_state_dict(torch.load("./model.ckpt"))
-    model.eval()
+    model = AE(
+        HIDDEN_DIM,
+        scale=(nor.min_sn, nor.max_sn),
+        #mean=nor.mean(device),
+        domain_size=DOMAIN_SIZE,
+        use_cuda=args.device).to(device)
+
+    modello = torch.load("./model_"+str(args.latent_dim)+".ckpt")
+    model.load_state_dict(modello['state_dict'])
+
+    # model.load_state_dict(torch.load("./model_"+str(args.latent_dim)+".ckpt"))
+    # model.eval()
 
     # # plot initial
     # inputs = torch.from_numpy(np.load("latent_initial.npy")).to(device, dtype=torch.float)
@@ -42,16 +54,24 @@ def main(args):
     # plot_snapshot(output.detach().cpu().numpy().reshape(1, 2, 60, 60), 0, idx_coord=1)
 
     # reconstruct snapshots
-    snap_rec = model(snapshots).cpu().detach().numpy()
-
+    snap_rec = model(snap_torch).cpu().detach().numpy()
     print("non linear reduction training coeffs: ", snap_rec.shape)
-    plot_compare(snapshots_numpy, snap_rec.reshape(-1, DIM, domain_size, domain_size), n_train)
+    # plot_compare(snap_framed, nor.frame2d(snap_rec), n_train)
 
     # evaluate hidden variables
-    nl_red_coeff = model.encoder.forward(snapshots)
+    nl_red_coeff = model.encoder.forward(snap_torch)
     print("non linear reduction training coeffs: ", nl_red_coeff.size())
     nl_red_coeff = nl_red_coeff.cpu().detach().numpy()
     print("max, min : ", np.max(nl_red_coeff), np.min(nl_red_coeff))
+
+    # test max error
+    err = nor.frame2d(snap_rec)-snap_framed
+    # plot_snapshot(err, 11000, idx_coord=1)
+    print(snap_framed.shape, snap_rec.shape)
+    err_max = np.max(np.abs(nor.vectorize2d(err)), axis=1)
+    norm_max = np.max(np.abs(nor.vectorize2d(snap_framed)), axis=1)
+    error_max = err_max/norm_max
+    print("error max: ", np.max(error_max), np.min(error_max), np.max(err_max), np.min(err_max) )
 
     ##################################### TRAIN LSTM
     # load training inputs
@@ -91,7 +111,7 @@ def main(args):
 
     # dataloader
     x = torch.from_numpy(x.reshape(n_train_params, n_time_samples, x.shape[1]))
-    output = torch.from_numpy(nl_red_coeff.reshape(n_train_params, n_time_samples, nl_red_coeff.shape[1]))
+    output = torch.from_numpy(nl_red_coeff.reshape(n_train_params, n_time_samples, args.latent_dim))
 
     val_input = x[4, :, :].unsqueeze(0)
     x = torch.cat([x[:4, :, :], x[5:, :, :]])
@@ -101,10 +121,11 @@ def main(args):
     # Loss and optimizer
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [1000, 5000])
+    # scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [1000, 5000])
     loss_list = []
     val_list = []
-
+    it = 0
+    best = 1.
     for epoch in range(1, args.num_epochs):
         inputs = x[:].to(device, dtype=torch.float)
         forwarded = model(inputs)
@@ -116,7 +137,7 @@ def main(args):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        scheduler.step()
+        # scheduler.step()
 
         # plt.ion()
         if epoch % args.iter == 0:
@@ -125,6 +146,12 @@ def main(args):
             ()-val_output.reshape(-1).detach().cpu().numpy())))
             val_list.append(val_error)
             print('Epoch [{}/{}], Train loss: {:.12f}, Validation loss: {:.12f}'.format(epoch, args.num_epochs, loss.item(), val_error))
+
+            if val_error < 20:
+                optimizer.param_groups[0]['lr'] = 0.0001
+
+            if val_error < 5:
+                break
 
     plt.subplot(2, 1, 1)
     plt.plot(range(len(loss_list)), np.log10(loss_list))
@@ -137,11 +164,7 @@ def main(args):
 
     plt.show()
 
-    plt.plot(range(len(loss_list)), np.log10(loss_list))
-    plt.plot(range(len(val_list)), np.log10(val_list))
-    plt.show()
-
-    torch.save(model.state_dict(), 'lstm.ckpt')
+    torch.save(model.state_dict(), 'lstm_'+str(HIDDEN_DIM)+'.ckpt')
     summary(model, input_size=(1, n_time_samples, 2))
     model(inputs)[0]
 

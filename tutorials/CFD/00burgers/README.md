@@ -10,6 +10,26 @@ cd ITHACAoutput/red_coeff/
 python3 red_coeff_mat.py
 ~~~
 
+## Utilities
+
+To plot the eigenvalues:
+
+```
+python3 plot_evals.py
+```
+
+To plot the cumulative eigenvalues:
+
+```
+python3 plot_cumulative.py
+```
+
+To clip the negative values of the snapshots to zero:
+
+```bash
+python3 cut_snapshots_below_zero.py
+```
+
 ## POD-Galerkin Non-intrusive LSTM
 
 ~~~bash
@@ -29,6 +49,7 @@ python3 predict.py
 ~~~bash
 cd Autoencoders/ConvolutionalAe/
 python3 train.py
+python3 train_lstm.py
 python3 predict_lstm.py
 python3 compute_error.py
 ~~~
@@ -45,7 +66,25 @@ python3 compute_error.py
 python3 plot_errors.py
 ~~~
 
+## Data
 
+nonIntrusiveCoeff.npy = coefficients of the modes for nonintrusive POD-Galerkin
+
+npInitialAndModes.npy = initial and selected modes for projection of POD-Galerkin
+
+npSnapshots.npy = training snapshots from full order model
+
+npSnapshots_cut.npy = training snapshots with negative values clipped to zero
+
+npTrueSnapshots.npy = test snapshots from full order model
+
+parTest.npy = parameters of test set
+
+parTrain.npy = parameters of training set
+
+snapshotsConvAeTrueProjection.npy = snapshots reconstructed with the autoencoder (passed through the encoder and decoder). Needed for projection error
+
+snapshotsReconstructedConvAe.npy = snapshots reconstructed from predicted latent variables from LSTM net. Needed for nonIntrusiveConvAe error
 
 # TODO
 

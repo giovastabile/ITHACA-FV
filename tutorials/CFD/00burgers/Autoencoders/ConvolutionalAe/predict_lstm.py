@@ -10,27 +10,40 @@ from convae import *
 
 WM_PROJECT = "../../"
 HIDDEN_DIM = 4
-domain_size = 60
+DOMAIN_SIZE = 60
 DIM = 2
 device = torch.device('cuda:0')
 print("device is: ", device)
 
-# reshape as (train_samples, channel, y, x)
-snapshots = np.load(WM_PROJECT+"npSnapshots.npy")
-print("snapshots shape: ", snapshots.shape)
+# snapshots have to be clipped before
+snap_vec = np.load(WM_PROJECT + "npSnapshots.npy")
+assert np.min(snap_vec) >= 0., "Snapshots should be clipped"
 
-n_train = snapshots.shape[1]
-snapshots = snapshots.T
-snapshots_numpy = snapshots.reshape((n_train, 3, domain_size, domain_size))[:, :DIM,:, :]
-sn_max = np.max(snapshots_numpy)
-sn_min = np.min(snapshots_numpy)
-snapshots = torch.from_numpy((snapshots_numpy-sn_min)/(sn_max-sn_min)).to(device, dtype=torch.float)
-print("snapshots shape: ", snapshots.size())
+# specify how many samples should be used for training and validation
+n_total = snap_vec.shape[1]
+n_train = n_total-n_total//6
+print("Dimension of validation set: ", n_total-n_train)
+
+# scale the snapshots
+nor = Normalize(snap_vec, center_fl=True)
+snap_framed = nor.framesnap(snap_vec)
+snap_scaled = nor.scale(snap_framed)
+snaps_torch = torch.from_numpy(snap_scaled)
+print("snapshots shape", snap_scaled.shape)
+print("Min max after scaling: ", np.min(snap_scaled), np.max(snap_scaled))
 
 # load autoencoder
-model = AE(HIDDEN_DIM, scale=(sn_min, sn_max), domain_size=domain_size, use_cuda=True).to(device)
-model.load_state_dict(torch.load("./model.ckpt"))
-model.eval()
+model = AE(
+        HIDDEN_DIM,
+        scale=(nor.min_sn, nor.max_sn),
+        #mean=nor.mean(device),
+        domain_size=DOMAIN_SIZE,
+        use_cuda=True).to(device)
+
+modello = torch.load("./model_4.ckpt")
+model.load_state_dict(modello['state_dict'])
+# model.load_state_dict(torch.load("./model_"+str(HIDDEN_DIM)+".ckpt"))
+# model.eval()
 
 ##################################### TEST LSTM
 
@@ -64,33 +77,53 @@ print("test dataset shape: ", x_test.shape)
 
 # load lstm
 lstm_model = ReducedCoeffsTimeSeries().to(device)
-lstm_model.load_state_dict(torch.load("./lstm.ckpt"))
+lstm_model.load_state_dict(torch.load('lstm_'+str(HIDDEN_DIM)+'.ckpt'))
 lstm_model.eval()
 
-# get predictions with GPR
+# get predictions with lstm
 predictions = lstm_model( torch.from_numpy(x_test.reshape(1, n_time_samples, 2)).to(device, dtype=torch.float)).squeeze()
 print("predictions shape: ", predictions.shape)
+# predictions = np.hstack((x_test_0, predictions.detach().cpu().numpy().squeeze()))
+# print("predictions and timings shape: ", predictions.shape)
+# np.save(WM_PROJECT+"nonIntrusiveCoeffConvAe.npy", predictions)
 
-predicted_snapshots = model.decoder.forward(predictions).cpu().detach().numpy()
+predicted_snapshots = model.decoder.forward(predictions.to(device)).cpu().detach().numpy()
 print("predicted snapshots shape: ", predicted_snapshots.shape)
 np.save(WM_PROJECT+"snapshotsReconstructedConvAe.npy",predicted_snapshots)
 
+predicted_snapshots_openfoam = np.concatenate((predicted_snapshots.reshape(time_samples.shape[0], 2, DOMAIN_SIZE, DOMAIN_SIZE), np.zeros((time_samples.shape[0], 1, DOMAIN_SIZE, DOMAIN_SIZE))), axis=1).reshape(time_samples.shape[0], -1).T
+print("predicted snapshots openfoam shape: ", predicted_snapshots_openfoam.shape)
+np.save(WM_PROJECT+"snapshotsReconstructedConvAeOF.npy",predicted_snapshots_openfoam)
+
 
 #################################### PROJECTION ERROR
-snap_true = np.load(WM_PROJECT+"npTrueSnapshots.npy")
-print("true test snapshots shape: ", snap_true.shape)
-n_test = snap_true.shape[1]
-snap_true = snap_true.T
-snap_true_numpy = snap_true.reshape(n_test, 3, domain_size, domain_size)[:, :2, :, :]
-snap_true_numpy -= sn_min
-snap_true_numpy /= sn_max-sn_min
-snap_true = torch.from_numpy(snap_true_numpy).to(device, dtype=torch.float)
-print("snapshots shape: ", snap_true.size())
+snap_vec_true = np.load(WM_PROJECT+"npTrueSnapshots.npy")
+assert np.min(snap_vec_true) >= 0., "Snapshots should be clipped"
+
+# scale the snapshots
+snap_framed_true = nor.framesnap(snap_vec_true)
+snap_scaled_true = nor.scale(snap_framed_true)
+snap_torch_true = torch.from_numpy(snap_scaled_true)
+n_test = snap_framed_true.shape[0]
+test_norm = np.linalg.norm(snap_vec_true, axis=0, keepdims=False)
+test_max_norm = np.max(snap_vec_true, axis=0, keepdims=False)
+print("test snapshots shape: ", snap_scaled_true.shape)
+print("max and min L2 norm", np.max(test_norm), np.min(test_norm))
+print("snapshots shape", snap_scaled_true.shape)
+print("Min max after scaling: ", np.min(snap_scaled_true), np.max(snap_scaled_true))
 
 # reconstruct snapshots
-snap_true_rec = model.forward(snap_true).cpu().detach().numpy()
-snap_true_rec = snap_true_rec.reshape(-1, 2, domain_size, domain_size)
+snap_true_rec = model(snap_torch_true.to(device, dtype=torch.float)).cpu().detach().numpy()
+snap_true_rec = nor.frame2d(snap_true_rec)
 print("non linear reduction training coeffs: ", snap_true_rec.shape)
-plot_compare(snap_true_numpy, snap_true_rec, n_test)
+plot_compare(snap_framed_true, snap_true_rec, n_test)
 np.save(WM_PROJECT+"snapshotsConvAeTrueProjection.npy",snap_true_rec)
+
+err = np.abs(snap_true_rec - nor.rescale(snap_scaled_true))
+error_proj = np.linalg.norm(nor.vectorize2d(err), axis=1)
+error_proj = error_proj / test_norm
+error_mean = np.mean(error_proj)
+error_max = np.max(error_proj)
+error_min = np.min(error_proj)
+print("projection erorrs: mean, max, min: ", error_mean, error_max, error_min)
 

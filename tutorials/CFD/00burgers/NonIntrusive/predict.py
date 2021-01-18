@@ -65,5 +65,4 @@ print("predictions shape: ", predictions.shape)
 predictions = np.hstack((x_test_0, predictions.detach().cpu().numpy().squeeze()))
 print("predictions and timings shape: ", predictions.shape)
 np.save("../nonIntrusiveCoeff.npy", predictions)
-tmp = np.load("../nonIntrusiveCoeff.npy")
 

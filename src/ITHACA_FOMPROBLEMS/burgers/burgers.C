@@ -322,7 +322,8 @@ void Burgers::project(fileName folder, label NU)
         }
     }
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 317 #################### " << endl;
-
+    ITHACAstream::exportFields(L_Umodes, "./TESTBURGERS", "uTest");
+    ITHACAstream::exportFields(Umodes, "./TESTBURGERSUMODES", "uTest");
     evaluateMatrices();
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 320 #################### " << endl;
     // Export the matrices

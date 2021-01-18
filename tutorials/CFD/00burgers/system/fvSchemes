@@ -17,7 +17,7 @@ FoamFile
 
 ddtSchemes
 {
-    default         Euler;
+    default         backward;
 }
 
 gradSchemes
@@ -27,12 +27,12 @@ gradSchemes
 
 divSchemes
 {
-    default         Gauss linearUpwind grad(U);
+    default         bounded Gauss upwind;
 }
 
 laplacianSchemes
 {
-    default         Gauss linear corrected;
+    default         Gauss linear orthogonal;
 }
 
 interpolationSchemes

@@ -58,7 +58,7 @@ def main(args):
     # Loss and optimizer
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [9000])
+    # scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [9000])
     loss_list = []
     val_list = []
 
@@ -73,7 +73,7 @@ def main(args):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        scheduler.step()
+        # scheduler.step()
 
         # plt.ion()
         if epoch % args.iter == 0:
@@ -81,21 +81,22 @@ def main(args):
             val_error = np.max(np.abs((val_forwarded.reshape(-1).detach().cpu().numpy
             ()-val_output.reshape(-1).detach().cpu().numpy())))
             val_list.append(val_error)
+            if val_error < 0.16:
+                optimizer.param_groups[0]['lr'] = args.learning_rate * 0.1
             print('Epoch [{}/{}], Train loss: {:.12f}, Validation loss: {:.12f}'.format(epoch, args.num_epochs, loss.item(), val_error))
+
+            if val_error < 0.01:
+                break
 
     plt.subplot(2, 1, 1)
     plt.plot(range(len(loss_list)), np.log10(loss_list))
     plt.ylabel('training error')
 
     plt.subplot(2, 1, 2)
-    plt.plot(args.iter*range(len(val_list)), np.log10(val_list))
+    plt.plot(range(len(val_list)), np.log10(val_list))
     plt.xlabel('epochs')
     plt.ylabel('validation error')
 
-    plt.show()
-
-    plt.plot(range(len(loss_list)), np.log10(loss_list))
-    plt.plot(range(len(val_list)), np.log10(val_list))
     plt.show()
 
     torch.save(model.state_dict(), 'model.ckpt')
@@ -108,7 +109,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="parse args")
     parser.add_argument('-n',
                         '--num_epochs',
-                        default=10000,
+                        default=5000,
                         type=int,
                         help='number of training epochs')
     parser.add_argument('-lr',
@@ -133,7 +134,7 @@ if __name__ == '__main__':
                         help='whether to use cuda')
     parser.add_argument('-i',
                         '--iter',
-                        default=5,
+                        default=50,
                         type=int,
                         help='epoch when visualization runs')
     args = parser.parse_args()

@@ -756,6 +756,8 @@ void ReducedBurgers::reconstruct(bool exportFields, fileName folder)
     }
 
     volVectorField uRec("uRec", Umodes[0] * 0);
+    ITHACAstream::exportFields(problem->L_Umodes, "./TESTRECONSTRUCT", "uTest");
+
     uRecFields = problem->L_Umodes.reconstruct(uRec, CoeffU, "uRec");
 
     if (exportFields)

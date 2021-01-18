@@ -8,7 +8,7 @@ class ReducedCoeffsTimeSeries(nn.Module):
     def __init__(self,
                  input_dim=2,
                  output_dim=4,
-                 hidden_dim=200,
+                 hidden_dim=600,
                  n_layers=2,
                  use_cuda=True):
         super(ReducedCoeffsTimeSeries, self).__init__()

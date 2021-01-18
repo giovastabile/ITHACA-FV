@@ -1,9 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-snapshots = np.load("npSnapshots.npy").reshape(3, 10000, -1)
-print(snapshots.shape)
-
 array=[]
 with open('ITHACAoutput/Offline/Training/mu_samples_mat.txt') as f:
     for i, line in enumerate(f):
