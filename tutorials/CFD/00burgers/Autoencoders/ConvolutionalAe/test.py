@@ -34,8 +34,8 @@ def jacobian_piece_by_piece():
     print(inputs.grad.data.size())
 
 def test_jac():
-    inputs = torch.ones((1, 2))
-    output_grad = torch.Tensor([[1, 0, 0]])
+    inputs = torch.ones((2, 2))
+    output_grad = torch.Tensor([[1, 0, 0], [0, 1, 0]])
     test = Test()
     inputs.requires_grad_(True)
     outputs = test(inputs)

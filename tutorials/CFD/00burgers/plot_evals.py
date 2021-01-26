@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+plt.rcParams.update({'font.size': 16})
 
 array=[]
 with open('ITHACAoutput/Offline/Training/mu_samples_mat.txt') as f:
@@ -19,10 +20,12 @@ with open('ITHACAoutput/POD/Eigenvalues_U') as f:
 array_ = [float(item) for item in array]
 eigenvals = np.array(array_)
 
-plt.plot(range(eigenvals.shape[0])[:200], eigenvals[:200])
+plt.semilogy(range(eigenvals.shape[0])[:200], eigenvals[:200])
 plt.xlabel("eigenvalue number")
 plt.ylabel("log10 scaled eigenvalues")
 plt.yscale("log")
-plt.yticks(np.array([10**-20, 10**-15, 10**-10, 10**-5, 1, 10**5, 10**10]))
-plt.grid(True)
+plt.title("POD eigenvalues decay")
+# plt.yticks(np.array([10**-20, 10**-15, 10**-10, 10**-5, 1, 10**5, 10**10]))
+plt.grid(True, which="both")
+plt.ylim([1e-15,1e+1])
 plt.show()

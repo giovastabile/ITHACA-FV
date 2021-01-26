@@ -39,7 +39,10 @@ def main(args):
     # scale the snapshots
     nor = Normalize(snap_vec, center_fl=True)
     snap_framed = nor.framesnap(snap_vec)
+    print("add constant solution: ", snap_framed.shape)
     snap_scaled = nor.scale(snap_framed)
+    # print(nor.framesnap(snap_vec).shape, np.zeros((1 ,DIM, DOMAIN_SIZE, DOMAIN_SIZE)).shape)
+    # snap_scaled = np.concatenate((snap_scaled, np.zeros((1 ,DIM, DOMAIN_SIZE, DOMAIN_SIZE))), axis=0)
     snaps_torch = torch.from_numpy(snap_scaled)
     print("snapshots shape", snap_scaled.shape)
     print("Min max after scaling: ", np.min(snap_scaled), np.max(snap_scaled))
@@ -47,6 +50,8 @@ def main(args):
     # Test snapshots
     snap_true_vec = np.load(WM_PROJECT + "npTrueSnapshots.npy")
     snap_true_scaled = nor.scale(nor.framesnap(snap_true_vec))
+    np.save(WM_PROJECT + "npTrueSnapshots_framed.npy", nor.vectorize2d(snap_true_scaled))
+    print("saved snapshots for consistency test libtorch", nor.vectorize2d(snap_true_scaled).shape)
     snap_true_torch = torch.from_numpy(snap_true_scaled)
     test_norm = np.linalg.norm(snap_true_vec, axis=0, keepdims=False)
     test_max_norm = np.max(snap_true_vec, axis=0, keepdims=False)
@@ -58,6 +63,11 @@ def main(args):
     # Data loader
     train_snap, val_torch = torch.utils.data.random_split(
         snaps_torch, [n_train, n_total - n_train])
+    # train_snap = train_snap[:]
+    # # print("train_snap size", train_snap.shape)
+    # train_snap = torch.cat((train_snap, torch.zeros((1 ,DIM, DOMAIN_SIZE, DOMAIN_SIZE))), axis=0)
+    # print("train_snap size", train_snap.shape)
+
     train_loader = torch.utils.data.DataLoader(dataset=train_snap,
                                                batch_size=BATCH_SIZE,
                                                shuffle=True)
@@ -86,12 +96,32 @@ def main(args):
         ckp_path = "./model/best_model.pt"
         model, optimizer, start_epoch = load_ckp(ckp_path, model, optimizer)
 
+        # Save the model checkpoint
+        torch.save(model.state_dict(), 'model_' + str(HIDDEN_DIM) + '.ckpt')
+
+        sm = torch.jit.script(model)
+        sm.save('model_gpu_' + str(HIDDEN_DIM) + '.pt')
+        # Save the initial value of the latent variable
+        initial = model.encoder(snaps_torch[:1, :, :, :].to(
+            device,
+            dtype=torch.float)).detach().to(torch.device('cpu'),
+                                            dtype=torch.double).numpy()
+        print("initial latent variable shape : ", initial)
+        np.save("latent_initial_" + str(HIDDEN_DIM) + ".npy", initial)
+
+        # Save decoder
+        model.decoder.to(device)
+        sm = torch.jit.script(model.decoder)
+        sm.save('decoder_gpu_' + str(HIDDEN_DIM) + '.pt')
+        print("saved")
+
+
     loss_list = []
     val_list = []
     test_list = []
     loss = 1
     norm_average_loss = len(train_loader)
-    best = 1.
+    best = 1000
     start_epoch = 1
     it = 0
 
@@ -167,7 +197,7 @@ def main(args):
                 # validation plot where validation loss is worst
                 # index_list = torch.sort(index, descending=True)[1]
                 plot_two(nor.frame2d(outputs_val),
-                         nor.rescale(val_np), index,
+                         nor.frame2d(outputs_val)-nor.rescale(val_np), index,
                          epoch,
                          title="validation")
 
@@ -245,10 +275,10 @@ def main(args):
         sm = torch.jit.script(model.decoder)
         sm.save('decoder_gpu_' + str(HIDDEN_DIM) + '.pt')
 
-        device = 'cpu'
-        model.decoder.to(device)
-        sm = torch.jit.script(model.decoder)
-        sm.save('decoder_' + str(HIDDEN_DIM) + '.pt')
+        # device = 'cpu'
+        # model.decoder.to(device)
+        # sm = torch.jit.script(model.decoder)
+        # sm.save('decoder_' + str(HIDDEN_DIM) + '.pt')
 
     except KeyboardInterrupt:
         plt.subplot(3, 1, 1)

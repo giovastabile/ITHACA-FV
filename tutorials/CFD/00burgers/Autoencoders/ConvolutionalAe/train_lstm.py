@@ -41,22 +41,31 @@ def main(args):
         domain_size=DOMAIN_SIZE,
         use_cuda=args.device).to(device)
 
-    modello = torch.load("./model_"+str(args.latent_dim)+".ckpt")
-    model.load_state_dict(modello['state_dict'])
+    # modello = torch.load("./model_"+str(args.latent_dim)+".ckpt")
+    # model.load_state_dict(modello['state_dict'])
 
-    # model.load_state_dict(torch.load("./model_"+str(args.latent_dim)+".ckpt"))
-    # model.eval()
+    model.load_state_dict(torch.load("./model_"+str(args.latent_dim)+".ckpt"))
+    model.eval()
 
-    # # plot initial
-    # inputs = torch.from_numpy(np.load("latent_initial.npy")).to(device, dtype=torch.float)
-    # output = model.decoder.forward(inputs)
-    # print("shapeoutput", output)
-    # plot_snapshot(output.detach().cpu().numpy().reshape(1, 2, 60, 60), 0, idx_coord=1)
+    # plot initial
+    inputs = torch.from_numpy(np.load("latent_initial_4.npy")).to(device, dtype=torch.float)
+    output = model.decoder.forward(inputs)
+    print("latent initial:", inputs)
+    print("shapeoutput", output, np.max(output.detach().numpy()))
+    plot_snapshot(output.detach().cpu().numpy().reshape(1, 2, 60, 60), 0, idx_coord=0)
+
+    A = nor.frame2d(output.detach().cpu().numpy())[0, 1, :, :] > 0
+    plt.spy(A)
+    plt.show()
 
     # reconstruct snapshots
     snap_rec = model(snap_torch).cpu().detach().numpy()
     print("non linear reduction training coeffs: ", snap_rec.shape)
     # plot_compare(snap_framed, nor.frame2d(snap_rec), n_train)
+
+    A = nor.frame2d(snap_rec)[0, 1, :, :] > 0
+    plt.spy(A)
+    plt.show()
 
     # evaluate hidden variables
     nl_red_coeff = model.encoder.forward(snap_torch)
@@ -165,7 +174,7 @@ def main(args):
     plt.show()
 
     torch.save(model.state_dict(), 'lstm_'+str(HIDDEN_DIM)+'.ckpt')
-    summary(model, input_size=(1, n_time_samples, 2))
+    summary(model, input_size=(1, n_time_samples))
     model(inputs)[0]
 
 

@@ -460,7 +460,7 @@ void read_fields(
             last_s = min(runTime2.times().size(), n_snap + 2);
         }
 
-        for (int i = 2 + first_snap; i < last_s + first_snap; i++)
+        for (int i = 1 + first_snap; i < last_s; i++)
         {
             GeometricField<Type, PatchField, GeoMesh> tmp_field(
                 IOobject

@@ -30,6 +30,7 @@ SourceFiles
 #include <torch/script.h>
 #include <torch/torch.h>
 #include "torch2Eigen.H"
+#include "torch2Foam.H"
 #include "Foam2Eigen.H"
 
 #include "burgers.H"
@@ -43,6 +44,9 @@ SourceFiles
 #include <iomanip>
 #include <string>
 #include <algorithm>
+
+using namespace ITHACAtorch;
+
 
 class tutorial00 : public Burgers
 {
@@ -96,6 +100,31 @@ public:
     }
 };
 
+// torch::Tensor read_data(const std::string& data_path)
+// {
+//     Eigen::MatrixXd tensor_eig;
+//     torch::Tensor tensor = torch2Eigen::eigenMatrix2torchTensor(cnpy::load(tensor_eig, data_path));
+//     return tensor;
+// };
+
+// class MyDataset : public torch::data::Dataset<MyDataset>
+// {
+//     private:
+//         torch::Tensor states_;
+
+//     public:
+//         explicit MyDataset(const std::string& data_path)
+//             : states_(read_data(data_path)) {   };
+
+//         torch::data::Example<> get(size_t index) override;
+// };
+
+// torch::data::Example<> MyDataset::get(size_t index)
+// {
+
+//     return states_{[index]};
+// }
+
 /*---------------------------------------------------------------------------*\
                                Starting the MAIN
 \*---------------------------------------------------------------------------*/
@@ -104,6 +133,8 @@ void one_parameter_viscosity(tutorial00);
 void train_one_parameter_initial_velocity(tutorial00);
 void test_one_parameter_initial_velocity(tutorial00);
 void nonlinear_one_parameter_initial_velocity(tutorial00);
+void nonlinear_test_rec(tutorial00);
+void nonlinear_test_data(tutorial00);
 
 int main(int argc, char *argv[])
 {
@@ -148,6 +179,14 @@ int main(int argc, char *argv[])
         // NNFile.open ("./NNdata.txt");
         // NNFile << tensor.slice(0, 3, 1);
         // NNFile.close();
+    }
+    else if (std::strcmp(argv[1],"nltestrec")==0)
+    {
+        nonlinear_test_rec(example);
+    }
+    else if (std::strcmp(argv[1],"nltestdata")==0)
+    {
+        nonlinear_test_data(example);
     }
     else
     {
@@ -320,7 +359,7 @@ void test_one_parameter_initial_velocity(tutorial00 test_FOM)
     cnpy::save(trueSnapMatrix, "npTrueSnapshots.npy");
 
     test_FOM.NUmodes = NmodesUproj;
-    ITHACAstream::read_fields(test_FOM.L_Umodes, "U", "./ITHACAoutput/POD_and_initial/");
+    ITHACAstream::read_fields(test_FOM.L_Umodes, "U", "./ITHACAoutput/POD_and_initial/", 1);
     ITHACAstream::exportFields(test_FOM.L_Umodes, "./TEST", "uTest");
 
     test_FOM.NL_Umodes = test_FOM.L_Umodes.size();
@@ -418,6 +457,8 @@ void nonlinear_one_parameter_initial_velocity(tutorial00 test_FOM)
     Eigen::MatrixXd initial_latent;
     cnpy::load(initial_latent, "./Autoencoders/ConvolutionalAe/latent_initial_4.npy");
 
+    std::cout << "LATENT INIT " << initial_latent << std::endl;
+
     // Perform The Offline Solve;
     if (!ITHACAutilities::check_folder("./ITHACAoutput/Offline/Test/"))
     {
@@ -429,7 +470,7 @@ void nonlinear_one_parameter_initial_velocity(tutorial00 test_FOM)
 
     // load modes from training
     test_FOM.NUmodes = NmodesUproj;
-    ITHACAstream::read_fields(test_FOM.L_Umodes, "U", "./ITHACAoutput/POD_and_initial/", 0, NmodesUout);
+    ITHACAstream::read_fields(test_FOM.L_Umodes, "U", "./ITHACAoutput/POD_and_initial/", 1, NmodesUout);
     test_FOM.NL_Umodes = test_FOM.L_Umodes.size();
 
     // nonIntrusive ConvAe nonlinear reduction
@@ -478,4 +519,219 @@ void nonlinear_one_parameter_initial_velocity(tutorial00 test_FOM)
     ITHACAstream::exportMatrix(errL2UNMLSPG, "errL2UNMLSPG", "matlab",
                                "./ITHACAoutput/ErrorsL2/");
     cnpy::save(errL2UNMLSPG, "./ITHACAoutput/ErrorsL2/errL2UNMLSPG.npy");
+}
+
+void nonlinear_test_rec(tutorial00 test_FOM)
+{
+    // Read parameters from ITHACAdict file
+    ITHACAparameters *para = ITHACAparameters::getInstance(test_FOM._mesh(),
+                                                           test_FOM._runTime());
+    int NmodesUout = para->ITHACAdict->lookupOrDefault<int>("NmodesUout", 15);
+    int NmodesUproj = para->ITHACAdict->lookupOrDefault<int>("NmodesUproj", 10);
+    int NmodesUtest = para->ITHACAdict->lookupOrDefault<int>("NmodesUtest", 100);
+    int NnonlinearModes = para->ITHACAdict->lookupOrDefault<int>("NnonlinearModes", 4);
+
+    /// Set the number of parameters
+    test_FOM.Pnumber = 1;
+
+    /// Set the dimension of the test set
+    test_FOM.Tnumber = NmodesUtest;
+
+    // load the test samples
+    Eigen::MatrixXd mu;
+    test_FOM.mu = cnpy::load(mu, "parTest.npy");
+
+    // Time parameters
+    test_FOM.startTime = 0;
+    test_FOM.finalTime = 2;
+    test_FOM.timeStep = 0.001;
+    test_FOM.writeEvery = 1;
+
+    Eigen::MatrixXd initial_latent;
+    cnpy::load(initial_latent, "./Autoencoders/ConvolutionalAe/latent_initial_4.npy");
+
+    // Perform The Offline Solve;
+    if (!ITHACAutilities::check_folder("./ITHACAoutput/Offline/Test/"))
+    {
+        test_FOM.offline = false;
+        Info << "Offline Test data already exist, reading existing data" << endl;
+    }
+
+    test_FOM.offlineSolveInitialVelocity("./ITHACAoutput/Offline/Test/");
+
+    // load modes from training
+    test_FOM.NUmodes = NmodesUproj;
+    ITHACAstream::read_fields(test_FOM.L_Umodes, "U", "./ITHACAoutput/POD_and_initial/", 1, NmodesUout);
+    test_FOM.NL_Umodes = test_FOM.L_Umodes.size();
+
+    // load the test snapshots
+    // Generate your data set. At this point you can add transforms to you data
+    // set, e.g. stack your batches into a single tensor.
+    Eigen::MatrixXd dataset_eig;
+    torch::Tensor inputs_true = torch2Eigen::eigenMatrix2torchTensor(cnpy::load(dataset_eig, "./npTrueSnapshots_framed.npy"));
+    // auto data_set = MyDataset("./npTrueSnapshots_framed.npy").map(torch::data::transforms::Stack<>());
+
+    // // Generate a data loader.
+    // auto data_loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
+    //     std::move(data_set),
+    //     /*bathc_size*/100);
+
+    // load autoencoder
+    auto ae = autoPtr<torch::jit::script::Module>(new torch::jit::script::Module(torch::jit::load("./Autoencoders/ConvolutionalAe/model_gpu_4.pt")));
+
+    // forward autoencoder
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 576 #################### " << endl;
+    // auto rec_torch = torch::zeros({2001, 7200});
+    std::vector<torch::jit::IValue> input;
+    input.push_back(inputs_true.reshape({2001, 2, 60, 60}).to(torch::kCUDA));
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 580 #################### " << endl;
+    torch::Tensor forward_tensor = ae->forward(input).toTensor().squeeze().detach().to(torch::kCPU);
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 582 #################### " << forward_tensor.size(0) << " " << forward_tensor.size(1) << endl;
+    //  for(int i=0; i<3; i++)
+    // {
+    //     auto inputs_batch = inputs.slice(0, i*667, (1+i)*667).to(torch::kCUDA);
+    //     std::vector<torch::jit::IValue> input;
+    //     input.push_back(inputs_batch.to(torch::kCUDA));
+    //     torch::Tensor forward_tensor = ae->forward(input).toTensor().squeeze();
+    //     rec_torch.slice(/*dim*/0, i*667, (1+i)*667) = forward_tensor.detach();
+    // }
+
+    // convert to fields
+
+    // auto tensor_stacked = torch::cat({forward_tensor.reshape({2001, 2, 60, 60}), torch::zeros({2001, 1, 60, 60})}, 1).reshape({2001, 3, -1}).transpose(1, 2).contiguous();
+    auto tensor_stacked = torch::cat({forward_tensor.reshape({2001, 2, 60, 60}), torch::zeros({2001, 1, 60, 60})}, 1).reshape({2001, 3, -1}).transpose(1, 2).contiguous();
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 595 #################### " << tensor_stacked.size(0) << " " << tensor_stacked.size(1) << " " << tensor_stacked.size(2) << endl;
+
+    PtrList<volVectorField> rec_fields;
+    for(int i=0; i<2001; i++)
+    {
+        auto g = autoPtr<volVectorField>(new volVectorField(test_FOM._U0()));
+        auto single_snap = tensor_stacked.slice(0, i, 1+i).squeeze();
+        auto field = torch2Foam::torch2Field<vector>(single_snap);
+        g.ref().ref().field() = field;
+        rec_fields.append(g);
+    }
+    ITHACAstream::exportFields(rec_fields, "./REC_AE", "g0");
+
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 607 #################### " << test_FOM.Ufield.size() << " " << rec_fields.size() << endl;
+
+    // compute LRelError
+    Eigen::MatrixXd errConsistency = ITHACAutilities::errorL2Rel(test_FOM.Ufield,
+                             rec_fields);
+
+    ITHACAstream::exportMatrix(errConsistency, "errConsistency", "matlab",
+                               "./ITHACAoutput/ErrorsL2/");
+    cnpy::save(errConsistency, "./ITHACAoutput/ErrorsL2/errConsistency.npy");
+}
+
+void nonlinear_test_data(tutorial00 test_FOM)
+{
+    // Read parameters from ITHACAdict file
+    ITHACAparameters *para = ITHACAparameters::getInstance(test_FOM._mesh(),
+                                                           test_FOM._runTime());
+    int NmodesUout = para->ITHACAdict->lookupOrDefault<int>("NmodesUout", 15);
+    int NmodesUproj = para->ITHACAdict->lookupOrDefault<int>("NmodesUproj", 10);
+    int NmodesUtest = para->ITHACAdict->lookupOrDefault<int>("NmodesUtest", 100);
+    int NnonlinearModes = para->ITHACAdict->lookupOrDefault<int>("NnonlinearModes", 4);
+
+    /// Set the number of parameters
+    test_FOM.Pnumber = 1;
+
+    /// Set the dimension of the test set
+    test_FOM.Tnumber = NmodesUtest;
+
+    // load the test samples
+    Eigen::MatrixXd mu;
+    test_FOM.mu = cnpy::load(mu, "parTest.npy");
+
+    // Time parameters
+    test_FOM.startTime = 0;
+    test_FOM.finalTime = 2;
+    test_FOM.timeStep = 0.001;
+    test_FOM.writeEvery = 1;
+
+    Eigen::MatrixXd initial_latent;
+    initial_latent = cnpy::load(initial_latent, "./Autoencoders/ConvolutionalAe/latent_initial_4.npy", "rowMajor");
+    std::cout << "INITIAL" << initial_latent << std::endl;
+
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 654 #################### " << initial_latent(0) <<  endl;
+    // Perform The Offline Solve;
+    if (!ITHACAutilities::check_folder("./ITHACAoutput/Offline/Test/"))
+    {
+        test_FOM.offline = false;
+        Info << "Offline Test data already exist, reading existing data" << endl;
+    }
+
+    test_FOM.offlineSolveInitialVelocity("./ITHACAoutput/Offline/Test/");
+
+    // load modes from training
+    test_FOM.NUmodes = NmodesUproj;
+    ITHACAstream::read_fields(test_FOM.L_Umodes, "U", "./ITHACAoutput/POD_and_initial/", 1, NmodesUout);
+    test_FOM.NL_Umodes = test_FOM.L_Umodes.size();
+
+    // load the test snapshots
+    Eigen::MatrixXd dataset_eig;
+    dataset_eig = cnpy::load(dataset_eig, "./nonIntrusiveCoeffConvAe.npy", "rowMajor");
+    std::cout << "EIG" << dataset_eig << std::endl;
+    torch::Tensor inputs_hidden = torch2Eigen::eigenMatrix2torchTensor(dataset_eig);
+    std::cout << "TEST" << inputs_hidden.to(at::kFloat) << std::endl;
+
+    // load autoencoder
+    auto decoder = autoPtr<torch::jit::script::Module>(new torch::jit::script::Module(torch::jit::load("./Autoencoders/ConvolutionalAe/decoder_gpu_4.pt")));
+
+    // define initial velocity field and initialize decoder output variable g0
+    auto _g0 = autoPtr<volVectorField>(new volVectorField(test_FOM._U0()));
+
+    // declare input of decoder of type IValue since the decoder is loaded from pytorch
+    std::vector<torch::jit::IValue> input_init;
+    torch::Tensor latent_initial_tensor = torch2Eigen::eigenMatrix2torchTensor(initial_latent);
+    std::cout << "TEST INIT" << latent_initial_tensor << std::endl;
+
+    input_init.push_back(latent_initial_tensor.to(at::kFloat).to(torch::kCUDA));
+
+    torch::Tensor tensor = decoder->forward(std::move(input_init)).toTensor().squeeze().detach().to(torch::kCPU);
+
+    auto tensor_stacked_init = torch::cat({std::move(tensor).reshape({2, 60, 60}), torch::zeros({1, 60, 60})}, 0).reshape({3, -1}).transpose(0, 1).contiguous();
+    auto g0 = torch2Foam::torch2Field<vector>(tensor_stacked_init);
+    _g0.ref().ref().field() = std::move(g0);
+    PtrList<volVectorField> save_field;
+    save_field.append(_g0());
+    ITHACAstream::exportFields(save_field, "./REFtest", "g0");
+
+    // forward autoencoder
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 576 #################### " << endl;
+
+    std::vector<torch::jit::IValue> input;
+    input.push_back(inputs_hidden.to(at::kFloat).to(torch::kCUDA));
+
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 580 #################### " << endl;
+
+    torch::Tensor forward_tensor = decoder->forward(input).toTensor().squeeze().detach().to(torch::kCPU);
+
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 582 #################### " << forward_tensor.size(0) << " " << forward_tensor.size(1) << endl;
+
+    auto tensor_stacked = torch::cat({forward_tensor.reshape({2001, 2, 60, 60}), torch::zeros({2001, 1, 60, 60})}, 1).reshape({2001, 3, -1}).transpose(1, 2).contiguous();
+
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 595 #################### " << tensor_stacked.size(0) << " " << tensor_stacked.size(1) << " " << tensor_stacked.size(2) << endl;
+
+    PtrList<volVectorField> rec_fields;
+    for(int i=0; i<2001; i++)
+    {
+        auto g = autoPtr<volVectorField>(new volVectorField(test_FOM._U0()));
+        auto single_snap = tensor_stacked.slice(0, i, 1+i).squeeze();
+        auto field = torch2Foam::torch2Field<vector>(single_snap);
+        g.ref().ref().field() = field;
+        rec_fields.append(g);
+    }
+    ITHACAstream::exportFields(rec_fields, "./INTR", "g0");
+
+    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 607 #################### " << test_FOM.Ufield.size() << " " << rec_fields.size() << endl;
+
+    // compute LRelError
+    Eigen::MatrixXd errConsistency = ITHACAutilities::errorL2Rel(test_FOM.Ufield,
+                             rec_fields);
+
+    ITHACAstream::exportMatrix(errConsistency, "errConsistency", "matlab",
+                               "./ITHACAoutput/ErrorsL2/");
+    cnpy::save(errConsistency, "./ITHACAoutput/ErrorsL2/errConsistency.npy");
 }

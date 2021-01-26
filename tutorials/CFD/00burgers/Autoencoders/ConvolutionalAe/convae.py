@@ -102,12 +102,13 @@ class AE(nn.Module):
                  hidden_dim=400,
                  use_cuda=True,
                  domain_size=DOMAIN_SIZE,
-                 scale=(-1, 1), mean=0):
+                 scale=(-1, 1),
+                 mean=0):
         super(AE, self).__init__()
         # create the encoder and decoder networks
         self.encoder = DeepDeepEncoder(hidden_dim, domain_size)
-        self.decoder = DeepDeepDecoder(hidden_dim, domain_size, self.encoder.hl,
-                                   scale, mean)
+        self.decoder = DeepDeepDecoder(hidden_dim, domain_size,
+                                       self.encoder.hl, scale, mean)
 
         if use_cuda:
             # calling cuda() here will put all the parameters of
@@ -184,16 +185,20 @@ class DeepEncoder(nn.Module):
         # print(self.hl)
         self.layer1 = nn.Sequential(
             nn.Conv2d(2, 8, kernel_size=5, stride=2, padding=1),
-            nn.BatchNorm2d(8), Swish())
+            # nn.BatchNorm2d(8),
+             Swish())
         self.layer2 = nn.Sequential(
             nn.Conv2d(8, 16, kernel_size=5, stride=2, padding=1),
-            nn.BatchNorm2d(16), Swish())
+            # nn.BatchNorm2d(16),
+             Swish())
         self.layer3 = nn.Sequential(
             nn.Conv2d(16, 32, kernel_size=5, stride=2, padding=1),
-            nn.BatchNorm2d(32), Swish())
+            # nn.BatchNorm2d(32),
+             Swish())
         self.layer4 = nn.Sequential(
             nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1),
-            nn.BatchNorm2d(64), Swish())
+            # nn.BatchNorm2d(64),
+             Swish())
         self.fc = nn.Sequential(nn.Linear(64 * (self.hl)**2,
                                           hidden_dim))  #, Swish())
 
@@ -219,6 +224,7 @@ class DeepEncoder(nn.Module):
         # print(convlayer(convlayer(convlayer(self.ds))))
         return lastconvlayer(convlayer(convlayer(convlayer(self.ds))))
 
+
 class DeepDeepEncoder(nn.Module):
     def __init__(self, hidden_dim, domain_size):
         super(DeepDeepEncoder, self).__init__()
@@ -227,19 +233,24 @@ class DeepDeepEncoder(nn.Module):
         # print(self.hl)
         self.layer1 = nn.Sequential(
             nn.Conv2d(2, 8, kernel_size=5, stride=2, padding=0),
-            nn.BatchNorm2d(8), Swish())
+            # nn.BatchNorm2d(8),
+             nn.Tanh())
         self.layer2 = nn.Sequential(
             nn.Conv2d(8, 16, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(16), Swish())
+            # nn.BatchNorm2d(16),
+             nn.Tanh())
         self.layer3 = nn.Sequential(
             nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(32), Swish())
+            # nn.BatchNorm2d(32),
+             nn.Tanh())
         self.layer4 = nn.Sequential(
             nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(64), Swish())
+            # nn.BatchNorm2d(64),
+             nn.Tanh())
         self.layer5 = nn.Sequential(
             nn.Conv2d(64, 128, kernel_size=2, stride=2, padding=1),
-            nn.BatchNorm2d(128), Swish())
+            # nn.BatchNorm2d(128),
+             nn.Tanh())
         self.fc = nn.Sequential(nn.Linear(128 * 3**2, hidden_dim))  #, Swish())
 
     def forward(self, x):
@@ -265,6 +276,7 @@ class DeepDeepEncoder(nn.Module):
         # print(convlayer(convlayer(self.ds)))
         # print(convlayer(convlayer(convlayer(self.ds))))
         return lastconvlayer(convlayer(convlayer(convlayer(self.ds))))
+
 
 # class DeepDecoder(nn.Module):
 #     def __init__(self, hidden_dim, domain_size, hidden_length, scale, mean):
@@ -306,6 +318,7 @@ class DeepDeepEncoder(nn.Module):
 #         # out = (out - self.mean)/(self.scale)
 #         return out.reshape(-1, self.ds * self.ds * 2)  # vectorized
 
+
 class DeepDecoder(nn.Module):
     def __init__(self, hidden_dim, domain_size, hidden_length, scale, mean):
         super(DeepDecoder, self).__init__()
@@ -315,16 +328,16 @@ class DeepDecoder(nn.Module):
         self.mean = mean
 
         self.fc = nn.Sequential(nn.Linear(hidden_dim, 64 * (self.hl)**2),
-                                Swish())
+                                nn.Tanh())
         self.layer1 = nn.Sequential(
             nn.ConvTranspose2d(64, 32, kernel_size=5, stride=2, padding=1),
-            nn.BatchNorm2d(32), Swish())
+            nn.BatchNorm2d(32), nn.Tanh())
         self.layer2 = nn.Sequential(
             nn.ConvTranspose2d(32, 16, kernel_size=5, stride=2, padding=1),
-            nn.BatchNorm2d(16), Swish())
+            nn.BatchNorm2d(16), nn.Tanh())
         self.layer3 = nn.Sequential(
             nn.ConvTranspose2d(16, 8, kernel_size=5, stride=2, padding=2),
-            nn.BatchNorm2d(8), Swish())
+            nn.BatchNorm2d(8), nn.Tanh())
         self.layer4 = nn.Sequential(
             nn.ConvTranspose2d(8, 2, kernel_size=6, stride=2, padding=1),
             nn.BatchNorm2d(2))
@@ -342,9 +355,10 @@ class DeepDecoder(nn.Module):
         out = self.layer4(out).reshape(-1, self.ds * self.ds * 2)
 
         out *= 0.5 * (self.scale[1] - self.scale[0])
-        out += 0.5*(self.scale[1] + self.scale[0])
+        out += 0.5 * (self.scale[1] + self.scale[0])
 
-        return out#*(self.scale[1]-self.scale[0])+self.scale[0]  # vectorized
+        return out  #*(self.scale[1]-self.scale[0])+self.scale[0]  # vectorized
+
 
 class DeepDeepDecoder(nn.Module):
     def __init__(self, hidden_dim, domain_size, hidden_length, scale, mean):
@@ -355,24 +369,31 @@ class DeepDeepDecoder(nn.Module):
         self.mean = mean
 
         self.fc = nn.Sequential(nn.Linear(hidden_dim, 128 * (self.hl)**2),
-                                Swish())
+                                nn.Tanh())
         self.layer0 = nn.Sequential(
             nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2, padding=1),
-            nn.BatchNorm2d(64), Swish())
+            # nn.BatchNorm2d(64),
+             nn.Tanh())
         self.layer1 = nn.Sequential(
             nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(32), Swish())
+            # nn.BatchNorm2d(32),
+             nn.Tanh())
         self.layer2 = nn.Sequential(
             nn.ConvTranspose2d(32, 16, kernel_size=4, stride=2, padding=1),
-            nn.BatchNorm2d(16), Swish())
+            # nn.BatchNorm2d(16),
+             nn.Tanh())
         self.layer3 = nn.Sequential(
             nn.ConvTranspose2d(16, 8, kernel_size=3, stride=2, padding=0),
-            nn.BatchNorm2d(8), Swish())
+            # nn.BatchNorm2d(8),
+             nn.Tanh())
         self.layer4 = nn.Sequential(
+            # nn.UpsamplingBilinear2d(scale_factor=2),
             nn.ConvTranspose2d(8, 2, kernel_size=4, stride=2, padding=0),
-            nn.BatchNorm2d(2))
+            # nn.BatchNorm2d(2),
+        )
 
     def forward(self, z):
+        # print("LATENT", z.shape, z)
         out = self.fc(z)
         out = out.reshape(-1, 128, self.hl, self.hl)
         # print(out.size())
@@ -392,7 +413,8 @@ class DeepDeepDecoder(nn.Module):
         out += 0.5 * (self.scale[1] + self.scale[0])
         out += self.mean
         out = out.reshape(-1, self.ds * self.ds * 2)
-        return torch.nn.functional.relu(out)#*(self.scale[1]-self.scale[0])+self.scale[0]  # vectorized
+        return nn.functional.relu(out)  #*(self.scale[1]-self.scale[0])+self.scale[0]  # vectorized
+
 
 class ShallowDecoder(nn.Module):
     def __init__(self, hidden_dim, domain_size, hidden_length, scale):
@@ -417,6 +439,20 @@ class ShallowDecoder(nn.Module):
         return out * (self.scale[1] - self.scale[0]) + self.scale[0]
 
 
+def regularizerl2(model, device, factor=0.01):
+    l2_lambda = factor
+    l2_reg = torch.tensor(0.).to(device)
+    for param in model.parameters():
+        l2_reg += torch.norm(param)
+    return l2_lambda * l2_reg
+
+def regularizerl1(model, device, factor=0.01):
+    l1_lambda = factor
+    l1_reg = torch.tensor(0.).to(device)
+    for param in model.parameters():
+        l1_reg += torch.norm(param, 1)
+    return l1_lambda * l1_reg
+
 class Normalize(object):
     def __init__(self, snap, center_fl=True, scale_fl=True):
         self.n_total = snap.shape[0]
@@ -427,7 +463,7 @@ class Normalize(object):
 
         if self._center_fl:
             self._mean = np.mean(snap_tmp, axis=0, keepdims=True)
-            plot_snapshot(self._mean, 0, title="mean")
+            # plot_snapshot(self._mean, 0, title="mean")
 
         if self._scale_fl:
             print("max, min snap before centering: ", np.max(snap_tmp),
@@ -460,11 +496,13 @@ class Normalize(object):
         return np.mean(snap, axis=0)
 
     def scale(self, snap, device=None):
-        assert len(snap.shape) == 4, "snapshots to be scaled must be in frame format"
+        assert len(
+            snap.shape) == 4, "snapshots to be scaled must be in frame format"
 
         if self._center_fl:
             if device:
-                mean = torch.from_numpy(self._mean).to(device, dtype=torch.float)
+                mean = torch.from_numpy(self._mean).to(device,
+                                                       dtype=torch.float)
                 # std = torch.from_numpy(self._std).to(device, dtype=torch.float)
             else:
                 mean = self._mean
@@ -476,21 +514,23 @@ class Normalize(object):
             snap = snap - 0.5 * (self._min_sn + self._max_sn)
             snap = snap * 2 / (self._max_sn - self._min_sn)
             # snap /= std
-            assert np.max(snap) <= 1.0, "Error in scale "+str(np.max(snap))
-            assert np.min(snap) >= -1.0, "Error in scale "+str(np.min(snap))
+            assert np.max(snap) <= 1.0, "Error in scale " + str(np.max(snap))
+            assert np.min(snap) >= -1.0, "Error in scale " + str(np.min(snap))
         return snap
 
     def rescale(self, snap, device=None):
-        assert len(snap.shape) == 4, "snapshots to be rescaled must be in frame format"
+        assert len(snap.shape
+                   ) == 4, "snapshots to be rescaled must be in frame format"
 
         if self._scale_fl:
-            snap = snap *(self._max_sn - self._min_sn) / 2
-            snap = snap +  0.5 * (self._min_sn + self._max_sn)
+            snap = snap * (self._max_sn - self._min_sn) / 2
+            snap = snap + 0.5 * (self._min_sn + self._max_sn)
             # snap *= std
 
         if self._center_fl:
             if device:
-                mean = torch.from_numpy(self._mean).to(device, dtype=torch.float)
+                mean = torch.from_numpy(self._mean).to(device,
+                                                       dtype=torch.float)
                 # std = torch.from_numpy(self._std).to(device, dtype=torch.float)
             else:
                 mean = self._mean
@@ -516,9 +556,11 @@ class Normalize(object):
     def mean(self, device=None):
         if self._center_fl:
             if device:
-                return torch.from_numpy(self._mean).to(device, dtype=torch.float)
+                return torch.from_numpy(self._mean).to(device,
+                                                       dtype=torch.float)
             else:
                 return self._mean
+
 
 def save_ckp(state, is_best, checkpoint_dir, best_model_dir):
     f_path = checkpoint_dir + 'checkpoint.pt'
@@ -527,20 +569,22 @@ def save_ckp(state, is_best, checkpoint_dir, best_model_dir):
         best_fpath = best_model_dir + 'best_model.pt'
         shutil.copyfile(f_path, best_fpath)
 
+
 def load_ckp(checkpoint_fpath, model, optimizer):
     checkpoint = torch.load(checkpoint_fpath)
     model.load_state_dict(checkpoint['state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer'])
     return model, optimizer, checkpoint['epoch']
 
-def plot_snapshot(frame, idx, idx_coord=1, title=""):
+
+def plot_snapshot(frame, idx, idx_coord=0, title=""):
     m = frame.shape[2]
     x, y = np.meshgrid(np.arange(m), np.arange(m))
     z = frame[idx, idx_coord, x, y]
     plt.figure(figsize=(7, 6))
     plt.title(title)
     pl = plt.contourf(x, y, z)
-    # v1 = np.linspace(0, 0.5, 15)
+    # v1 = np.linspace(0, 0.1, 100)
     # plt.clim(0., 0.1)
     cb = plt.colorbar(pl, fraction=0.046, pad=0.04)  #, ticks=v1)
     plt.show()
@@ -548,7 +592,13 @@ def plot_snapshot(frame, idx, idx_coord=1, title=""):
     # cb.ax.set_yticklabels(["{:2.5f}".format(i) for i in v1])
 
 
-def plot_two(snap, snap_reconstruct, idx, epoch, idx_coord=0, title='bu', save=True):
+def plot_two(snap,
+             snap_reconstruct,
+             idx,
+             epoch,
+             idx_coord=0,
+             title='bu',
+             save=True):
     domain_size = snap.shape[2]
     x, y = np.meshgrid(np.arange(domain_size), np.arange(domain_size))
     if isinstance(idx, Iterable):
@@ -558,7 +608,7 @@ def plot_two(snap, snap_reconstruct, idx, epoch, idx_coord=0, title='bu', save=T
         z = [snap[idx, idx_coord, x, y]]
         z_reconstruct = [snap_reconstruct[idx, idx_coord, x, y]]
 
-    fig, axes = plt.subplots(2, len(z), figsize=(len(z) * 4, 10))
+    fig, axes = plt.subplots(3, len(z), figsize=(len(z) * 4, 10))
     fig.suptitle(title)
     if len(z) > 2:
         for i, image in enumerate(z):
@@ -567,6 +617,9 @@ def plot_two(snap, snap_reconstruct, idx, epoch, idx_coord=0, title='bu', save=T
         for i, image in enumerate(z_reconstruct):
             im_ = axes[1, i].contourf(x, y, image)
             fig.colorbar(im_, ax=axes[1, i])
+        for i, image in enumerate(z):
+            A = z > 0
+            axes[2, i].spy(A)
     elif len(z) == 1:
         for i, image in enumerate(z):
             im = axes[0].contourf(x, y, image)
@@ -574,11 +627,15 @@ def plot_two(snap, snap_reconstruct, idx, epoch, idx_coord=0, title='bu', save=T
         for i, image in enumerate(z_reconstruct):
             im_ = axes[1].contourf(x, y, image)
             fig.colorbar(im_, ax=axes[1])
+        for i, image in enumerate(z):
+            A = image > 0
+            axes[2].spy(A)
     if save:
         plt.savefig('./data/' + title + "_" + str(epoch) + '.png')
         plt.close()
     else:
         plt.show()
+
 
 def plot_compare(snap, snap_reconstruct, n_train, idx_coord=0, n_samples=5):
     domain_size = snap.shape[2]

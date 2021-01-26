@@ -76,7 +76,7 @@ Embedding::Embedding(int dim, fileName decoder_path, volVectorField &U0, Eigen::
     std::vector<torch::jit::IValue> input;
     torch::Tensor latent_initial_tensor = torch2Eigen::eigenMatrix2torchTensor(latent_initial);
 
-    input.push_back(latent_initial_tensor.to(torch::kCUDA));
+    input.push_back(latent_initial_tensor.to(torch::kFloat32).to(torch::kCUDA));
 
     auto start = std::chrono::system_clock::now();
     torch::Tensor tensor = decoder->forward(std::move(input)).toTensor().to(torch::kCPU);
@@ -92,12 +92,12 @@ Embedding::Embedding(int dim, fileName decoder_path, volVectorField &U0, Eigen::
     auto g0 = torch2Foam::torch2Field<vector>(tensor_stacked);
     _g0.ref().ref().field() = std::move(g0);
 
-    // PtrList<volVectorField> save_field;
-    // save_field.append(_g0());
+    PtrList<volVectorField> save_field;
+    save_field.append(_g0());
     // auto test_ref_0 = embedding_ref(1);
     // save_field.append(test_ref_0() + _g0());
-    // ITHACAstream::exportFields(save_field, "./REF", "g0");
-    // counter++;
+    ITHACAstream::exportFields(save_field, "./REF", "g0");
+    counter++;
 }
 
 // return reference element of embedding s.t. initial embedding is mu * _U0()
@@ -116,7 +116,7 @@ autoPtr<volVectorField> Embedding::forward(const Eigen::VectorXd &x, const scala
     torch::Tensor input_tensor = torch2Eigen::eigenMatrix2torchTensor(std::move(input_matrix));
     input_tensor = input_tensor.reshape({1, latent_dim});
     input_tensor = input_tensor.set_requires_grad(true);
-    input.push_back(input_tensor.to(torch::kCUDA));
+    input.push_back(input_tensor.to(torch::kFloat32).to(torch::kCUDA));
 
     torch::Tensor push_forward_tensor = decoder->forward(std::move(input)).toTensor().to(torch::kCPU);
 
@@ -155,7 +155,7 @@ autoPtr<Eigen::MatrixXd> Embedding::jacobian(const Eigen::VectorXd &x, const sca
 
     std::vector<torch::jit::IValue> input_jac;
     auto input_repeated = input_tensor.repeat({jacobian_out_dim, 1});
-    input_repeated = input_repeated.set_requires_grad(true).to(torch::kCUDA);
+    input_repeated = input_repeated.set_requires_grad(true).to(torch::kFloat32).to(torch::kCUDA);
     input_jac.push_back(input_repeated);
 
     // matrix to left multiply Jacobian matrix with s.t. autograd::grad
@@ -334,7 +334,7 @@ void NonlinearReducedBurgers::solveOnline(Eigen::MatrixXd mu, int startSnap)
         nextStore += numberOfStores;
 
         // Create nonlinear solver object
-        Eigen::NumericalDiff<newton_nmlspg_burgers, Eigen::Central> numDiffobject(newton_object, 1.e-02);
+        Eigen::NumericalDiff<newton_nmlspg_burgers, Eigen::Central> numDiffobject(newton_object, 1.e-05);
         // Eigen::LevenbergMarquardt<decltype(newton_object)> lm(newton_object);
         Eigen::LevenbergMarquardt<decltype(numDiffobject)> lm(numDiffobject);
         lm.parameters.factor = 10;

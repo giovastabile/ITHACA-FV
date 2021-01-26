@@ -13,7 +13,7 @@
 #ifndef EIGEN_LEVENBERGMARQUARDT__H
 #define EIGEN_LEVENBERGMARQUARDT__H
 
-namespace Eigen { 
+namespace Eigen {
 
 namespace LevenbergMarquardtSpace {
     enum Status {
@@ -50,13 +50,13 @@ class LevenbergMarquardt
       using std::sqrt;
       return sqrt(NumTraits<Scalar>::epsilon());
     }
-    
+
 public:
     LevenbergMarquardt(FunctorType &_functor)
         : functor(_functor) { nfev = njev = iter = 0;  fnorm = gnorm = 0.; useExternalScaling=false; }
 
     typedef DenseIndex Index;
-    
+
     struct Parameters {
         Parameters()
             : factor(Scalar(100.))
@@ -111,11 +111,11 @@ public:
     Index njev;
     Index iter;
     Scalar fnorm, gnorm;
-    bool useExternalScaling; 
+    bool useExternalScaling;
 
     Scalar lm_param(void) { return par; }
 private:
-    
+
     FunctorType &functor;
     Index n;
     Index m;
@@ -162,6 +162,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(FVectorType  &x)
         return status;
     do {
         status = minimizeOneStep(x);
+        std::cout << "status: " << status << std::endl;
     } while (status==LevenbergMarquardtSpace::Running);
     return status;
 }
@@ -327,6 +328,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
         /* test for successful iteration. */
         if (ratio >= Scalar(1e-4)) {
             /* successful iteration. update x, fvec, and their norms. */
+            std::cout << "SUCCESS" << std::endl;
             x = wa2;
             wa2 = diag.cwiseProduct(x);
             fvec = wa4;
@@ -335,14 +337,20 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
             ++iter;
         }
 
+        std::cout << "OUT2" << std::endl;
         /* tests for convergence. */
-        if (abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm)
+        if (abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm){
+            std::cout << "REL ERR AND REDUCTION TOO SMALL " << abs(actred)<< " < " << parameters.ftol << " && " << prered << " < " << parameters.ftol << " && " << delta << " < " << parameters.xtol * xnorm << " && " << ratio << std::endl;
             return LevenbergMarquardtSpace::RelativeErrorAndReductionTooSmall;
-        if (abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.)
+        }
+        if (abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.){
+            std::cout << "REDUCTION TOO SMALL " << abs(actred)<< " < " << parameters.ftol << " && " << prered << " < " << parameters.ftol << " && " << delta << " < " << parameters.xtol * xnorm << " && " << ratio << std::endl;
             return LevenbergMarquardtSpace::RelativeReductionTooSmall;
-        if (delta <= parameters.xtol * xnorm)
+        }
+        if (delta <= parameters.xtol * xnorm){
+            std::cout << "REL ERR TOO SMALL " << delta << " " << parameters.xtol << " " << xnorm << std::endl;
             return LevenbergMarquardtSpace::RelativeErrorTooSmall;
-
+        }
         /* tests for termination and stringent tolerances. */
         if (nfev >= parameters.maxfev)
             return LevenbergMarquardtSpace::TooManyFunctionEvaluation;
@@ -435,7 +443,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(FVectorTyp
 {
     using std::abs;
     using std::sqrt;
-    
+
     eigen_assert(x.size()==n); // check the caller is not cheating us
 
     Index i, j;
@@ -591,6 +599,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(FVectorTyp
         if (abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.)
             return LevenbergMarquardtSpace::RelativeReductionTooSmall;
         if (delta <= parameters.xtol * xnorm)
+            std::cout << "REL ERR TOO SMALL" << delta << " " << parameters.xtol << " " << xnorm << std::endl;
             return LevenbergMarquardtSpace::RelativeErrorTooSmall;
 
         /* tests for termination and stringent tolerances. */
