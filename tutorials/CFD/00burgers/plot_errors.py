@@ -23,7 +23,7 @@ plt.semilogy(np.arange(error_L2_CAE_projection.shape[0])[1:]/1000, error_L2_CAE_
 plt.semilogy(np.arange(error_L2_CAE_projection.shape[0])[1:]/1000, error_L2_ROM_projection[1:], label="projection error ROM",  linewidth=2)
 plt.semilogy(np.arange(error_L2_CAE_projection.shape[0])[1:]/1000, error_L2_intrusive_NMLSPGCentral[1:], label="NM-LSPG-Central",  linewidth=2)
 
-plt.semilogy(np.arange(error_L2_CAE_projection.shape[0])[1:]/1000, error_L2_intrusive_NMLSPGTrue[1:], label="NM-LSPG-TrueJacobian",  linewidth=2)
+# plt.semilogy(np.arange(error_L2_CAE_projection.shape[0])[1:]/1000, error_L2_intrusive_NMLSPGTrue[1:], label="NM-LSPG-TrueJacobian",  linewidth=2)
 plt.semilogy(np.arange(error_consistency.shape[0])[1:]/1000, error_consistency[1:], label="non-intrus-cae-lstm consistency",  linewidth=2)
 
 plt.legend()

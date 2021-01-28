@@ -41,11 +41,10 @@ def main(args):
     snap_framed = nor.framesnap(snap_vec)
     print("add constant solution: ", snap_framed.shape)
     snap_scaled = nor.scale(snap_framed)
-    # print(nor.framesnap(snap_vec).shape, np.zeros((1 ,DIM, DOMAIN_SIZE, DOMAIN_SIZE)).shape)
-    # snap_scaled = np.concatenate((snap_scaled, np.zeros((1 ,DIM, DOMAIN_SIZE, DOMAIN_SIZE))), axis=0)
     snaps_torch = torch.from_numpy(snap_scaled)
     print("snapshots shape", snap_scaled.shape)
     print("Min max after scaling: ", np.min(snap_scaled), np.max(snap_scaled))
+    # plot_snapshot(snap_scaled, 0)
 
     # Test snapshots
     snap_true_vec = np.load(WM_PROJECT + "npTrueSnapshots.npy")

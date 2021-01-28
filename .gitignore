@@ -307,3 +307,5 @@ tutorials/CFD/00burgers/RESIDUAL/*
 tutorials/CFD/00burgers/system_df.npy
 
 tutorials/CFD/00burgers/torch_grad.npy
+
+*.pt

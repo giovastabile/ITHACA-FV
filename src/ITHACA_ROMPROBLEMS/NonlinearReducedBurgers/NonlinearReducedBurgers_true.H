@@ -80,26 +80,20 @@ public:
     int counter = 0;
     PtrList<volVectorField> save_field;
 
-    Embedding() {Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.H, line 73 #################### " << endl;}
+    Embedding() {}
     Embedding(int latent_dim, fileName decoder_path, volVectorField &U0, Eigen::MatrixXd lat_init);
 
     Embedding(Embedding &embedding) : latent_dim{embedding.latent_dim},
                                       output_dim{embedding.output_dim},
                                       decoder{embedding.decoder},
                                       _U0{embedding._U0},
-                                      _g0{embedding._g0}
-    {
-        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.H, line 81 #################### " << endl;
-    }
+                                      _g0{embedding._g0}{}
 
     Embedding(Embedding &&embedding) : latent_dim{std::move(embedding.latent_dim)},
                                        output_dim{embedding.output_dim},
                                       decoder{std::move(embedding.decoder)},
                                       _U0{std::move(embedding._U0)},
-                                      _g0{std::move(embedding._g0)}
-    {
-        Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.H, line 81 #################### " << endl;
-    }
+                                      _g0{std::move(embedding._g0)}{}
 
     autoPtr<volVectorField> forward(const Eigen::VectorXd &x, const scalar mu);
     autoPtr<Eigen::MatrixXd> jacobian(const Eigen::VectorXd &x, const scalar mu);
@@ -108,7 +102,7 @@ public:
 
     autoPtr<volVectorField> embedding_ref(const scalar mu);
 
-    ~Embedding(){Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers/NonlinearReducedBurgers.H, line 96 #################### " << endl;};
+    ~Embedding(){};
 };
 
 /// Structure to implement a newton object for a non-stationary NS problem

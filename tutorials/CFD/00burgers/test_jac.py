@@ -82,7 +82,7 @@ print(central5.shape)
 
 # print("mean, max 1e-2", np.mean(np.abs(jac-central2))/np.mean(np.abs(central2)), np.max(np.abs(jac-central2))/np.max(np.abs(jac)))
 # print("mean, max 1e-3", np.mean(np.abs(jac-central3))/np.mean(np.abs(central3)), np.max(np.abs(jac-central3))/np.max(np.abs(jac)))
-print("mean, max 1e-5", np.mean(np.abs(jac-central5))/np.mean(np.abs(central5)), np.max(np.abs(jac-central5))/np.max(np.abs(jac)))
+print("mean, max 1e-5", np.mean(np.abs(jac+central5))/np.mean(np.abs(jac)), np.max(np.abs(jac+central5))/np.max(np.abs(jac)))
 
 # print("sys", sys == 0.)
 # print("TORCH", torch_grad)

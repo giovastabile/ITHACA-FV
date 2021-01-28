@@ -48,7 +48,7 @@ EXE_INC = \
     -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/ReducedLaplacian \
     -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/reducedInverseLaplacian \
     -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/NonLinearSolvers \
-    -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers \
+    -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/NonlinearReducedBurgers_central \
     -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/ReducedSimpleSteadyNS \
     -I$(LIB_ITHACA_SRC)/ITHACA_DEIM/DEIM \
     -I$(LIB_ITHACA_SRC)/ITHACA_THIRD_PARTY/splinter/include \

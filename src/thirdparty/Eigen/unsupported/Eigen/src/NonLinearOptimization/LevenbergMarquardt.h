@@ -328,7 +328,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
         /* test for successful iteration. */
         if (ratio >= Scalar(1e-4)) {
             /* successful iteration. update x, fvec, and their norms. */
-            std::cout << "SUCCESS" << std::endl;
             x = wa2;
             wa2 = diag.cwiseProduct(x);
             fvec = wa4;
@@ -337,18 +336,14 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
             ++iter;
         }
 
-        std::cout << "OUT2" << std::endl;
         /* tests for convergence. */
         if (abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm){
-            std::cout << "REL ERR AND REDUCTION TOO SMALL " << abs(actred)<< " < " << parameters.ftol << " && " << prered << " < " << parameters.ftol << " && " << delta << " < " << parameters.xtol * xnorm << " && " << ratio << std::endl;
             return LevenbergMarquardtSpace::RelativeErrorAndReductionTooSmall;
         }
         if (abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.){
-            std::cout << "REDUCTION TOO SMALL " << abs(actred)<< " < " << parameters.ftol << " && " << prered << " < " << parameters.ftol << " && " << delta << " < " << parameters.xtol * xnorm << " && " << ratio << std::endl;
             return LevenbergMarquardtSpace::RelativeReductionTooSmall;
         }
         if (delta <= parameters.xtol * xnorm){
-            std::cout << "REL ERR TOO SMALL " << delta << " " << parameters.xtol << " " << xnorm << std::endl;
             return LevenbergMarquardtSpace::RelativeErrorTooSmall;
         }
         /* tests for termination and stringent tolerances. */

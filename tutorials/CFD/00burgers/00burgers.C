@@ -164,28 +164,17 @@ int main(int argc, char *argv[])
     }
     else if (std::strcmp(argv[1],"nonlinear")==0)
     {
-        // predict with NM-LSPG
+        // compute NM-LSPG and evaluate errors
         nonlinear_one_parameter_initial_velocity(example);
-        // auto decoder = torch::jit::load("./Autoencoders/ConvolutionalAe/decoder.pt");
-        // std::vector<torch::jit::IValue> input;
-
-
-        // torch::Tensor zero_latent_vector = torch::zeros({1, 4});
-        // input.push_back(zero_latent_vector);
-
-        // at::Tensor tensor = decoder.forward(input).toTensor();
-
-        // std::ofstream NNFile;
-        // NNFile.open ("./NNdata.txt");
-        // NNFile << tensor.slice(0, 3, 1);
-        // NNFile.close();
     }
     else if (std::strcmp(argv[1],"nltestrec")==0)
     {
+        // reconstruct NM projected solutions and compute NM projection error
         nonlinear_test_rec(example);
     }
     else if (std::strcmp(argv[1],"nltestdata")==0)
     {
+        // reconstruct NM-LSTM predicted solutions and compute rel L2 error
         nonlinear_test_data(example);
     }
     else
@@ -355,6 +344,7 @@ void test_one_parameter_initial_velocity(tutorial00 test_FOM)
 
     test_FOM.offlineSolveInitialVelocity("./ITHACAoutput/Offline/Test/");
     Eigen::MatrixXd trueSnapMatrix = Foam2Eigen::PtrList2Eigen(test_FOM.Ufield);
+
     Info << "snapshots size: " << trueSnapMatrix.size() << test_FOM.Ufield.size() << endl;
     cnpy::save(trueSnapMatrix, "npTrueSnapshots.npy");
 
@@ -382,9 +372,9 @@ void test_one_parameter_initial_velocity(tutorial00 test_FOM)
 
     // Reconstruct the solution and export it
     reduced_nonIntrusive.reconstruct(true, "./ITHACAoutput/ReconstructionNonIntrusive/", nonIntrusiveCoeff);
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 350 #################### " << reduced_nonIntrusive.uRecFields.size() << " " << test_FOM.Ufield.size() << endl;
+
     Eigen::MatrixXd errL2UnonIntrusive = ITHACAutilities::errorL2Rel(test_FOM.Ufield, reduced_nonIntrusive.uRecFields);
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 352 #################### " << endl;
+
     ITHACAstream::exportMatrix(errL2UnonIntrusive, "errL2UnonIntrusive", "matlab",
                                "./ITHACAoutput/ErrorsL2/");
     cnpy::save(errL2UnonIntrusive, "./ITHACAoutput/ErrorsL2/errL2UnonIntrusive.npy");
@@ -402,13 +392,11 @@ void test_one_parameter_initial_velocity(tutorial00 test_FOM)
     reduced_intrusive.solveOnline(test_FOM.mu, 1);
     ITHACAstream::exportMatrix(reduced_intrusive.online_solution, "red_coeff", "python", "./ITHACAoutput/red_coeff_intrusive");
 
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 371 #################### " << endl;
-
     // Reconstruct the solution and export it
     reduced_intrusive.reconstruct(true, "./ITHACAoutput/ReconstructionIntrusive/");
     ITHACAstream::exportFields(reduced_intrusive.uRecFields, "./ITHACAoutput/ReconstructionIntrusive/", "uRec");
 
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 374 #################### " << reduced_intrusive.uRecFields.size() << " " << test_FOM.Ufield.size() << endl;
+
     Eigen::MatrixXd errL2Uintrusive = ITHACAutilities::errorL2Rel(test_FOM.Ufield,
                              reduced_intrusive.uRecFields);
 
@@ -418,7 +406,7 @@ void test_one_parameter_initial_velocity(tutorial00 test_FOM)
 
     // Evaluate the true projection error
     reduced_intrusive.trueProjection("./ITHACAoutput/Reconstruction/");
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 383 #################### " << endl;
+
     Eigen::MatrixXd errL2UtrueProjection = ITHACAutilities::errorL2Rel(test_FOM.Ufield,
                              reduced_intrusive.uRecFields);
 
@@ -472,26 +460,6 @@ void nonlinear_one_parameter_initial_velocity(tutorial00 test_FOM)
     test_FOM.NUmodes = NmodesUproj;
     ITHACAstream::read_fields(test_FOM.L_Umodes, "U", "./ITHACAoutput/POD_and_initial/", 1, NmodesUout);
     test_FOM.NL_Umodes = test_FOM.L_Umodes.size();
-
-    // nonIntrusive ConvAe nonlinear reduction
-    // Eigen::MatrixXd nonIntrusiveConvAe;
-
-    // nonIntrusiveConvAe = cnpy::load(nonIntrusiveConvAe, "nonIntrusiveCoeffConvAeOF.npy", "rowMajor");
-    // PtrList<volVectorField> snap_rec;
-    // volVectorField tmp = test_FOM.L_Umodes[0];
-    // Eigen::VectorXd single_snap;
-
-    // for(int i=0; i < nonIntrusiveConvAe.cols(); ++i)
-    //     single_snap = nonIntrusiveConvAe.row(i);
-    //     Foam2Eigen::Eigen2field(tmp, single_snap);
-    //     snap_rec.append(tmp);
-
-    // ITHACAstream::exportFields(snap_rec, "./ITHACAoutput/ReconstructConvAe", "U");
-
-    // Eigen::MatrixXd errL2UnonIntrusiveConvAe = ITHACAutilities::errorL2Rel(test_FOM.Ufield, snap_rec);
-
-    // ITHACAstream::exportMatrix(errL2UnonIntrusiveConvAe, "errL2UnonIntrusiveConvAe", "matlab", "./ITHACAoutput/ErrorsL2/");
-    // cnpy::save(errL2UnonIntrusiveConvAe, "./ITHACAoutput/ErrorsL2/errL2UnonIntrusiveConvAe.npy");
 
     // NM-LSPG
     NonlinearReducedBurgers reduced_nm_lspg(test_FOM, "./Autoencoders/ConvolutionalAe/decoder_gpu_4.pt", NnonlinearModes, initial_latent);
@@ -569,38 +537,17 @@ void nonlinear_test_rec(tutorial00 test_FOM)
     // set, e.g. stack your batches into a single tensor.
     Eigen::MatrixXd dataset_eig;
     torch::Tensor inputs_true = torch2Eigen::eigenMatrix2torchTensor(cnpy::load(dataset_eig, "./npTrueSnapshots_framed.npy"));
-    // auto data_set = MyDataset("./npTrueSnapshots_framed.npy").map(torch::data::transforms::Stack<>());
-
-    // // Generate a data loader.
-    // auto data_loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
-    //     std::move(data_set),
-    //     /*bathc_size*/100);
 
     // load autoencoder
     auto ae = autoPtr<torch::jit::script::Module>(new torch::jit::script::Module(torch::jit::load("./Autoencoders/ConvolutionalAe/model_gpu_4.pt")));
 
     // forward autoencoder
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 576 #################### " << endl;
     // auto rec_torch = torch::zeros({2001, 7200});
     std::vector<torch::jit::IValue> input;
     input.push_back(inputs_true.reshape({2001, 2, 60, 60}).to(torch::kCUDA));
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 580 #################### " << endl;
     torch::Tensor forward_tensor = ae->forward(input).toTensor().squeeze().detach().to(torch::kCPU);
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 582 #################### " << forward_tensor.size(0) << " " << forward_tensor.size(1) << endl;
-    //  for(int i=0; i<3; i++)
-    // {
-    //     auto inputs_batch = inputs.slice(0, i*667, (1+i)*667).to(torch::kCUDA);
-    //     std::vector<torch::jit::IValue> input;
-    //     input.push_back(inputs_batch.to(torch::kCUDA));
-    //     torch::Tensor forward_tensor = ae->forward(input).toTensor().squeeze();
-    //     rec_torch.slice(/*dim*/0, i*667, (1+i)*667) = forward_tensor.detach();
-    // }
 
-    // convert to fields
-
-    // auto tensor_stacked = torch::cat({forward_tensor.reshape({2001, 2, 60, 60}), torch::zeros({2001, 1, 60, 60})}, 1).reshape({2001, 3, -1}).transpose(1, 2).contiguous();
     auto tensor_stacked = torch::cat({forward_tensor.reshape({2001, 2, 60, 60}), torch::zeros({2001, 1, 60, 60})}, 1).reshape({2001, 3, -1}).transpose(1, 2).contiguous();
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 595 #################### " << tensor_stacked.size(0) << " " << tensor_stacked.size(1) << " " << tensor_stacked.size(2) << endl;
 
     PtrList<volVectorField> rec_fields;
     for(int i=0; i<2001; i++)
@@ -613,7 +560,6 @@ void nonlinear_test_rec(tutorial00 test_FOM)
     }
     ITHACAstream::exportFields(rec_fields, "./REC_AE", "g0");
 
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 607 #################### " << test_FOM.Ufield.size() << " " << rec_fields.size() << endl;
 
     // compute LRelError
     Eigen::MatrixXd errConsistency = ITHACAutilities::errorL2Rel(test_FOM.Ufield,
@@ -654,7 +600,6 @@ void nonlinear_test_data(tutorial00 test_FOM)
     initial_latent = cnpy::load(initial_latent, "./Autoencoders/ConvolutionalAe/latent_initial_4.npy", "rowMajor");
     std::cout << "INITIAL" << initial_latent << std::endl;
 
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 654 #################### " << initial_latent(0) <<  endl;
     // Perform The Offline Solve;
     if (!ITHACAutilities::check_folder("./ITHACAoutput/Offline/Test/"))
     {
@@ -699,20 +644,12 @@ void nonlinear_test_data(tutorial00 test_FOM)
     ITHACAstream::exportFields(save_field, "./REFtest", "g0");
 
     // forward autoencoder
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 576 #################### " << endl;
-
     std::vector<torch::jit::IValue> input;
     input.push_back(inputs_hidden.to(at::kFloat).to(torch::kCUDA));
 
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 580 #################### " << endl;
-
     torch::Tensor forward_tensor = decoder->forward(input).toTensor().squeeze().detach().to(torch::kCPU);
 
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 582 #################### " << forward_tensor.size(0) << " " << forward_tensor.size(1) << endl;
-
     auto tensor_stacked = torch::cat({forward_tensor.reshape({2001, 2, 60, 60}), torch::zeros({2001, 1, 60, 60})}, 1).reshape({2001, 3, -1}).transpose(1, 2).contiguous();
-
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 595 #################### " << tensor_stacked.size(0) << " " << tensor_stacked.size(1) << " " << tensor_stacked.size(2) << endl;
 
     PtrList<volVectorField> rec_fields;
     for(int i=0; i<2001; i++)
@@ -724,8 +661,6 @@ void nonlinear_test_data(tutorial00 test_FOM)
         rec_fields.append(g);
     }
     ITHACAstream::exportFields(rec_fields, "./INTR", "g0");
-
-    Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/tutorials/CFD/00burgers/00burgers.C, line 607 #################### " << test_FOM.Ufield.size() << " " << rec_fields.size() << endl;
 
     // compute LRelError
     Eigen::MatrixXd errConsistency = ITHACAutilities::errorL2Rel(test_FOM.Ufield,

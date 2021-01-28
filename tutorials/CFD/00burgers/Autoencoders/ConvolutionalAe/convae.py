@@ -234,23 +234,23 @@ class DeepDeepEncoder(nn.Module):
         self.layer1 = nn.Sequential(
             nn.Conv2d(2, 8, kernel_size=5, stride=2, padding=0),
             # nn.BatchNorm2d(8),
-             nn.Tanh())
+             nn.ELU())
         self.layer2 = nn.Sequential(
             nn.Conv2d(8, 16, kernel_size=3, stride=2, padding=1),
             # nn.BatchNorm2d(16),
-             nn.Tanh())
+             nn.ELU())
         self.layer3 = nn.Sequential(
             nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1),
             # nn.BatchNorm2d(32),
-             nn.Tanh())
+             nn.ELU())
         self.layer4 = nn.Sequential(
             nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1),
             # nn.BatchNorm2d(64),
-             nn.Tanh())
+             nn.ELU())
         self.layer5 = nn.Sequential(
             nn.Conv2d(64, 128, kernel_size=2, stride=2, padding=1),
             # nn.BatchNorm2d(128),
-             nn.Tanh())
+             nn.ELU())
         self.fc = nn.Sequential(nn.Linear(128 * 3**2, hidden_dim))  #, Swish())
 
     def forward(self, x):
@@ -328,16 +328,16 @@ class DeepDecoder(nn.Module):
         self.mean = mean
 
         self.fc = nn.Sequential(nn.Linear(hidden_dim, 64 * (self.hl)**2),
-                                nn.Tanh())
+                                Swish())
         self.layer1 = nn.Sequential(
             nn.ConvTranspose2d(64, 32, kernel_size=5, stride=2, padding=1),
-            nn.BatchNorm2d(32), nn.Tanh())
+            nn.BatchNorm2d(32), Swish())
         self.layer2 = nn.Sequential(
             nn.ConvTranspose2d(32, 16, kernel_size=5, stride=2, padding=1),
-            nn.BatchNorm2d(16), nn.Tanh())
+            nn.BatchNorm2d(16), Swish())
         self.layer3 = nn.Sequential(
             nn.ConvTranspose2d(16, 8, kernel_size=5, stride=2, padding=2),
-            nn.BatchNorm2d(8), nn.Tanh())
+            nn.BatchNorm2d(8), Swish())
         self.layer4 = nn.Sequential(
             nn.ConvTranspose2d(8, 2, kernel_size=6, stride=2, padding=1),
             nn.BatchNorm2d(2))
@@ -369,23 +369,23 @@ class DeepDeepDecoder(nn.Module):
         self.mean = mean
 
         self.fc = nn.Sequential(nn.Linear(hidden_dim, 128 * (self.hl)**2),
-                                nn.Tanh())
+                                nn.ELU())
         self.layer0 = nn.Sequential(
             nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2, padding=1),
             # nn.BatchNorm2d(64),
-             nn.Tanh())
+             nn.ELU())
         self.layer1 = nn.Sequential(
             nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=1),
             # nn.BatchNorm2d(32),
-             nn.Tanh())
+             nn.ELU())
         self.layer2 = nn.Sequential(
             nn.ConvTranspose2d(32, 16, kernel_size=4, stride=2, padding=1),
             # nn.BatchNorm2d(16),
-             nn.Tanh())
+             nn.ELU())
         self.layer3 = nn.Sequential(
             nn.ConvTranspose2d(16, 8, kernel_size=3, stride=2, padding=0),
             # nn.BatchNorm2d(8),
-             nn.Tanh())
+             nn.ELU())
         self.layer4 = nn.Sequential(
             # nn.UpsamplingBilinear2d(scale_factor=2),
             nn.ConvTranspose2d(8, 2, kernel_size=4, stride=2, padding=0),
@@ -462,7 +462,8 @@ class Normalize(object):
         snap_tmp = self.framesnap(snap)
 
         if self._center_fl:
-            self._mean = np.mean(snap_tmp, axis=0, keepdims=True)
+            # self._mean = np.mean(snap_tmp, axis=0, keepdims=True)
+            self._mean = snap_tmp[:1, :, :, :]
             # plot_snapshot(self._mean, 0, title="mean")
 
         if self._scale_fl:
