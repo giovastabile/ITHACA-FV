@@ -109,7 +109,7 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
     ITHACAstream::exportSolution(U, name(counter), folder);
     std::ofstream of(folder + name(counter) + "/" +
                      runTime.timeName());
-    Ufield.append(U);
+    Ufield.append(U.clone());
     counter++;
     int write_counter{0};
     nextWrite += writeEvery;
@@ -152,7 +152,7 @@ void Burgers::truthSolve(List<scalar> mu_now, fileName folder)
                 ITHACAstream::exportSolution(U, name(counter), folder);
                 std::ofstream of(folder + name(counter) + "/" +
                                 runTime.timeName());
-                Ufield.append(U);
+                Ufield.append(U.clone());
                 counter++;
                 writeMu(mu_now);
                 // --- Fill in the mu_samples with parameters (time, mu) to be used for the PODI sample points
@@ -286,7 +286,7 @@ void Burgers::liftSolve()
                  / sum(mesh.magSf())).value()
              << endl;
         Ulift.write();
-        liftfield.append(Ulift);
+        liftfield.append(Ulift.clone());
     }
 }
 
@@ -302,7 +302,7 @@ void Burgers::project(fileName folder, label NU)
     {
         for (label k = 0; k < liftfield.size(); k++)
         {
-            L_Umodes.append(liftfield[k]);
+            L_Umodes.append(liftfield[k].clone());
         }
         NL_Umodes += liftfield.size();
     }
@@ -318,7 +318,7 @@ void Burgers::project(fileName folder, label NU)
     {
         for (label k = 0; k < NUmodes; k++)
         {
-            L_Umodes.append(Umodes[k]);
+            L_Umodes.append(Umodes[k].clone());
         }
     }
     Info << " #################### DEBUG ~/OpenFOAM/OpenFOAM-v2006/applications/utilities/ITHACA-FV/src/ITHACA_FOMPROBLEMS/burgers/burgers.C, line 317 #################### " << endl;

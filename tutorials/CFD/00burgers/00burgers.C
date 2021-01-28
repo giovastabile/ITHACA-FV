@@ -640,7 +640,7 @@ void nonlinear_test_data(tutorial00 test_FOM)
     auto g0 = torch2Foam::torch2Field<vector>(tensor_stacked_init);
     _g0.ref().ref().field() = std::move(g0);
     PtrList<volVectorField> save_field;
-    save_field.append(_g0());
+    save_field.append(_g0().clone());
     ITHACAstream::exportFields(save_field, "./REFtest", "g0");
 
     // forward autoencoder
