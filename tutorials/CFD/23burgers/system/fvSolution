@@ -18,9 +18,9 @@ solvers
 {
     U
     {
-        solver          GAMG;
-        smoother        GaussSeidel;
-        tolerance       1e-08;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-8;
         relTol          0;
     }
 }

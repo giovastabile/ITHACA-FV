@@ -130,12 +130,12 @@ void getPointsFromPatch(fvMesh& mesh, label ind,
 }
 
 List<vector> displacedSegment(List<vector> x0, double mux1,
-                              double mux2, double muy1, double muy2)
+                              double mux2, double muy1, double muy2, double muz1, double muz2)
 {
     vector minimum = min(x0);
     vector maximum = max(x0);
     double l = Foam::sqrt(pow(minimum[0] - maximum[0],
-                              2) + pow(minimum[1] - maximum[1], 2));
+                              2) + pow(minimum[1] - maximum[1], 2) + pow(minimum[2] - maximum[2], 2));
     double limin;
     double limax;
     List<vector> xdef(x0);
@@ -144,12 +144,12 @@ List<vector> displacedSegment(List<vector> x0, double mux1,
     for (label i = 0; i < x0.size(); i++)
     {
         limin = Foam::sqrt(pow(x0[i][0] - minimum[0], 2) + pow(x0[i][1] - minimum[1],
-                           2));
+                           2) + pow(x0[i][2] - minimum[2], 2));
         limax = Foam::sqrt(pow(x0[i][0] - maximum[0], 2) + pow(x0[i][1] - maximum[1],
-                           2));
+                           2) + pow(x0[i][2] - maximum[2], 2) );
         xdef[i][0] = x0[i][0] + mux1 * (1 - limin / l) + mux2 * (1 - limax / l);
         xdef[i][1] = x0[i][1] + muy1 * (1 - limin / l) + muy2 * (1 - limax / l);
-        xdef[i][2] = x0[i][2];
+        xdef[i][2] = x0[i][2] + muz1 * (1 - limin / l) + muz2 * (1 - limax / l);
     }
 
     displ = xdef - x0;

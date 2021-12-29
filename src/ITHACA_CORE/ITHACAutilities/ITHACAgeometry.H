@@ -116,11 +116,13 @@ void getPointsFromPatch(fvMesh& mesh, label ind, List<vector>& points,
 /// @param[in]  mux2  The x displacement of the 2nd end of the segment
 /// @param[in]  muy1  The y displacement of the 1st end of the segment
 /// @param[in]  muy2  The y displacement of the 2nd end of the segment
+/// @param[in]  muz1  The z displacement of the 1st end of the segment
+/// @param[in]  muz2  The z displacement of the 2nd end of the segment
 ///
 /// @return     The points coordinates of the displaced segment
 ///
 List<vector> displacedSegment(List<vector> x0, double mux1, double mux2,
-                              double muy1, double muy2);
+                              double muy1, double muy2, double muz1, double muz2);
 //----------------------------------------------------------------------
 /// @brief      Displace a Polabel belonging to a given segment
 ///

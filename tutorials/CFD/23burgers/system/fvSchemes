@@ -28,12 +28,17 @@ divSchemes
 {
     default         none;
     div(phi,U)      Gauss linearUpwind grad(U);
+    div(phi,subsetU)      Gauss linearUpwind grad(subsetU);
+    div(interpolate(U),subsetU)      Gauss linearUpwind grad(subsetU);
+    div(interpolate(Urec),U)      Gauss linearUpwind grad(Urec);
+    div(interpolate(U),U)      Gauss linearUpwind grad(U);
 }
 
 laplacianSchemes
 {
     default         none;
     laplacian(nu,U) Gauss linear corrected;
+    laplacian(nu,subsetU) Gauss linear corrected;
 }
 
 interpolationSchemes

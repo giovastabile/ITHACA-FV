@@ -92,22 +92,24 @@ void Burgers::truthSolve(word folder)
     dimensionedScalar& nu = _nu();
     counter = 1;
     ITHACAstream::exportSolution(U, name(counter), folder + name(folderN));
+    Ufield.append(U.clone());
     counter++;
     nextWrite = startTime;
     nextWrite += writeEvery;
 
-    while (_simple().loop())
+    while (simple.loop())
     {
         Info << "Time = " << _runTime().timeName() << nl << endl;
 
         while (simple.correctNonOrthogonal())
         {
-            solve
+            fvVectorMatrix UEqn
             (
                 fvm::ddt(U)
                 + fvm::div(phi, U)
                 - fvm::laplacian(nu, U)
             );
+            UEqn.solve();
         }
 
         phi = linearInterpolate(U) & mesh.Sf();
@@ -123,6 +125,64 @@ void Burgers::truthSolve(word folder)
 
     folderN++;
 }
+
+void Burgers::residual(label Nmodes, word folder)
+{
+    Time& runTime = _runTime();
+    fvMesh& mesh = _mesh();
+    volVectorField& U = _U();
+    surfaceScalarField& phi = _phi();
+    fv::options& fvOptions = _fvOptions();
+    simpleControl& simple = _simple();
+    dimensionedScalar& nu = _nu();
+    counter = 1;
+    ITHACAstream::exportSolution(U, name(counter), folder + name(folderN));
+    counter++;
+    nextWrite = startTime;
+    nextWrite += writeEvery;
+
+    while (simple.loop())
+    {
+        Info << "Time = " << _runTime().timeName() << nl << endl;
+        volVectorField Uaux(U.clone());
+        volVectorField UauxOld(U.oldTime().clone());
+        Uaux = Umodes.projectSnapshot(Uaux, Nmodes);
+        UauxOld = Umodes.projectSnapshot(UauxOld, Nmodes);
+        volVectorField& UauxOld2 = Uaux.oldTime();
+        UauxOld2 = UauxOld;
+
+        while (simple.correctNonOrthogonal())
+        {
+            fvVectorMatrix UEqn
+            (
+                fvm::ddt(U)
+                + fvm::div(phi, U)
+                - fvm::laplacian(nu, U)
+            );
+            UEqn.solve();
+        }
+
+        volVectorField res(-fvc::ddt(Uaux) - fvc::div(phi, Uaux) + fvc::laplacian(nu,
+                           Uaux));
+        volVectorField res2(res.clone());
+        dimensionedScalar one ("one", dimVol, 1.0);
+        res2.ref() = res * mesh.V() / one;
+        res2.rename("res");
+        phi = linearInterpolate(U) & mesh.Sf();
+
+        if (checkWrite(runTime))
+        {
+            ITHACAstream::exportSolution(res2, name(counter), folder + name(folderNres));
+            counter++;
+            resField.append(res2.clone());
+            nextWrite += writeEvery;
+        }
+    }
+
+    folderNres++;
+}
+
+
 
 void Burgers::restart()
 {

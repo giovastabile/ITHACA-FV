@@ -31,11 +31,12 @@ License
 #include "DEIM.H"
 // Template function constructor
 template<typename T>
-DEIM<T>::DEIM (PtrList<T>& s, label MaxModes, word FunctionName, word FieldName)
+DEIM<T>::DEIM (PtrList<T>& s, label _MaxModes, word _FunctionName,
+               word FieldName)
     :
     SnapShotsMatrix(s),
-    MaxModes(MaxModes),
-    FunctionName(FunctionName)
+    MaxModes(_MaxModes),
+    FunctionName(_FunctionName)
 {
     ITHACAparameters* para(ITHACAparameters::getInstance());
     Folder = "ITHACAoutput/DEIM/" + FunctionName;
@@ -69,8 +70,9 @@ DEIM<T>::DEIM (PtrList<T>& s, label MaxModes, word FunctionName, word FieldName)
                   )
               )
           );
-    modes = ITHACAPOD::DEIMmodes(SnapShotsMatrix, MaxModes, FunctionName,
+    modes = ITHACAPOD::DEIMmodes(s, MaxModes, FunctionName,
                                  FieldName);
+    Ncells = s[0].size();
 
     if (!(magicPoints().headerOk() && xyz().headerOk()))
     {
@@ -688,7 +690,7 @@ void DEIM<T>::check3DIndices(label& ind_rowA, label&  ind_colA, label& xyz_rowA,
         xyz_colA = 2;
         ind_colA = ind_colA - 2 * Ncells;
     }
-};
+}
 
 template<typename T>
 void DEIM<T>::check3DIndices(label& ind_rowA, label& xyz_rowA)
@@ -707,7 +709,7 @@ void DEIM<T>::check3DIndices(label& ind_rowA, label& xyz_rowA)
         xyz_rowA = 2;
         ind_rowA = ind_rowA - 2 * Ncells;
     }
-};
+}
 
 template<class T>
 template <class F>
@@ -751,6 +753,7 @@ template<> label DEIM<fvVectorMatrix>::getNcells(label sizeM)
     label Ncells = sizeM / 3;
     return Ncells;
 }
+
 
 template<typename T>
 void DEIM<T>::setMagicPoints(labelList& newMagicPoints, labelList& newxyz)

@@ -212,7 +212,8 @@ Eigen::MatrixXd errorL2Abs(PtrList<GeometricField<T, fvPatchField, volMesh>>&
 /// @return     L2 norm of the volVectorField.
 ///
 template<class T>
-double L2Norm(GeometricField<T, fvPatchField, volMesh>& field);
+double L2Norm(GeometricField<T, fvPatchField, volMesh>& field,
+              List<label>* labels = NULL);
 
 //------------------------------------------------------------------------------
 /// Evaluate the Linf norm of a geometric field
@@ -224,7 +225,8 @@ double L2Norm(GeometricField<T, fvPatchField, volMesh>& field);
 /// @return     Linf norm of the volVectorField.
 ///
 template<class T>
-double LinfNorm(GeometricField<T, fvPatchField, volMesh>& field);
+double LinfNorm(GeometricField<T, fvPatchField, volMesh>& field,
+                List<label>* labels = NULL);
 
 //------------------------------------------------------------------------------
 /// Evaluate the H1 seminorm of a geoemtri
@@ -236,7 +238,8 @@ double LinfNorm(GeometricField<T, fvPatchField, volMesh>& field);
 /// @return     H1 seminorm of the volVectorField.
 ///
 template<class T>
-double H1Seminorm(GeometricField<T, fvPatchField, volMesh>& field);
+double H1Seminorm(GeometricField<T, fvPatchField, volMesh>& field,
+                  List<label>* labels = NULL);
 
 //------------------------------------------------------------------------------
 /// Evaluate the Frobenius norm of a field
@@ -248,7 +251,8 @@ double H1Seminorm(GeometricField<T, fvPatchField, volMesh>& field);
 /// @return     Frobenius norm of the field.
 ///
 template<class Type, template<class> class PatchField, class GeoMesh>
-double frobNorm(GeometricField<Type, PatchField, GeoMesh>& field);
+double frobNorm(GeometricField<Type, PatchField, GeoMesh>& field,
+                List<label>* labels = NULL);
 
 //--------------------------------------------------------------------------
 /// Evaluate the L2 norm of a field on a boundary patch
@@ -306,6 +310,12 @@ double integralOnPatch(fvMesh& mesh, volScalarField& field, word patch);
 /// @return     Integral of the field on the patch.
 ///
 double integralOnPatch(fvMesh& mesh, List<scalar> field, word patch);
+
+
+template<class Type, template<class> class PatchField, class GeoMesh>
+GeometricField<Type, PatchField, GeoMesh> onSubmesh(
+    GeometricField<Type, PatchField, GeoMesh>& field, List<label>* labels,
+    autoPtr<fvMeshSubset>& submesh);
 
 }
 

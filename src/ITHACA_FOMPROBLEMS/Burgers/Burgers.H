@@ -72,6 +72,9 @@ class Burgers: public reductionProblem, public UnsteadyProblem
         /// List of pointers used to form the velocity snapshots matrix
         PtrList<volVectorField> Ufield;
 
+        /// List of pointers used to form the velocity snapshots matrix
+        PtrList<volVectorField> resField;
+
         /// List of pointers used to form the velocity modes
         volVectorModes Umodes;
 
@@ -103,8 +106,21 @@ class Burgers: public reductionProblem, public UnsteadyProblem
         /// simpleControl
         autoPtr<simpleControl> _simple;
 
-        /// truthsolve
+        label folderNres = 1;
+
+        //----------------------------------------------------------------------
+        /// @brief      Function to perform a FOM solve
+        ///
+        /// @param[in]  folder  The folder where the snapshots are stored
+        ///
         void truthSolve(word folder = "./ITHACAoutput/Offline/");
+
+        //----------------------------------------------------------------------
+        /// @brief      Function to compute the residual associated with the POD basis computation
+        ///
+        /// @param[in]  folder  The folder
+        ///
+        void residual(label Nmodes = 0, word folder = "./ITHACAoutput/Offline/");
 
         //----------------------------------------------------------------------------
         /// @brief      Function to restart the fields of the Burgers problem
