@@ -163,7 +163,7 @@ class tutorial22: public laplacianProblem
                     mu_now[j] = mu(i, j);
                 }
 
-                updateMesh(mu_now[0] * 0.25, mu_now[1] * 0.25);
+                updateMesh(mu_now[0], mu_now[1]);
                 SetSource();
                 SetDiffusivity(mu_now);
                 fvScalarMatrix Teqn(fvm::laplacian(nu(), T) == S );
@@ -214,7 +214,7 @@ class tutorial22: public laplacianProblem
                     mu_now[j] = mu(i, j);
                 }
 
-                updateMesh(mu_now[0] * 0.25, mu_now[1] * 0.25);
+                updateMesh(mu_now[0], mu_now[1]);
                 SetSource();
                 SetDiffusivity(mu_now);
                 fvScalarMatrix Teqn(fvm::laplacian(nu(), T) == S );
@@ -375,10 +375,10 @@ int main(int argc, char* argv[])
     train.setParameters();
     // Set the parameter ranges, in all the subdomains the diffusivity varies between
     // 0.001 and 0.1
-    train.mu_range(0, 0) = -0.99;
-    train.mu_range(0, 1) = 0.99;
-    train.mu_range(1, 0) = -0.99;
-    train.mu_range(1, 1) = 0.99;
+    train.mu_range(0, 0) = -0.25;
+    train.mu_range(0, 1) = 0.25;
+    train.mu_range(1, 0) = -0.25;
+    train.mu_range(1, 1) = 0.25;
 
     // Generate the Parameters
     if (std::ifstream("mu_train.npy"))
@@ -439,10 +439,10 @@ int main(int argc, char* argv[])
     test.setParameters();
     // Set the parameter ranges, in all the subdomains the diffusivity varies between
     // 0.001 and 0.1
-    test.mu_range(0, 0) = -0.9;
-    test.mu_range(0, 1) = 0.9;
-    test.mu_range(1, 0) = -0.9;
-    test.mu_range(1, 1) = 0.9;
+    test.mu_range(0, 0) = -0.22;
+    test.mu_range(0, 1) = 0.22;
+    test.mu_range(1, 0) = -0.22;
+    test.mu_range(1, 1) = 0.22;
     PtrList<volScalarField> TlistGal;
     PtrList<volScalarField> TlistCol;
 
@@ -466,7 +466,7 @@ int main(int argc, char* argv[])
             mu_now[j] = test.mu(i, j);
         }
 
-        train.updateMesh(mu_now[0] * 0.25, mu_now[1] * 0.25);
+        train.updateMesh(mu_now[0], mu_now[1]);
         train.SetSource();
         train.SetDiffusivity(mu_now);
         fvScalarMatrix Teqn(fvm::laplacian(train.nu(), train.T) == train.S );
