@@ -351,9 +351,6 @@ class tutorial22: public laplacianProblem
 int main(int argc, char* argv[])
 {
     // Create the train object of the tutorial02 type
-    Eigen::MatrixXi c;
-    cnpy::load(c, "file.npy");
-    List<label> list = Foam2Eigen::EigenMatrix2List(c);
     tutorial22 train(argc, argv);
     // List<vector> b(2);
     // b[0] = vector(1,2,3);
@@ -363,7 +360,7 @@ int main(int argc, char* argv[])
     // Read some parameters from file
     ITHACAparameters* para = ITHACAparameters::getInstance(train._mesh(),
                              train._runTime());
-    int NmodesTout = para->ITHACAdict->lookupOrDefault<int>("NmodesTout", 15);
+    int NmodesTout = para->ITHACAdict->lookupOrDefault<int>("NmodesTout", 100);
     int NmodesTproj = para->ITHACAdict->lookupOrDefault<int>("NmodesTproj", 10);
     List<vector> points = train._mesh().C();
     Eigen::MatrixXd p = Foam2Eigen::field2Eigen(points);
@@ -500,6 +497,12 @@ int main(int argc, char* argv[])
 
     Eigen::MatrixXd errGal = ITHACAutilities::errorFrobRel(test.Tfield, TlistGal);
     Eigen::MatrixXd errCol = ITHACAutilities::errorFrobRel(test.Tfield, TlistCol);
-    std::cout << errGal.norm() / 100 << std::endl;
-    std::cout << errCol.norm() / 100 << std::endl;
+    std::cout << "Error with Galerkin Method: " << errGal.norm() / 100 << std::endl;
+    std::cout << "Error with Collocation Method: " << errCol.norm() / 100 << std::endl;
+    word filename_gal = "Gal_" + name(Nr) + ".npy";
+    word filename_col = "Col_" + name(Nr) + ".npy";
+
+    cnpy::save(errGal, filename_gal);
+    cnpy::save(errCol, filename_col);
+
 }
