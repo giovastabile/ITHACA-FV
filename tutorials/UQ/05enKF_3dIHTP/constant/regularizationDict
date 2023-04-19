@@ -1,0 +1,23 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  1.5                                   |
+|   \\  /    A nd           | Web:      http://www.OpenFOAM.org               |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      regularizationDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+regularizationTechnique     Tikhonov;
+TSVD_filter                 9;
+//Tikhonov_filter             8.5940313451178927191e-10; %noise 001
+//Tikhonov_filter             1.3069462586915467273e-06; %noise 01
+Tikhonov_filter             6e-6;
+CG_Nsteps                   10;
+// ************************************************************************* //

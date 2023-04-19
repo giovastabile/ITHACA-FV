@@ -1,0 +1,35 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      ITHACAdict;
+}
+
+thermalConductivity 3.0; 
+density             5.0;
+specificHeat        20.0;
+heatTranferCoeff    5.66e4;
+Tf                  350.0;
+initialField        400.0;
+
+maxFrequency        0.1;
+a                   150;
+b                   200;
+c                   300;
+
+measNoiseCov        0.0001;
+modelErrorCov       0.001;
+stateInitialCov     10;
+parameterPriorCov   1000;
+
+NheatFluxPODbasis   10;
+EnKF_innerLoop      2;
