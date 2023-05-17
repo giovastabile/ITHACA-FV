@@ -41,8 +41,6 @@ SourceFiles
 #include "muq2ithaca.H"
 #include "ensembleClass.H"
 
-
-
 namespace ITHACAmuq
 {
 //--------------------------------------------------------------------------
