@@ -243,7 +243,7 @@ int main(int argc, char* argv[])
     word reconstructionFolder = "ITHACAoutput/reconstruction";
 
     scalar basisShapeParameter = 0.6;
-    example.HTproblem.setSpaceBasis("pod", basisShapeParameter, NheatFluxPODbasis);
+    example.HTproblem.setSpaceBasis("rbf", basisShapeParameter, NheatFluxPODbasis);
     example.HTproblem.Nbasis = NheatFluxPODbasis;
 
     const int stateSize = example.getStateSize();
