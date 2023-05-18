@@ -150,32 +150,34 @@ void sequentialIHTP::setSpaceBasis(word type,
     }
     if (type == "pod")
     {
-        List<scalar> massVector(T.boundaryField()[hotSide_ind].size());
-        forAll (T.boundaryField()[hotSide_ind], faceI)
-        {
-            massVector[faceI] = mesh.boundary()[hotSide_ind].magSf()[faceI];
-        }
-        List<List<scalar>> tempBasis;
-        word debugFolder = "./ITHACAoutput/debugParameterizedBasis/";
-        ITHACAPOD::getModesSVD(heatFluxSpaceBasis, massVector, tempBasis, Npod, 
-                debugFolder);
-        forAll(heatFluxSpaceBasis, baseI)
-        {
-            volScalarField base = list2Field(heatFluxSpaceBasis[baseI], 0.0);
-            ITHACAstream::exportSolution(base,
-                                         std::to_string(1),
-                                         debugFolder,
-                                         "RBFbase" + std::to_string(baseI + 1));
-        }
-        forAll(tempBasis, baseI)
-        {
-            volScalarField base = list2Field(tempBasis[baseI], 0.0);
-            ITHACAstream::exportSolution(base,
-                                         std::to_string(1),
-                                         debugFolder,
-                                         "PODbase" + std::to_string(baseI + 1));
-        }
-        heatFluxSpaceBasis = tempBasis;
+        Info << "POD basis are not yet implemented, exiting" << endl;
+        exit(10);
+        //List<scalar> massVector(T.boundaryField()[hotSide_ind].size());
+        //forAll (T.boundaryField()[hotSide_ind], faceI)
+        //{
+        //    massVector[faceI] = mesh.boundary()[hotSide_ind].magSf()[faceI];
+        //}
+        //List<List<scalar>> tempBasis;
+        //word debugFolder = "./ITHACAoutput/debugParameterizedBasis/";
+        //ITHACAPOD::getModesSVD(heatFluxSpaceBasis, tempBasis, "PODbase", false, false, false, Npod, true);
+
+        //forAll(heatFluxSpaceBasis, baseI)
+        //{
+        //    volScalarField base = list2Field(heatFluxSpaceBasis[baseI], 0.0);
+        //    ITHACAstream::exportSolution(base,
+        //                                 std::to_string(1),
+        //                                 debugFolder,
+        //                                 "RBFbase" + std::to_string(baseI + 1));
+        //}
+        //forAll(tempBasis, baseI)
+        //{
+        //    volScalarField base = list2Field(tempBasis[baseI], 0.0);
+        //    ITHACAstream::exportSolution(base,
+        //                                 std::to_string(1),
+        //                                 debugFolder,
+        //                                 "PODbase" + std::to_string(baseI + 1));
+        //}
+        //heatFluxSpaceBasis = tempBasis;
     }
 }
 
@@ -468,7 +470,7 @@ void sequentialIHTP::parameterizedBC(word outputFolder, volScalarField initialFi
         if(timeSampleI > 0)
         {
              reconstrucT("./ITHACAoutput/debugReconstrucT/");
-             ITHACAutilities::assignIF(initialField, Ttime[NtimeStepsBetweenSamples -1]);
+             initialField = Ttime[NtimeStepsBetweenSamples - 1];
         }
 	solveT0(initialField);
 
@@ -505,43 +507,12 @@ void sequentialIHTP::parameterizedBC(word outputFolder, volScalarField initialFi
         }
         else if (linSys_solver == "Tikhonov")
         {
-            //weigths = ITHACAregularization::Tikhonov(linSys[0], linSys[1], Tikhonov_filter);
-
             linSys[0] = Theta;
             linSys[1] = (TmeasShort + addSol - T0_vector);
-            //linSys = ITHACAregularization::precondition(linSys, "SVD");
-
             Eigen::JacobiSVD<Eigen::MatrixXd> svd(linSys[0],
                                                 Eigen::ComputeThinU | Eigen::ComputeThinV);
-            //scalar regPar = ITHACAregularization::GCV(svd.matrixU(), svd.singularValues(),
-            //        linSys[1], Tikhonov_filter, linSys_solver);
-            ITHACAregularization::Picard(svd.matrixU(), svd.singularValues(),
-                    linSys[1]);
-            ITHACAregularization::Lcurve(svd.matrixU(), svd.singularValues(),
-                    linSys[1], linSys_solver, timeSampleI);
 
-            weigths = ITHACAregularization::Tikhonov(svd.matrixU(), svd.singularValues(),
-                    svd.matrixV(), linSys[1], Tikhonov_filter);
-        }
-        else if (linSys_solver == "conjugateGradient")
-        {
-            linSys[0] = Theta;
-            linSys[1] = (TmeasShort + addSol - T0_vector);
-            linSys = ITHACAregularization::precondition(linSys, "SVD");
-
-            ITHACAregularization::Lcurve_CG(Theta, TmeasShort + addSol - T0_vector);
-            weigths = ITHACAregularization::conjugateGradient(linSys[0], 
-                    linSys[1], CG_Nsteps);
-        }
-        else if (linSys_solver == "PCGLS")
-        {
-            label Lorder = 1;
-            Eigen::MatrixXd W(Theta.rows(), Lorder);
-            Eigen::MatrixXd L;
-
-            L = ITHACAregularization::get_L(Theta.rows(), Lorder, W);
-            weigths = ITHACAregularization::PCGLS(Theta, L, W, 
-                    TmeasShort + addSol - T0_vector, CG_Nsteps);
+            weigths = ITHACAregularization::Tikhonov(Theta, linSys[1], Tikhonov_filter);
         }
         else
         {
@@ -619,7 +590,7 @@ void sequentialIHTP::solveT0(volScalarField initialField)
     List<scalar> RobinBC = Tf * 0.0;
     word outputFolder = "./ITHACAoutput/debugT0/";
 
-    ITHACAutilities::assignIF(T0, initialField);
+    T0 = initialField;
 
     T0field.append(T0.clone());
     T0_time.resize(0);
@@ -782,7 +753,7 @@ void sequentialIHTP::projectionErrorOffline()
     {
         volScalarField base = Tbasis[baseI][lastTimestepID];
         volScalarField baseProj(base);
-        T0modes.projectSnapshot(base, baseProj, NmodesT0, "L2");
+        baseProj = T0modes.projectSnapshot(base, NmodesT0);//, "L2");
         volScalarField temp = base - baseProj;
         projectionErrorTbasis.append(temp.clone());
         ITHACAstream::exportSolution(projectionErrorTbasis[baseI], std::to_string(baseI + 1),
@@ -790,7 +761,7 @@ void sequentialIHTP::projectionErrorOffline()
     }
     projectionErrorTad.resize(0);
     volScalarField TadProj(Tbasis[0][lastTimestepID]);
-    T0modes.projectSnapshot(Tad_time[lastTimestepID], TadProj, NmodesT0, "L2");
+    TadProj = T0modes.projectSnapshot(Tad_time[lastTimestepID], NmodesT0);//, "L2");
     volScalarField temp(Tad_time[lastTimestepID] - TadProj);
     projectionErrorTad.append(temp.clone());
     ITHACAstream::exportSolution(projectionErrorTad[0], std::to_string(1),

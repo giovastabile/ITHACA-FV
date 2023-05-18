@@ -84,7 +84,6 @@ SourceFiles
 /// Namespace for regularization of ill-conditione linear system
 namespace ITHACAregularization
 {
-
 //--------------------------------------------------------------------------
 /// @brief      Truncated Singular Value regularization
 ///
