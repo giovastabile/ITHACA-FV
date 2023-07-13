@@ -123,24 +123,19 @@ public:
         Foam2Eigen::fvMatrix2Eigen(TEqn, A, b);
         return b;
     }
-
     void solve()
     {
         fvScalarMatrix TEqn(-fvm::laplacian(_nu(), _T()) == _S());
         TEqn.solve();
     }
-
     void exportT(std::string& subFolder, std::string& folder, std::string& fieldname)
     {
         ITHACAstream::exportSolution(_T(), subFolder, folder, fieldname);
     }
-
     void setT(Eigen::VectorXd T)
     {
         _T() = Foam2Eigen::Eigen2field(_T(), T);
     }
-
-
     autoPtr<volScalarField> _res;
 };
 
