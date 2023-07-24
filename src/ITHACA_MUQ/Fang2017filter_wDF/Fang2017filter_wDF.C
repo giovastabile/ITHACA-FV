@@ -411,11 +411,36 @@ void Fang2017filter_wDF::run(int innerLoopMax, word outputFolder)
                 parameterMean.col(timeStepI) = jointEns.mean().tail(parameterSize);
                 innerLoopI++;
             }
+            // ################### Kabir: Exporting Posterior destribution of each basis function weights at each time step
+            std::string WeightPosterior="heatFlux_weightsPosterior";
+            std::string saveFileName= WeightPosterior; // + std::to_string(sampleI);
+
+            std::string folderName = "HFWposterior" + std::to_string(timeStepI);
+            std::string folderPath = "ITHACAoutput/projection/" + folderName;
+
+            //Eigen::Matrix<double, -1, -1> matrixKabirPost = jointEns.tail(parameterSize);   // error: ‘class ITHACAmuq::ensemble’ has no member named ‘tail’
+            Eigen::Matrix<double, -1, -1> matrixKabirPost = parameterEns.getSamples();
+
+             ITHACAstream::exportMatrix(matrixKabirPost, saveFileName, "eigen", folderPath);
+            // ################### Kabir: Exporting Posterior destribution of each basis function weights at each time step
         }
         else //No measurement available
         {
             buildJointEns();
         }
+        // ################### Kabir: Exporting Posterior destribution of each basis function weights at each time step
+        //std::string WeightPosterior="heatFlux_weightsPosterior";
+        //std::string saveFileName= WeightPosterior; // + std::to_string(sampleI);
+
+        //std::string folderName = "HFWposterior" + std::to_string(timeStepI);
+        //std::string folderPath = "ITHACAoutput/projection/" + folderName;
+
+        //Eigen::Matrix<double, -1, -1> matrixKabirPost = jointEns.tail(parameterSize);   // error: ‘class ITHACAmuq::ensemble’ has no member named ‘tail’
+        //Eigen::Matrix<double, -1, -1> matrixKabirPost = parameterEns.getSamples();
+
+        //ITHACAstream::exportMatrix(matrixKabirPost, saveFileName, "eigen", folderPath);
+        // ################### Kabir: Exporting Posterior destribution of each basis function weights at each time step
+
         parameterMean.col(timeStepI) = jointEns.mean().tail(parameterSize);
         stateMean.col(timeStepI) = jointEns.mean().head(stateSize);
         state_maxConf.col(timeStepI) = muq2ithaca::quantile(stateEns.getSamples(),
