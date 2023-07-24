@@ -107,7 +107,7 @@ void sequentialIHTP::setDiffusivity(scalar _diff)
 void sequentialIHTP::setSpaceBasis(word type,
         scalar shapeParameter, label Npod)
 {
-    if (!thermocouplesRead)
+    if (!thermocouplesRead)  // Kabir: It checks if the thermocouples have been read by evaluating the thermocouplesRead variable. If they haven't been read, it calls the readThermocouples function.
     {
         readThermocouples();
     }
@@ -122,6 +122,7 @@ void sequentialIHTP::setSpaceBasis(word type,
 
     int thermocouplesCounter = 0;
     int rbfCenterTimeI = 0;
+    // Kabir: It calculates the maximum X and Z coordinates of the face centers on the hot side boundary.
     scalar maxX =  Foam::max(
             mesh.boundaryMesh()[hotSide_ind].faceCentres().component(Foam::vector::X));
     scalar maxZ =  Foam::max(
@@ -148,6 +149,22 @@ void sequentialIHTP::setSpaceBasis(word type,
         }
         thermocouplesCounter++;
     }
+    // ###################Kabir: Export the heatFluxSpaceBasis data 
+    std::string heat_flux_space_basis="heat_flux_space_basis";
+
+    std::string folderNamePrRb = "HeatFluxSpaceRBF";
+    std::string folderPathPrRb = "ITHACAoutput/projection/" + folderNamePrRb;
+
+    // Convert heatFluxSpaceBasis which is Foam::List<Foam::List<double>> object to heatFluxSpaceBasisMatrix which is Eigen::Matrix object before calling the exportMatrix function by using Eigen::Map constructor 
+    Eigen::MatrixXd heatFluxSpaceBasisMatrix(heatFluxSpaceBasis.size(), heatFluxSpaceBasis[0].size());
+    for (label i = 0; i < heatFluxSpaceBasis.size(); ++i)
+        heatFluxSpaceBasisMatrix.row(i) = Eigen::Map<Eigen::VectorXd>(heatFluxSpaceBasis[i].begin(), heatFluxSpaceBasis[i].size());
+
+    ITHACAstream::exportMatrix(heatFluxSpaceBasisMatrix, heat_flux_space_basis, "eigen", folderPathPrRb);
+
+    // ###################Kabir: Export the heatFluxSpaceBasis data
+
+
     if (type == "pod")
     {
         Info << "POD basis are not yet implemented, exiting" << endl;
@@ -414,7 +431,7 @@ void sequentialIHTP::reconstrucT(word outputFolder)
     }
     for(int timeI = 0; timeI < NtimeStepsBetweenSamples; timeI++)
     {
-        volScalarField T(_T);
+        volScalarField T=_T.clone();
         ITHACAutilities::assignIF(T, homogeneousBC);
         forAll(Tbasis, baseI)
         {
@@ -584,7 +601,7 @@ void sequentialIHTP::solveT0(volScalarField initialField)
     fvMesh& mesh = _mesh();
     simpleControl& simple = _simple();
     fv::options& fvOptions(_fvOptions());
-    volScalarField T0(_T);
+    volScalarField T0= _T.clone();
     Foam::Time& runTime = _runTime();
     set_valueFraction();
     List<scalar> RobinBC = Tf * 0.0;
@@ -661,7 +678,7 @@ void sequentialIHTP::projectT0()
     fvMesh& mesh = _mesh();
     simpleControl& simple = _simple();
     fv::options& fvOptions(_fvOptions());
-    volScalarField T0(_T);
+    volScalarField T0=_T.clone();
     Foam::Time& runTime = _runTime();
     set_valueFraction();
     List<scalar> RobinBC = Tf * 0.0;
@@ -800,7 +817,7 @@ void sequentialIHTP::solveAdditional()
     fvMesh& mesh = _mesh();
     simpleControl& simple = _simple();
     fv::options& fvOptions(_fvOptions());
-    volScalarField Tad(_T);
+    volScalarField Tad=_T.clone();
     Foam::Time& runTime = _runTime();
     set_valueFraction();
     Tad_time.resize(0);
