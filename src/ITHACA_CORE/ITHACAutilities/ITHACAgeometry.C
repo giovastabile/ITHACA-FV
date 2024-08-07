@@ -59,6 +59,25 @@ labelList getIndicesFromBox(const fvMesh& mesh, List<label> indices,
     return boxIndices;
 }
 
+labelList getCellIndicesFromBox(const fvMesh& mesh, Eigen::MatrixXd Box)
+{
+    labelList boxIndices;
+    for (label i = 0; i < mesh.C().size(); i++)
+    {
+        auto cx = mesh.C()[i].component(vector::X);
+        auto cy = mesh.C()[i].component(vector::Y);
+        auto cz = mesh.C()[i].component(vector::Z);
+
+        if (cx >= Box(0, 0) && cy >= Box(0, 1) && cz >= Box(0, 2) && cx <= Box(1, 0)
+                && cy <= Box(1, 1) && cz <= Box(1, 2) )
+        {
+            boxIndices.append(i);
+        }
+    }
+
+    return boxIndices;
+}
+
 List<label> getIndices(const fvMesh& mesh, int index, int layers)
 {
     List<label> out;

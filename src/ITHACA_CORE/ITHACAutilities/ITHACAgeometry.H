@@ -58,7 +58,7 @@ using namespace std::placeholders;
 namespace ITHACAutilities
 {
 ///
-/// @brief      Gives the indices conteined into a defined box
+/// @brief      Gives the indices contained into a defined box
 ///
 /// @param[in]  mesh  The mesh
 ///
@@ -72,6 +72,17 @@ namespace ITHACAutilities
 ///
 labelList getIndicesFromBox(const fvMesh& mesh, List<label> indices,
                             Eigen::MatrixXd Box, List<vector> & points2Move);
+
+///
+/// @brief      Gives the Cell indices contained into a defined box
+///
+/// @param[in]  mesh  The mesh
+///
+/// @param[in]  Box  The box defined by two opposite points
+///
+/// @return     the labels list of the points
+///
+labelList getCellIndicesFromBox(const fvMesh& mesh,Eigen::MatrixXd Box);
 
 //--------------------------------------------------------------------------
 /// @brief      Gets the indices of the cells around a certain cell.
