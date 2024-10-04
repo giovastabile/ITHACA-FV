@@ -183,12 +183,8 @@ public:
             {
                 M_list[k].row(M_list_ind[k][i]) = Eigen::MatrixXd::Ones(1,M_size);
             }
-            cnpy::save(M_list[k],"M1.npy");
-            exit(0);
+            cnpy::save(M_list[k],"M"+name(k)+".npy");
         }
-
-
-
     }
 
     /// Construct the operator_list where each term of the affine decomposition is stored
@@ -368,6 +364,7 @@ void offline_stage(tutorial25& example, tutorial25& FOM_test)
     example.SetSource();
     // Compute the diffusivity field for each subdomain
     example.compute_nu();
+    example.compute_M_delta();
     exit(0);
     // Assemble all the operators of the affine decomposition
     example.assemble_operator();
