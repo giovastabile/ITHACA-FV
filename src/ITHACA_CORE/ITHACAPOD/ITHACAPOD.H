@@ -384,7 +384,17 @@ static void getModesMemoryEfficient(
     bool supex = false,
     bool sup = false,
     label nmodes = 0,
-    bool correctBC = true);
+    bool correctBC = true,
+    autoPtr<GeometricField<Type, PatchField, GeoMesh>> meanField = NULL);
+
+//------------------------------------------------------------------------------
+/// @brief      Gets the mean field in a memory-efficient manner
+template<class Type, template<class> class PatchField, class GeoMesh>
+static void getMeanMemoryEfficient(
+    GeometricField<Type, PatchField, GeoMesh>& templateField,
+    word snapshotsPath,
+    autoPtr<GeometricField<Type, PatchField, GeoMesh>>& meanField,
+    bool meanex = false);
 
 //------------------------------------------------------------------------------
 /// @brief      Helper function to compute inner product value for different field types
