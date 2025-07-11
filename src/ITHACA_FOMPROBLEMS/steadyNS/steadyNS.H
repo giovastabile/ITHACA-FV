@@ -88,6 +88,9 @@ class steadyNS: public reductionProblem
         /// List of pointers used to form the velocity snapshots matrix
         PtrList<volVectorField> Ufield;
 
+        /// List of pointers used to form the tau snapshots matrix
+        PtrList<volSymmTensorField> Taufield;
+
         /// List of pointers used to form the supremizer snapshots matrix
         PtrList<volVectorField> supfield;
 
@@ -97,8 +100,14 @@ class steadyNS: public reductionProblem
         /// List of pointers used to form the pressure modes
         volScalarModes Pmodes;
 
-        /// List of pointers used to form the velocity modes
         volVectorModes Umodes;
+
+//    ********************** AHMAD ******************************
+
+        /// List of pointers used to form the tau modes  
+        volSymmTensorModes XImodes;
+
+//    ********************** AHMAD ******************************
 
         /// List of pointers used to form the supremizer modes
         volVectorModes supmodes;
@@ -108,9 +117,6 @@ class steadyNS: public reductionProblem
 
         /// List of pointers used to form the list of lifting functions
         PtrList<volVectorField> liftfield;
-
-        /// List of pointer used to form the list of lifting functions for the pressure
-        PtrList<volScalarField> liftfieldP;
 
         /// List of pointers used to form the homogeneous velocity snapshots
         PtrList<volVectorField> Uomfield;
@@ -139,6 +145,11 @@ class steadyNS: public reductionProblem
         /// Number of nut modes to be calculated
         label NNutModesOut;
 
+
+        /// Number of tau modes to be calculated   AHMAD
+        label NTAUmodesOut;
+
+
         /// Number of velocity modes used for the projection
         label NUmodes;
 
@@ -150,6 +161,10 @@ class steadyNS: public reductionProblem
 
         /// Number of nut modes used for the projection
         label NNutModes;
+
+
+        /// Number of tau modes used for the projection  AHMAD
+        label NTAUmodes;
 
         /** @name Reduced Matrices
         *
@@ -172,11 +187,17 @@ class steadyNS: public reductionProblem
         /// Div of velocity
         Eigen::MatrixXd P_matrix;
 
-        /// Convective background / Large scale advection term
-        Eigen::MatrixXd L_matrix;
 
-        /// Divergent convective background / Large scale advection term
-        Eigen::MatrixXd L_D_matrix;
+       // ********************* AHMAD *************************
+       /// F_TAU
+        Eigen::MatrixXd F_TAU_matrix;
+
+       /// K_TAU
+        Eigen::MatrixXd K_TAU_matrix;
+
+         /// G_TAU
+         Eigen::Tensor<double, 3 > G_TAU_tensor;
+       // *****************************************************
 
         /// Laplacian term PPE
         Eigen::MatrixXd D_matrix;
@@ -271,6 +292,9 @@ class steadyNS: public reductionProblem
         /// Velocity field
         autoPtr<volVectorField> _U;
 
+        /// Tensor field
+        autoPtr<volSymmTensorField> _tau;
+
         /// Initial Pressure field (for restart purposes)
         autoPtr<volScalarField> _p0;
 
@@ -359,7 +383,7 @@ class steadyNS: public reductionProblem
         /// @param[in]  NSUPmodes  The number of supremizer modes, 0 by default and it must remain always zero.
         ///
         void projectPPE(fileName folder, label NUmodes, label NPmodes,
-                        label NSUPmodes = 0);
+                        label NTAUmodes, label NSUPmodes = 0);
 
         //--------------------------------------------------------------------------
         /// Project using a supremizer approach
@@ -404,8 +428,7 @@ class steadyNS: public reductionProblem
         ///
         /// @return     reduced matrix in Eigen::MatrixXd format for the diffusion term.
         ///
-        Eigen::MatrixXd diffusive_term_sym(label NUmodes, label NPmodes,
-                                           label NSUPmodes);
+        Eigen::MatrixXd diffusive_term_sym(label NUmodes, label NPmodes, label NSUPmodes);
 
         //--------------------------------------------------------------------------
         /// Gradient of pressure
@@ -455,6 +478,10 @@ class steadyNS: public reductionProblem
         ///
         Eigen::MatrixXd divergence_term(label NUmodes, label NPmodes, label NSUPmodes);
 
+        // ****************************** AHMAD *************************************
+        Eigen::MatrixXd F_TAU_term(label NUmodes, label NTAUmodes, label NSUPmodes);
+        Eigen::MatrixXd K_TAU_term(label NUmodes, label NTAUmodes, label NSUPmodes);
+        // **************************************************************************
         //--------------------------------------------------------------------------
         /// Divergence of convective term (PPE approach)
         ///
@@ -483,28 +510,6 @@ class steadyNS: public reductionProblem
         /// @return     reduced matrix in Eigen::MatrixXd format for the laplacian of pressure.
         ///
         Eigen::MatrixXd laplacian_pressure(label NPmodes);
-
-        //--------------------------------------------------------------------------
-        /// Large Scale / Background Advection
-        ///
-        /// @param[in]  NUmodes    The number of velocity modes.
-        /// @param[in]  vls        Additional advecting field
-        ///
-        /// @return     reduced matrix in Eigen::MatrixXd format for the Large Scale Advection
-        ///
-        Eigen::MatrixXd convective_background(label NUmodes, volVectorField vls);
-
-        //--------------------------------------------------------------------------
-        /// Divergent of Large Scale / Background Advection
-        ///
-        /// @param[in]  NPmodes    The number of pressure modes.
-        /// @param[in]  NUmodes    The number of velocity modes.
-        /// @param[in]  vls        Additional advecting field
-        ///
-        /// @return     reduced matrix in Eigen::MatrixXd format for the Large Scale Advection
-        ///
-        Eigen::MatrixXd divergent_convective_background(label NPmodes, label NUmodes,
-                volVectorField vls);
 
         //--------------------------------------------------------------------------
         /// @brief      Term N° 1 given by the additional boundary condition using a PPE approach
@@ -790,6 +795,14 @@ class steadyNS: public reductionProblem
         Eigen::Tensor<double, 3 > convective_term_tens(label NUmodes,
                 label NPmodes,
                 label NSUPmodes);
+
+
+
+ // *************** AHMAD **********************
+        Eigen::Tensor<double, 3 > G_TAU_tens(label NUmodes,
+                label NTAUmodes,
+                label NSUPmodes);
+// **********************************************
 
         /// set U and P back to the values into the 0 folder
         void restart();
