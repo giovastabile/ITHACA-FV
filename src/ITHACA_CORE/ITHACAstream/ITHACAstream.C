@@ -1055,7 +1055,11 @@ void exportSolution(GeometricField<Type, PatchField, GeoMesh>& s,
         mkDir(folder + "/" + subfolder);
         ITHACAutilities::createSymLink(folder);
         fileName fieldname = folder + "/" + subfolder + "/" + s.name();
-        OFstream os(fieldname);
+        OFstream os
+        (
+            fieldname,
+            s.time().writeFormat()
+        );
         s.writeHeader(os);
         os << s << endl;
     }
@@ -1065,7 +1069,11 @@ void exportSolution(GeometricField<Type, PatchField, GeoMesh>& s,
         ITHACAutilities::createSymLink(folder);
         fileName fieldname = folder + "/processor" + name(Pstream::myProcNo()) + "/" +
                              subfolder + "/" + s.name();
-        OFstream os(fieldname);
+        OFstream os
+        (
+            fieldname,
+            s.time().writeFormat()
+        );
         s.writeHeader(os);
         os << s << endl;
     }
@@ -1101,12 +1109,13 @@ template void exportSolution(
 void writePoints(pointField points, fileName folder,
                  fileName subfolder)
 {
+    ITHACAparameters* para(ITHACAparameters::getInstance());
     if (!Pstream::parRun())
     {
         mkDir(folder + "/" + subfolder);
         ITHACAutilities::createSymLink(folder);
         fileName fieldname = folder + "/" + subfolder + "/" + "points";
-        OFstream os(fieldname);
+        OFstream os(fieldname, para->runTime.writeFormat());
         os << "FoamFile \n { \n version     2.0; \n format      ascii; \n class       vectorField; \n location    ""1 / polyMesh""; \n object      points; \n }"
            << endl;
         os << points << endl;
@@ -1117,7 +1126,7 @@ void writePoints(pointField points, fileName folder,
         ITHACAutilities::createSymLink(folder);
         fileName fieldname = folder + "/processor" + name(Pstream::myProcNo()) + "/" +
                              subfolder + "/" + "points";
-        OFstream os(fieldname);
+        OFstream os(fieldname, para->runTime.writeFormat());
         os << "FoamFile \n { \n version     2.0; \n format      ascii; \n class       vectorField; \n location    ""1 / polyMesh""; \n object      points; \n }"
            << endl;
         os << points << endl;
@@ -1248,9 +1257,10 @@ template void readLastFields(PtrList<surfaceVectorField>&
 template<typename T>
 void exportList(T& list, word folder, word filename)
 {
+    ITHACAparameters* para(ITHACAparameters::getInstance());
     mkDir(folder);
     word fieldname = folder + "/" + filename;
-    OFstream os(fieldname);
+    OFstream os(fieldname, para->runTime.writeFormat());
 
     for (int i = 0; i < list.size(); i++)
     {
