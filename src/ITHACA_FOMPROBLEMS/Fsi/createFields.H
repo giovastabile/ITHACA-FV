@@ -211,4 +211,4 @@ pimpleControl& pimple = _pimple();
 correctPhi = pimple.dict().getOrDefault("correctPhi", mesh.dynamic());
 checkMeshCourantNo = pimple.dict().getOrDefault("checkMeshCourantNo", false);
 moveMeshOuterCorrectors = pimple.dict().getOrDefault("moveMeshOuterCorrectors",
-                          false);
+    false);

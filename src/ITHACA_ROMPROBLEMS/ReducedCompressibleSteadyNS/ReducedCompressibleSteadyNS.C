@@ -104,11 +104,11 @@ void ReducedCompressibleSteadyNS::solveOnlineCompressible(scalar mu_now,
     Eigen::MatrixXd eResidualOld = Eigen::MatrixXd::Zero(1, NmodesEproj);
     Eigen::MatrixXd pResidualOld = Eigen::MatrixXd::Zero(1, NmodesPproj);
     Eigen::VectorXd uResidual(Eigen::Map<Eigen::VectorXd>(uResidualOld.data(),
-                              NmodesUproj));
+            NmodesUproj));
     Eigen::VectorXd eResidual(Eigen::Map<Eigen::VectorXd>(eResidualOld.data(),
-                              NmodesEproj));
+            NmodesEproj));
     Eigen::VectorXd pResidual(Eigen::Map<Eigen::VectorXd>(pResidualOld.data(),
-                              NmodesPproj));
+            NmodesPproj));
     // Parameters definition
     ITHACAparameters* para = ITHACAparameters::getInstance();
     float residualJumpLim =
@@ -164,26 +164,26 @@ void ReducedCompressibleSteadyNS::solveOnlineCompressible(scalar mu_now,
         fvOptions.constrain(UEqnR);
         Info <<
         "################################  line 165  ##############################" <<
-                  endl;
+             endl;
         //RedLinSysU = ULmodes.project(problem->Ueqn_global(), NmodesUproj);
         RedLinSysU = problem->Umodes.project(UEqnR, NmodesUproj);
         Info <<
         "################################  line 169  ##############################" <<
-                  endl;
+             endl;
         Eigen::MatrixXd projGradP = projGradModP * p;
         Info <<
         "################################  line 171  ##############################" <<
-                  endl;
+             endl;
         RedLinSysU[1] = RedLinSysU[1] - projGradP;
         //u = reducedProblem::solveLinearSys(RedLinSysU, u, uResidual, vel_now, "bdcSvd");
         u = reducedProblem::solveLinearSys(RedLinSysU, u, uResidual);
         Info <<
         "################################  line 174  ##############################" <<
-                  endl;
+             endl;
         problem->Umodes.reconstruct(U, u, "U");
         Info <<
         "################################  line 175  ##############################" <<
-                  endl;
+             endl;
         //solve(problem->Ueqn_global() == -problem->getGradP(P)); //For debug purposes only, second part only useful when using uEqn_global==-getGradP
         //solve(UEqnR == -problem->getGradP(P)); //For debug purposes only, second part only useful when using uEqn_global==-getGradP
         fvOptions.correct(U);
@@ -204,12 +204,12 @@ void ReducedCompressibleSteadyNS::solveOnlineCompressible(scalar mu_now,
         List<Eigen::MatrixXd> RedLinSysE = problem->Emodes.project(EEqnR, NmodesEproj);
         Info <<
         "################################  line 196  ##############################" <<
-                  endl;
+             endl;
         e = reducedProblem::solveLinearSys(RedLinSysE, e, eResidual);
         problem->Emodes.reconstruct(E, e, "e");
         Info <<
         "################################  line 198  ##############################" <<
-                  endl;
+             endl;
         //problem->Eeqn_global().solve(); //For debug purposes only
         //EEqnR.solve(); //For debug purposes only
         fvOptions.correct(E);
@@ -284,11 +284,11 @@ void ReducedCompressibleSteadyNS::solveOnlineCompressible(scalar mu_now,
         rho = thermo.rho(); // Here rho is calculated as p*psi = p/(R*T)
         rho.relax();
         Info << "Ures = " << (uResidual.cwiseAbs()).sum() /
-                  (RedLinSysU[1].cwiseAbs()).sum() << endl;
+             (RedLinSysU[1].cwiseAbs()).sum() << endl;
         Info << "Eres = " << (eResidual.cwiseAbs()).sum() /
-                  (RedLinSysE[1].cwiseAbs()).sum() << endl;
+             (RedLinSysE[1].cwiseAbs()).sum() << endl;
         Info << "Pres = " << (pResidual.cwiseAbs()).sum() /
-                  (RedLinSysP[1].cwiseAbs()).sum() << endl;
+             (RedLinSysP[1].cwiseAbs()).sum() << endl;
         // Info << "U = " << u << endl;
         // Info << "E = " << e << endl;
         // Info << "P = " << p << endl;

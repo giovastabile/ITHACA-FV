@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
     tutorial14 example(argc, argv);
     // Read parameters from ITHACAdict file
     ITHACAparameters* para = ITHACAparameters::getInstance(example._mesh(),
-                             example._runTime());
+        example._runTime());
     // Read some input parameters for DMD
     double dtDMD = readScalar(para->ITHACAdict->lookup("dtDMD"));
     double finalTimeDMD = readScalar(para->ITHACAdict->lookup("finalTimeDMD"));

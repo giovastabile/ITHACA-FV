@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
     example.inletIndex(1, 0) = 0;
     example.inletIndex(1, 1) = 1;
     ITHACAparameters* para = ITHACAparameters::getInstance(example._mesh(),
-                             example._runTime());
+        example._runTime());
     // Read parameters from ITHACAdict file
     int NmodesU = para->ITHACAdict->lookupOrDefault<int>("NmodesU", 5);
     int NmodesP = para->ITHACAdict->lookupOrDefault<int>("NmodesP", 5);
@@ -176,7 +176,7 @@ int main(int argc, char* argv[])
     int NmodesNUT = para->ITHACAdict->lookupOrDefault<int>("NmodesNUT", 5);
     int NmodesProject = para->ITHACAdict->lookupOrDefault<int>("NmodesProject", 5);
     word stabilization = para->ITHACAdict->lookupOrDefault<word>("Stabilization",
-                         "supremizer");
+        "supremizer");
     // Perform The Offline Solve;
     example.offlineSolve();
     // Read the lift functions
@@ -305,13 +305,13 @@ int main(int argc, char* argv[])
     // }
     Info << "Computing Frobenius errors for velocity fields" << endl;
     Eigen::MatrixXd errFrobU = ITHACAutilities::errorFrobRel(example.Ufield,
-                               pod_rbf.uRecFields);
+        pod_rbf.uRecFields);
     Info << "Computing Frobenius errors for pressure fields" << endl;
     Eigen::MatrixXd errFrobP =  ITHACAutilities::errorFrobRel(example.Pfield,
-                                pod_rbf.pRecFields);
+        pod_rbf.pRecFields);
     Info << "Computing Frobenius errors for eddy viscosity fields" << endl;
     Eigen::MatrixXd errFrobNut =  ITHACAutilities::errorFrobRel(example.nutFields,
-                                  pod_rbf.nutRecFields);
+        pod_rbf.nutRecFields);
     ITHACAstream::exportMatrix(errFrobU, "errFrobU", "matlab",
                                "./ITHACAoutput/ErrorsFrob/");
     ITHACAstream::exportMatrix(errFrobP, "errFrobP", "matlab",
@@ -320,13 +320,13 @@ int main(int argc, char* argv[])
                                "./ITHACAoutput/ErrorsFrob/");
     Info << "Computing L2 errors for velocity fields" << endl;
     Eigen::MatrixXd errL2U = ITHACAutilities::errorL2Rel(example.Ufield,
-                             pod_rbf.uRecFields);
+        pod_rbf.uRecFields);
     Info << "Computing L2 errors for pressure fields" << endl;
     Eigen::MatrixXd errL2P =  ITHACAutilities::errorL2Rel(example.Pfield,
-                              pod_rbf.pRecFields);
+        pod_rbf.pRecFields);
     Info << "Computing L2 errors for eddy viscosity fields" << endl;
     Eigen::MatrixXd errL2Nut =  ITHACAutilities::errorL2Rel(example.nutFields,
-                                pod_rbf.nutRecFields);
+        pod_rbf.nutRecFields);
     ITHACAstream::exportMatrix(errL2U, "errL2U", "matlab",
                                "./ITHACAoutput/ErrorsL2/");
     ITHACAstream::exportMatrix(errL2P, "errL2P", "matlab",

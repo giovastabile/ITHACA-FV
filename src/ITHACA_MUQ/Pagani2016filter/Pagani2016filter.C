@@ -189,9 +189,9 @@ void Pagani2016filter::setMeasNoise(double cov)
              "Read measurements before setting up the measurement noise");
     Eigen::VectorXd measNoise_mu = Eigen::VectorXd::Zero(observationSize);
     Eigen::MatrixXd measNoise_cov = Eigen::MatrixXd::Identity(observationSize,
-                                    observationSize) * cov;
+        observationSize) * cov;
     measNoiseDensity = std::make_shared<muq::Modeling::Gaussian>(measNoise_mu,
-                       measNoise_cov);
+        measNoise_cov);
     measurementNoiseFlag = 1;
 }
 
@@ -203,7 +203,7 @@ void Pagani2016filter::setParameterError(double cov)
              "Set parameter size before setting up the parameter error");
     Eigen::VectorXd parameterError_mu = Eigen::VectorXd::Zero(parameterSize);
     Eigen::MatrixXd parameterError_cov = Eigen::MatrixXd::Identity(parameterSize,
-                                         parameterSize) * cov;
+        parameterSize) * cov;
     parameterErrorDensity = std::make_shared<muq::Modeling::Gaussian>
                             (parameterError_mu,
                              parameterError_cov);

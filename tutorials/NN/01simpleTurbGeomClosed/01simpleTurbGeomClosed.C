@@ -110,16 +110,16 @@ class SteadyNSSimpleNN : public SteadyNSSimple
                 /// Compute the coefficients for train
                 Info << "Computing the coefficients for U train" << endl;
                 Eigen::MatrixXd coeffL2U_train = ITHACAutilities::getCoeffs(UfieldTrain,
-                                                 Umodes,
-                                                 0, true);
+                    Umodes,
+                    0, true);
                 Info << "Computing the coefficients for p train" << endl;
                 Eigen::MatrixXd coeffL2P_train = ITHACAutilities::getCoeffs(PfieldTrain,
-                                                 Pmodes,
-                                                 0, true);
+                    Pmodes,
+                    0, true);
                 Info << "Computing the coefficients for nuT train" << endl;
                 Eigen::MatrixXd coeffL2Nut_train = ITHACAutilities::getCoeffs(nutFieldsTrain,
-                                                   nutModes,
-                                                   0, true);
+                    nutModes,
+                    0, true);
                 coeffL2U_train.transposeInPlace();
                 coeffL2P_train.transposeInPlace();
                 coeffL2Nut_train.transposeInPlace();
@@ -140,14 +140,14 @@ class SteadyNSSimpleNN : public SteadyNSSimple
                                                "./ITHACAoutput/checkOff/");
                 // Compute the coefficients for test
                 Eigen::MatrixXd coeffL2U_test = ITHACAutilities::getCoeffs(UfieldTest,
-                                                Umodes,
-                                                0, true);
+                    Umodes,
+                    0, true);
                 Eigen::MatrixXd coeffL2P_test = ITHACAutilities::getCoeffs(PfieldTest,
-                                                Pmodes,
-                                                0, true);
+                    Pmodes,
+                    0, true);
                 Eigen::MatrixXd coeffL2Nut_test = ITHACAutilities::getCoeffs(nutFieldsTest,
-                                                  nutModes,
-                                                  0, true);
+                    nutModes,
+                    0, true);
                 coeffL2U_test.transposeInPlace();
                 coeffL2P_test.transposeInPlace();
                 coeffL2Nut_test.transposeInPlace();
@@ -382,11 +382,11 @@ class reducedSimpleSteadyNN : public reducedSimpleSteadyNS
                 {
                     Info << "Residual jump = " << residual_jump << endl;
                     Info << "Normalized residual = " << std::max(U_norm_res,
-                              P_norm_res) << endl;
+                            P_norm_res) << endl;
                     Info << "Final normalized residual for velocity: " << U_norm_res <<
-                              endl;
+                         endl;
                     Info << "Final normalized residual for pressure: " << P_norm_res <<
-                              endl;
+                         endl;
                 }
 
                 res_os_U << U_norm_res << endl;
@@ -396,11 +396,11 @@ class reducedSimpleSteadyNN : public reducedSimpleSteadyNS
             res_os_U.close();
             res_os_P.close();
             Info << "Solution " << counter << " converged in " << iter <<
-                         " iterations." << endl;
+                    " iterations." << endl;
             Info << "Final normalized residual for velocity: " << U_norm_res <<
-                      endl;
+                 endl;
             Info << "Final normalized residual for pressure: " << P_norm_res <<
-                      endl;
+                 endl;
             problem->Umodes.reconstruct(U, a, "Uaux");
             problem->Pmodes.reconstruct(P, b, "Paux");
 
@@ -466,7 +466,7 @@ class tutorial01cl : public SteadyNSSimpleNN
                     _mesh().movePoints(point0);
                     List<vector> points2Move;
                     labelList boxIndices = ITHACAutilities::getIndicesFromBox(_mesh(), patches, Box,
-                                           points2Move);
+                        points2Move);
                     mu_now[0] = mu(i, 0);
                     linearMovePts(mu_now[0], points2Move);
 
@@ -533,7 +533,7 @@ int main(int argc, char* argv[])
     tutorial01cl example(argc, argv);
     // Read some parameters from file
     ITHACAparameters* para = ITHACAparameters::getInstance(example._mesh(),
-                             example._runTime());
+        example._runTime());
     // Read the files where the parameters are stored
     std::ifstream exFileOff("./angOff_mat.txt");
 
@@ -575,8 +575,8 @@ int main(int argc, char* argv[])
     example.offlineSolve(Box, movPat);
     List<vector> points2Move;
     labelList boxIndices = ITHACAutilities::getIndicesFromBox(example._mesh(),
-                           movPat, Box,
-                           points2Move);
+        movPat, Box,
+        points2Move);
     example.linearMovePts((example.mu.maxCoeff() + example.mu.minCoeff()) / 2,
                           points2Move);
 
@@ -604,7 +604,7 @@ int main(int argc, char* argv[])
     {
         checkOff.restart();
         ITHACAparameters* para = ITHACAparameters::getInstance(checkOff._mesh(),
-                                 checkOff._runTime());
+            checkOff._runTime());
         checkOff.offline = false;
         checkOff.mu = angOn;
         checkOff.offlineSolve(Box, movPat, "./ITHACAoutput/checkOff/");
@@ -639,7 +639,7 @@ int main(int argc, char* argv[])
     // Set the maximum iterations number for the online phase
     reduced.maxIterOn = para->ITHACAdict->lookupOrDefault<int>("maxIterOn", 2000);
     Info << "Total amout of parameters to be solved online: " + name(
-                  angOn.rows()) << endl;
+             angOn.rows()) << endl;
     //Perform the online solutions
     std::clock_t startOn;
     double durationOn;
@@ -657,7 +657,7 @@ int main(int argc, char* argv[])
             example._mesh().movePoints(example.point0);
             List<vector> points2Move;
             labelList boxIndices = ITHACAutilities::getIndicesFromBox(example._mesh(),
-                                   movPat, Box, points2Move);
+                movPat, Box, points2Move);
             example.linearMovePts(mu_now, points2Move);
 
             for (int j = 0; j < boxIndices.size(); j++)
@@ -679,7 +679,7 @@ int main(int argc, char* argv[])
             example._mesh().movePoints(example.point0);
             List<vector> points2Move;
             labelList boxIndices = ITHACAutilities::getIndicesFromBox(example._mesh(),
-                                   movPat, Box, points2Move);
+                movPat, Box, points2Move);
             example.linearMovePts(mu_now, points2Move);
 
             for (int j = 0; j < boxIndices.size(); j++)
@@ -738,8 +738,8 @@ int main(int argc, char* argv[])
                                "errorP_" + name(example.NUmodes) + "_" + name(example.NPmodes) + "_" + name(
                                    example.NNutModes), "python", ".");
     Info << "The online phase duration is equal to " << durationOn <<
-              endl;
+         endl;
     Info << "The offline phase duration is equal to " << durationOff <<
-              endl;
+         endl;
     return 0;
 }

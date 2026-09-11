@@ -80,7 +80,7 @@ class UnsteadyNSTurb : public unsteadyNS
         UnsteadyNSTurb();
         UnsteadyNSTurb(int argc, char* argv[]);
 
-        // Small construct with Parameters to access member functions linked to Smagorinsky diffusion 
+        // Small construct with Parameters to access member functions linked to Smagorinsky diffusion
         UnsteadyNSTurb(const Parameters* myParameters);
 
         // Specific variable for the unstationary case
@@ -483,19 +483,19 @@ class UnsteadyNSTurb : public unsteadyNS
         Eigen::MatrixXd velParDerivativeCoeff(Eigen::MatrixXd A, Eigen::VectorXd par,
                                               double timeSnap);
 
-private :
+    private :
 
         /// Parameter object containing main information
         const StoredParameters* m_parameters;
 
         // /// Turbulence model
         // autoPtr<incompressible::turbulenceModel> turbModel;
-    
- public :
 
-    // =========================================================================
-    // ============================= Smagorinsky ===============================
-    // =========================================================================
+    public :
+
+        // =========================================================================
+        // ============================= Smagorinsky ===============================
+        // =========================================================================
 
         //--------------------------------------------------------------------------
         /// @brief   Compute non linear Snapshot at a given time
@@ -504,13 +504,14 @@ private :
         ///
         /// @param[in]     index    label defining concerned time step
         /// @param[in,out] Smag     volVectorField in wich the Smagorinsky term will be computed
-        /// @param[in]     modesU   PtrList<volVectorField>, (optional) if given then compute 
+        /// @param[in]     modesU   PtrList<volVectorField>, (optional) if given then compute
         ///                         Smag from reduced velocity
         ///
         /// @return  Smag
         ///
-        void computeNonLinearSnapshot_at_time(const word& snap_time, volVectorField& Smag, 
-                        std::optional<PtrList<volVectorField>> modesU = std::nullopt);
+        void computeNonLinearSnapshot_at_time(const word& snap_time,
+                                              volVectorField& Smag,
+                                              std::optional<PtrList<volVectorField>> modesU = std::nullopt);
 
         //--------------------------------------------------------------------------
         /// @brief   Initialize Smagorinsky term with values at time 0
@@ -532,12 +533,13 @@ private :
         /// @brief   Compute Smagorinsky Snapshot at a given time
         ///
         /// @param[in] index    label defining concerned time step term will be computed
-        /// @param[in] modesU   PtrList<volVectorField> (optional) storing the velocity modes, 
+        /// @param[in] modesU   PtrList<volVectorField> (optional) storing the velocity modes,
         ///                     if given then compute Smag from reduced velocity
         ///
         /// @return  Smag
         ///
-        volVectorField computeSmagTerm_at_time(const word& snap_time, std::optional<PtrList<volVectorField>> modesU = std::nullopt);
+        volVectorField computeSmagTerm_at_time(const word& snap_time,
+                                               std::optional<PtrList<volVectorField>> modesU = std::nullopt);
 
         //--------------------------------------------------------------------------
         /// @brief   Compute Smagorinsky Snapshot of a tracer phi at a given time
@@ -547,7 +549,8 @@ private :
         ///
         /// @return  Smagorinsky volScalarField
         ///
-        volScalarField computeSmagTermPhi_at_time(const word& snap_time, const volScalarField template_field_phi);
+        volScalarField computeSmagTermPhi_at_time(const word& snap_time,
+                const volScalarField template_field_phi);
 
         //--------------------------------------------------------------------------
         /// @brief   Compute Smagorinsky Snapshot for a given velocity field U
@@ -566,7 +569,8 @@ private :
         ///
         /// @return  Smagorinsky volScalarField
         ///
-        volScalarField computeSmagTermPhi_fromUPhi(const volVectorField& snapshotj, const volScalarField& phij);
+        volScalarField computeSmagTermPhi_fromUPhi(const volVectorField& snapshotj,
+                const volScalarField& phij);
 
         //--------------------------------------------------------------------------
         /// @brief  Compute Smagorinsky Snapshot for a given velocity field U (=computeSmagTerm_fromU)
@@ -576,7 +580,8 @@ private :
         ///
         /// @return  Smagorinsky volScalarField
         ///
-        volVectorField computeSmagTermPhi_fromUPhi(const volVectorField& snapshotj, const volVectorField& phij);
+        volVectorField computeSmagTermPhi_fromUPhi(const volVectorField& snapshotj,
+                const volVectorField& phij);
 
         //--------------------------------------------------------------------------
         /// @brief  Compute diffusion term for a given scalar field phi
@@ -601,9 +606,9 @@ private :
         static volVectorField diffusion(const T& coefDiff, const volVectorField& u);
 
 
-    // =========================================================================
-    // ======================= projFullStressFunction ==========================
-    // =========================================================================
+        // =========================================================================
+        // ======================= projFullStressFunction ==========================
+        // =========================================================================
 
         //--------------------------------------------------------------------------
         /// @brief  Compute non linear Snapshot at a given time
@@ -618,11 +623,14 @@ private :
         ///
         /// @return  projSmagFromNut volScalarField
         ///
-        void computeNonLinearSnapshot_at_time(const word& snap_time, volScalarField& phi, volVectorField& modeU);
+        void computeNonLinearSnapshot_at_time(const word& snap_time,
+                                              volScalarField& phi, volVectorField& modeU);
 
-        void computeNonLinearSnapshot_at_time(const word& snap_time, volVectorField& phi, volVectorField& modeU)
+        void computeNonLinearSnapshot_at_time(const word& snap_time,
+                                              volVectorField& phi, volVectorField& modeU)
         {
-            Info << "Output field with this call to computeNonLinearSnapshot_at_time is scalar" << endl;
+            Info << "Output field with this call to computeNonLinearSnapshot_at_time is scalar"
+                 << endl;
             abort();
         };
 
@@ -641,7 +649,8 @@ private :
         ///
         /// @return  projFullStressFunction volScalarField
         ///
-        volScalarField computeProjSmagTerm_at_time_fromMode(const word& snap_time, const volVectorField& mode);
+        volScalarField computeProjSmagTerm_at_time_fromMode(const word& snap_time,
+                const volVectorField& mode);
 
         //--------------------------------------------------------------------------
         /// @brief  Compute projFullStressFunction given the Smagorinsky term and the velocity mode
@@ -653,28 +662,33 @@ private :
         ///
         /// @return  projFullStressFunction volScalarField
         ///
-        void computeProjSmagTerm_fromSmag_fromMode(volScalarField& phi, const volVectorField& Smag, const volVectorField& mode);
+        void computeProjSmagTerm_fromSmag_fromMode(volScalarField& phi,
+                const volVectorField& Smag, const volVectorField& mode);
 
-        void computeProjSmagTerm_fromSmag_fromMode(volScalarField phi,const volScalarField& Smag, const volVectorField& mode)
+        void computeProjSmagTerm_fromSmag_fromMode(volScalarField phi,
+                const volScalarField& Smag, const volVectorField& mode)
         {
-            Info << "Input fields for this call to computeProjSmagTerm_fromSmag_fromMode are vectors" << endl;
+            Info << "Input fields for this call to computeProjSmagTerm_fromSmag_fromMode are vectors"
+                 << endl;
             abort();
         };
 
-        void computeProjSmagTerm_fromSmag_fromMode(volVectorField phi, const volVectorField& Smag, const volVectorField& mode)
+        void computeProjSmagTerm_fromSmag_fromMode(volVectorField phi,
+                const volVectorField& Smag, const volVectorField& mode)
         {
-            Info << "Output field for this call to computeProjSmagTerm_fromSmag_fromMode is scalar" << endl;
+            Info << "Output field for this call to computeProjSmagTerm_fromSmag_fromMode is scalar"
+                 << endl;
             abort();
         };
 
 
-    // =========================================================================
-    // =========================== projSmagFromNut =============================
-    // =========================================================================
+        // =========================================================================
+        // =========================== projSmagFromNut =============================
+        // =========================================================================
 
         //--------------------------------------------------------------------------
         /// @brief  Compute non linear Snapshot at a given time
-        /// @details Computes the projection on a velocity mode of the Smagorinsky term computed from 
+        /// @details Computes the projection on a velocity mode of the Smagorinsky term computed from
         ///          a nut snapshot and a velocity mode for the symmetric gradient.
         ///          Other definitions to enable calling the function from a templatized class
         ///
@@ -685,13 +699,16 @@ private :
         ///
         /// @return  projSmagFromNut volScalarField
         ///
-        void computeNonLinearSnapshot_at_time(const word& snap_time, volScalarField& phi, 
-                                volVectorField& modeU_proj , volVectorField& modeU_grad);
+        void computeNonLinearSnapshot_at_time(const word& snap_time,
+                                              volScalarField& phi,
+                                              volVectorField& modeU_proj, volVectorField& modeU_grad);
 
-        void computeNonLinearSnapshot_at_time(const word& snap_time, volVectorField& phi, 
-                                volVectorField& modeU_proj , volVectorField& modeU_grad)
+        void computeNonLinearSnapshot_at_time(const word& snap_time,
+                                              volVectorField& phi,
+                                              volVectorField& modeU_proj, volVectorField& modeU_grad)
         {
-            Info << "Output field with this call to computeNonLinearSnapshot_at_time is scalar" << endl;
+            Info << "Output field with this call to computeNonLinearSnapshot_at_time is scalar"
+                 << endl;
             abort();
         };
 
@@ -712,8 +729,9 @@ private :
         ///
         /// @return  projSmagFromNut volScalarField
         ///
-        volScalarField computeProjSmagFromNut_at_time_fromModes(const word& snap_time, const volVectorField& modeU_proj, 
-                                                           const volVectorField& modeU_grad);
+        volScalarField computeProjSmagFromNut_at_time_fromModes(const word& snap_time,
+                const volVectorField& modeU_proj,
+                const volVectorField& modeU_grad);
 
         //--------------------------------------------------------------------------
         /// @brief  Compute projSmagFromNut given Nut and 2 velocity modes
@@ -726,20 +744,25 @@ private :
         ///
         /// @return  projSmagFromNut volScalarField
         ///
-        void computeProjSmagFromNut_fromNut_fromModes(volScalarField& phi, const volScalarField& Nut, 
-                                const volVectorField& modeU_proj, const volVectorField& modeU_grad);
+        void computeProjSmagFromNut_fromNut_fromModes(volScalarField& phi,
+                const volScalarField& Nut,
+                const volVectorField& modeU_proj, const volVectorField& modeU_grad);
 
-        void computeProjSmagFromNut_fromNut_fromModes(volVectorField& phi, const volVectorField& Nut, 
-                                const volVectorField& modeU_proj, const volVectorField& modeU_grad)
+        void computeProjSmagFromNut_fromNut_fromModes(volVectorField& phi,
+                const volVectorField& Nut,
+                const volVectorField& modeU_proj, const volVectorField& modeU_grad)
         {
-            Info << "Output field for this call to computeProjSmagFromNut_fromNut_fromModes is a scalar field" << endl;
+            Info << "Output field for this call to computeProjSmagFromNut_fromNut_fromModes is a scalar field"
+                 << endl;
             abort();
         };
 
-        void computeProjSmagFromNut_fromNut_fromModes(volScalarField& phi, const volVectorField& Nut, 
-                                const volVectorField& modeU_proj, const volVectorField& modeU_grad)
+        void computeProjSmagFromNut_fromNut_fromModes(volScalarField& phi,
+                const volVectorField& Nut,
+                const volVectorField& modeU_proj, const volVectorField& modeU_grad)
         {
-            Info << "Input field for this call to computeProjSmagFromNut_fromNut_fromModes is a scalar field" << endl;
+            Info << "Input field for this call to computeProjSmagFromNut_fromNut_fromModes is a scalar field"
+                 << endl;
             abort();
         };
 
@@ -750,16 +773,16 @@ private :
         /// @param[in] u volVectorField of velocity for the diffusion
         /// @param[in] v volVectorField of velocity mode for the projection
         ///
-        /// @return  volScalarField of non integrated projected diffusion  
+        /// @return  volScalarField of non integrated projected diffusion
         ///
-        static volScalarField projDiffusionIBP(const volScalarField& coefDiff, 
-                             const volVectorField& u, const volVectorField& v);
+        static volScalarField projDiffusionIBP(const volScalarField& coefDiff,
+                                               const volVectorField& u, const volVectorField& v);
 
 
 
-    // =========================================================================
-    // ============================= NUT =======================================
-    // =========================================================================
+        // =========================================================================
+        // ============================= NUT =======================================
+        // =========================================================================
 
         //--------------------------------------------------------------------------
         /// @brief  Compute non linear Snapshot at a given time
@@ -772,12 +795,13 @@ private :
         ///
         /// @return  nut
         ///
-        void computeNonLinearSnapshot_at_time(const word& snap_time, volScalarField& nut, 
-              std::optional<PtrList<volVectorField>> modesU = std::nullopt);
+        void computeNonLinearSnapshot_at_time(const word& snap_time,
+                                              volScalarField& nut,
+                                              std::optional<PtrList<volVectorField>> modesU = std::nullopt);
 
         //--------------------------------------------------------------------------
         /// @brief  Initialize Nut term with values at time 0
-        /// @details Nut is provided by OpenFOAM, but for homogeneity purposes 
+        /// @details Nut is provided by OpenFOAM, but for homogeneity purposes
         ///          it is initialized the same way as Smagorinsky term
         ///
         /// @return  nonLinearSnapshot
@@ -794,7 +818,8 @@ private :
         ///
         /// @return  nut volScalarField
         ///
-        volScalarField computeNut_at_time(const word& snap_time, std::optional<PtrList<volVectorField>> modesU = std::nullopt);
+        volScalarField computeNut_at_time(const word& snap_time,
+                                          std::optional<PtrList<volVectorField>> modesU = std::nullopt);
 
         //--------------------------------------------------------------------------
         /// @brief  Compute turbulent viscosity Snapshot for a given velocity field U

@@ -281,7 +281,7 @@ List <Eigen::MatrixXd> UnsteadyNSTTurb::turbulenceTerm1(label NUmodes,
             for (label k = 0; k < Csize; k++)
             {
                 CT1_matrix[i](j, k) = fvc::domainIntegrate(Together[i] & fvc::laplacian(
-                                          nuTmodes[j], Together[k])).value();
+                        nuTmodes[j], Together[k])).value();
             }
         }
     }
@@ -346,7 +346,7 @@ List <Eigen::MatrixXd> UnsteadyNSTTurb::turbulenceTerm2(label NUmodes,
             for (label k = 0; k < Csize; k++)
             {
                 CT2_matrix[i](j, k) = fvc::domainIntegrate(Together[i] & (fvc::div(
-                                          nuTmodes[j] * dev((fvc::grad(Together[k]))().T())))).value();
+                        nuTmodes[j] * dev((fvc::grad(Together[k]))().T())))).value();
             }
         }
     }
@@ -454,7 +454,7 @@ List <Eigen::MatrixXd> UnsteadyNSTTurb::temperatureTurbulenceTerm(
             for (label k = 0; k < Stsize; k++)
             {
                 S_matrix[i](j, k) = fvc::domainIntegrate(Together[i] * fvc::laplacian(
-                                        nuTmodes[j], Together[k])).value();
+                        nuTmodes[j], Together[k])).value();
             }
         }
     }

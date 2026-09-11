@@ -73,9 +73,9 @@ reducedUnsteadyNS::reducedUnsteadyNS(unsteadyNS& FOMproblem)
     }
 
     newton_object_sup = newton_unsteadyNS_sup(Nphi_u + Nphi_p, Nphi_u + Nphi_p,
-                        FOMproblem);
+        FOMproblem);
     newton_object_PPE = newton_unsteadyNS_PPE(Nphi_u + Nphi_p, Nphi_u + Nphi_p,
-                        FOMproblem);
+        FOMproblem);
 }
 
 // * * * * * * * * * * * * * Operators supremizer  * * * * * * * * * * * * * //
@@ -128,7 +128,7 @@ int newton_unsteadyNS_sup::operator()(const Eigen::VectorXd& x,
     for (int i = 0; i < Nphi_u; i++)
     {
         cc = a_tmp.transpose() * Eigen::SliceFromTensor(problem->C_tensor, 0,
-             i) * a_tmp;
+            i) * a_tmp;
         fvec(i) = - M5(i) + M1(i) - cc(0, 0) - M2(i);
 
         if (problem->bcMethod == "penalty")
@@ -221,7 +221,7 @@ int newton_unsteadyNS_PPE::operator()(const Eigen::VectorXd& x,
     for (int i = 0; i < Nphi_u; i++)
     {
         cc = a_tmp.transpose() * Eigen::SliceFromTensor(problem->C_tensor, 0,
-             i) * a_tmp;
+            i) * a_tmp;
         fvec(i) = - M5(i) + M1(i) - cc(0, 0) - M2(i);
 
         if (problem->bcMethod == "penalty")
@@ -237,7 +237,7 @@ int newton_unsteadyNS_PPE::operator()(const Eigen::VectorXd& x,
     {
         int k = j + Nphi_u;
         gg = a_tmp.transpose() * Eigen::SliceFromTensor(problem->gTensor, 0,
-             j) * a_tmp;
+            j) * a_tmp;
         fvec(k) = M3(j, 0) + gg(0, 0) - M7(j, 0);
 
         if (problem->timedepbcMethod == "yes")
@@ -297,9 +297,9 @@ void reducedUnsteadyNS::solveOnline_sup(Eigen::MatrixXd vel,
     y.resize(Nphi_u + Nphi_p, 1);
     y.setZero();
     y.head(Nphi_u) = ITHACAutilities::getCoeffs(problem->Ufield[startSnap],
-                     Umodes);
+        Umodes);
     y.tail(Nphi_p) = ITHACAutilities::getCoeffs(problem->Pfield[startSnap],
-                     Pmodes);
+        Pmodes);
     int nextStore = 0;
     int counter2 = 0;
 
@@ -384,18 +384,18 @@ void reducedUnsteadyNS::solveOnline_sup(Eigen::MatrixXd vel,
         newton_object_sup.yOldOld = newton_object_sup.y_old;
         newton_object_sup.y_old = y;
         Info << "################## Online solve N° " << counter <<
-                  " ##################" << endl;
+             " ##################" << endl;
         Info << "Time = " << time << endl;
 
         if (res.norm() < 1e-5)
         {
             Info << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
         else
         {
             Info << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
 
         tmp_sol(0) = time;
@@ -457,9 +457,9 @@ void reducedUnsteadyNS::solveOnline_PPE(Eigen::MatrixXd vel,
     y.setZero();
     // Set Initial Conditions
     y.head(Nphi_u) = ITHACAutilities::getCoeffs(problem->Ufield[startSnap],
-                     Umodes);
+        Umodes);
     y.tail(Nphi_p) = ITHACAutilities::getCoeffs(problem->Pfield[startSnap],
-                     Pmodes);
+        Pmodes);
     int nextStore = 0;
     int counter2 = 0;
 
@@ -545,18 +545,18 @@ void reducedUnsteadyNS::solveOnline_PPE(Eigen::MatrixXd vel,
         newton_object_PPE.yOldOld = newton_object_PPE.y_old;
         newton_object_PPE.y_old = y;
         Info << "################## Online solve N° " << counter <<
-                  " ##################" << endl;
+             " ##################" << endl;
         Info << "Time = " << time << endl;
 
         if (res.norm() < 1e-5)
         {
             Info << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
         else
         {
             Info << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
 
         tmp_sol(0) = time;
@@ -618,9 +618,9 @@ Eigen::MatrixXd reducedUnsteadyNS::penalty_sup(Eigen::MatrixXd& vel_now,
         y.resize(Nphi_u + Nphi_p, 1);
         y.setZero();
         y.head(Nphi_u) = ITHACAutilities::getCoeffs(problem->Ufield[startSnap],
-                         Umodes);
+            Umodes);
         y.tail(Nphi_p) = ITHACAutilities::getCoeffs(problem->Pfield[startSnap],
-                         Pmodes);
+            Pmodes);
         // Set some properties of the newton object
         newton_object_sup.nu = nu;
         newton_object_sup.y_old = y;
@@ -669,12 +669,12 @@ Eigen::MatrixXd reducedUnsteadyNS::penalty_sup(Eigen::MatrixXd& vel_now,
             if (res.norm() < 1e-5)
             {
                 Info << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                          hnls.iter << " iterations " << def << endl << endl;
+                     hnls.iter << " iterations " << def << endl << endl;
             }
             else
             {
                 Info << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                          hnls.iter << " iterations " << def << endl << endl;
+                     hnls.iter << " iterations " << def << endl << endl;
             }
 
             volVectorField U_rec("U_rec", Umodes[0] * 0);
@@ -695,7 +695,7 @@ Eigen::MatrixXd reducedUnsteadyNS::penalty_sup(Eigen::MatrixXd& vel_now,
         for (int j = 0; j < N_BC; j++)
         {
             diffvel(j) = abs(abs(vel_now(j, timeStepPenalty - 1)) - abs(valBC(j,
-                             timeStepPenalty - 1)));
+                timeStepPenalty - 1)));
         }
 
         Info << "max error: " << diffvel.maxCoeff() << endl;
@@ -739,9 +739,9 @@ Eigen::MatrixXd reducedUnsteadyNS::penalty_PPE(Eigen::MatrixXd& vel_now,
         y.resize(Nphi_u + Nphi_p, 1);
         y.setZero();
         y.head(Nphi_u) = ITHACAutilities::getCoeffs(problem->Ufield[startSnap],
-                         Umodes);
+            Umodes);
         y.tail(Nphi_p) = ITHACAutilities::getCoeffs(problem->Pfield[startSnap],
-                         Pmodes);
+            Pmodes);
         // Set some properties of the newton object
         newton_object_PPE.nu = nu;
         newton_object_PPE.y_old = y;
@@ -792,12 +792,12 @@ Eigen::MatrixXd reducedUnsteadyNS::penalty_PPE(Eigen::MatrixXd& vel_now,
             if (res.norm() < 1e-5)
             {
                 Info << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                          hnls.iter << " iterations " << def << endl << endl;
+                     hnls.iter << " iterations " << def << endl << endl;
             }
             else
             {
                 Info << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                          hnls.iter << " iterations " << def << endl << endl;
+                     hnls.iter << " iterations " << def << endl << endl;
             }
 
             volVectorField U_rec("U_rec", Umodes[0] * 0);
@@ -818,7 +818,7 @@ Eigen::MatrixXd reducedUnsteadyNS::penalty_PPE(Eigen::MatrixXd& vel_now,
         for (int j = 0; j < N_BC; j++)
         {
             diffvel(j) = abs(abs(vel_now(j, timeStepPenalty - 1)) - abs(valBC(j,
-                             timeStepPenalty - 1)));
+                timeStepPenalty - 1)));
         }
 
         Info << "max error: " << diffvel.maxCoeff() << endl;

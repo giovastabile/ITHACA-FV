@@ -52,9 +52,9 @@ ithacaInterpolator::ithacaInterpolator(const Foam::dictionary& dict)
         else
         {
             FatalErrorInFunction
-                << "Unknown algorithm for mathtoolbox package: " << algorithm_
-                << ". Valid options are: RBF, GPR"
-                << Foam::exit(Foam::FatalError);
+                    << "Unknown algorithm for mathtoolbox package: " << algorithm_
+                    << ". Valid options are: RBF, GPR"
+                    << Foam::exit(Foam::FatalError);
         }
     }
     else if (package_ == "splinter")
@@ -62,18 +62,19 @@ ithacaInterpolator::ithacaInterpolator(const Foam::dictionary& dict)
         if (algorithm_ != "RBF" && algorithm_ != "rbf")
         {
             FatalErrorInFunction
-                << "Unknown algorithm for splinter package: " << algorithm_
-                << ". Valid option is: RBF"
-                << Foam::exit(Foam::FatalError);
+                    << "Unknown algorithm for splinter package: " << algorithm_
+                    << ". Valid option is: RBF"
+                    << Foam::exit(Foam::FatalError);
         }
+
         splinter_ = std::make_unique<splinterRBF>(dict);
     }
     else
     {
         FatalErrorInFunction
-            << "Unknown package: " << package_
-            << ". Valid options are: mathtoolbox, splinter"
-            << Foam::exit(Foam::FatalError);
+                << "Unknown package: " << package_
+                << ". Valid options are: mathtoolbox, splinter"
+                << Foam::exit(Foam::FatalError);
     }
 }
 
@@ -94,8 +95,8 @@ void ithacaInterpolator::fit(const Eigen::MatrixXd& X, const Eigen::VectorXd& y)
         else
         {
             FatalErrorInFunction
-                << "mathtoolbox algorithm not initialized"
-                << Foam::exit(Foam::FatalError);
+                    << "mathtoolbox algorithm not initialized"
+                    << Foam::exit(Foam::FatalError);
         }
     }
     else if (package_ == "splinter")
@@ -103,17 +104,18 @@ void ithacaInterpolator::fit(const Eigen::MatrixXd& X, const Eigen::VectorXd& y)
         if (algorithm_ != "RBF" && algorithm_ != "rbf")
         {
             FatalErrorInFunction
-                << "Unknown algorithm for splinter package: " << algorithm_
-                << ". Valid option is: RBF"
-                << Foam::exit(Foam::FatalError);
+                    << "Unknown algorithm for splinter package: " << algorithm_
+                    << ". Valid option is: RBF"
+                    << Foam::exit(Foam::FatalError);
         }
+
         splinter_->fit(X, y);
     }
     else
     {
         FatalErrorInFunction
-            << "Unknown package: " << package_
-            << Foam::exit(Foam::FatalError);
+                << "Unknown package: " << package_
+                << Foam::exit(Foam::FatalError);
     }
 }
 
@@ -132,8 +134,8 @@ double ithacaInterpolator::predict(const Eigen::VectorXd& x)
         else
         {
             FatalErrorInFunction
-                << "mathtoolbox algorithm not initialized"
-                << Foam::exit(Foam::FatalError);
+                    << "mathtoolbox algorithm not initialized"
+                    << Foam::exit(Foam::FatalError);
         }
     }
     else if (package_ == "splinter")
@@ -141,18 +143,20 @@ double ithacaInterpolator::predict(const Eigen::VectorXd& x)
         if (algorithm_ != "RBF" && algorithm_ != "rbf")
         {
             FatalErrorInFunction
-                << "Unknown algorithm for splinter package: " << algorithm_
-                << ". Valid option is: RBF"
-                << Foam::exit(Foam::FatalError);
+                    << "Unknown algorithm for splinter package: " << algorithm_
+                    << ". Valid option is: RBF"
+                    << Foam::exit(Foam::FatalError);
         }
+
         return splinter_->predict(x);
-    }    
+    }
     else
     {
         FatalErrorInFunction
-            << "Unknown package: " << package_
-            << Foam::exit(Foam::FatalError);
+                << "Unknown package: " << package_
+                << Foam::exit(Foam::FatalError);
     }
+
     return 0.0; // unreachable, keeps compiler happy
 }
 
@@ -171,8 +175,8 @@ Eigen::VectorXd ithacaInterpolator::predict(const Eigen::MatrixXd& X)
         else
         {
             FatalErrorInFunction
-                << "mathtoolbox algorithm not initialized"
-                << Foam::exit(Foam::FatalError);
+                    << "mathtoolbox algorithm not initialized"
+                    << Foam::exit(Foam::FatalError);
         }
     }
     else if (package_ == "splinter")
@@ -180,18 +184,20 @@ Eigen::VectorXd ithacaInterpolator::predict(const Eigen::MatrixXd& X)
         if (algorithm_ != "RBF" && algorithm_ != "rbf")
         {
             FatalErrorInFunction
-                << "Unknown algorithm for splinter package: " << algorithm_
-                << ". Valid option is: RBF"
-                << Foam::exit(Foam::FatalError);
+                    << "Unknown algorithm for splinter package: " << algorithm_
+                    << ". Valid option is: RBF"
+                    << Foam::exit(Foam::FatalError);
         }
+
         return splinter_->predict(X);
     }
     else
     {
         FatalErrorInFunction
-            << "Unknown package: " << package_
-            << Foam::exit(Foam::FatalError);
+                << "Unknown package: " << package_
+                << Foam::exit(Foam::FatalError);
     }
+
     return Eigen::VectorXd(); // unreachable, keeps compiler happy
 }
 
@@ -210,8 +216,8 @@ void ithacaInterpolator::printInfo() const
         else
         {
             FatalErrorInFunction
-                << "mathtoolbox algorithm not initialized"
-                << Foam::exit(Foam::FatalError);
+                    << "mathtoolbox algorithm not initialized"
+                    << Foam::exit(Foam::FatalError);
         }
     }
     else if (package_ == "splinter")
@@ -219,16 +225,17 @@ void ithacaInterpolator::printInfo() const
         if (algorithm_ != "RBF" && algorithm_ != "rbf")
         {
             FatalErrorInFunction
-                << "Unknown algorithm for splinter package: " << algorithm_
-                << ". Valid option is: RBF"
-                << Foam::exit(Foam::FatalError);
+                    << "Unknown algorithm for splinter package: " << algorithm_
+                    << ". Valid option is: RBF"
+                    << Foam::exit(Foam::FatalError);
         }
+
         splinter_->printInfo();
     }
     else
     {
         FatalErrorInFunction
-            << "Unknown package: " << package_
-            << Foam::exit(Foam::FatalError);
+                << "Unknown package: " << package_
+                << Foam::exit(Foam::FatalError);
     }
 }

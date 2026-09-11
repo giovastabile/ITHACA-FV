@@ -149,7 +149,7 @@ Eigen::Tensor<double, 3> SteadyNSTurbIntrusive::turbulenceTensor1(label nModes)
             for (label k = 0; k < nModes; k++)
             {
                 ct1Tensor(i, j, k) = fvc::domainIntegrate(Umodes[i] & fvc::laplacian(
-                                         nutModes[j], Umodes[k])).value();
+                        nutModes[j], Umodes[k])).value();
             }
         }
     }
@@ -177,7 +177,7 @@ Eigen::Tensor<double, 3> SteadyNSTurbIntrusive::turbulenceTensor2(label nModes)
             for (label k = 0; k < nModes; k++)
             {
                 ct2Tensor(i, j, k) = fvc::domainIntegrate(Umodes[i] & (fvc::div(
-                                         nutModes[j] * dev((fvc::grad(Umodes[k]))().T())))).value();
+                        nutModes[j] * dev((fvc::grad(Umodes[k]))().T())))).value();
             }
         }
     }
@@ -393,8 +393,8 @@ Eigen::Tensor<double, 3> SteadyNSTurbIntrusive::convectiveTerm(label nModes)
             for (label k = 0; k < nModes; k++)
             {
                 convTensor(i, j, k) = fvc::domainIntegrate(Umodes[i] & fvc::div(
-                                          linearInterpolate(Umodes[j]) & Umodes[j].mesh().Sf(),
-                                          Umodes[k])).value();
+                        linearInterpolate(Umodes[j]) & Umodes[j].mesh().Sf(),
+                        Umodes[k])).value();
             }
         }
     }

@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
     tutorial07 example(argc, argv);
     // Read some parameters from file
     ITHACAparameters* para = ITHACAparameters::getInstance(example._mesh(),
-                             example._runTime());
+        example._runTime());
     int NmodesUout = para->ITHACAdict->lookupOrDefault<int>("NmodesUout", 5);
     int NmodesPout = para->ITHACAdict->lookupOrDefault<int>("NmodesPout", 5);
     int NmodesTout = para->ITHACAdict->lookupOrDefault<int>("NmodesTout", 5);

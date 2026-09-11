@@ -99,7 +99,7 @@ class HyperReduction
                        label n_cells,
                        Eigen::VectorXi initialSeeds,
                        word problemName,
-                       Eigen::VectorXd volumes = Eigen::VectorXd::Constant(1,0.0));
+                       Eigen::VectorXd volumes = Eigen::VectorXd::Constant(1, 0.0));
 
         // ITHACA parameters dict
         ITHACAparameters* para;
@@ -527,7 +527,7 @@ class HyperReduction
                            List<Eigen::MatrixXd>& snapMatrixBoundary,
                            List<Eigen::VectorXd>& fieldWeightsBoundary);
 
-        /// @brief      Compute the sparse mask matrix P with a vectorial dimension different 
+        /// @brief      Compute the sparse mask matrix P with a vectorial dimension different
         ///             from the snapshots (enlarged or reduced)
         ///
         /// @param[in]  newDim  int, the vectorial dim for the output

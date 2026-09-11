@@ -544,7 +544,7 @@ GeometricField<Type, PatchField, GeoMesh> readFieldByIndex(
 
 template <typename T>
 void read_snapshot(T& snapshot, const Foam::word snap_time,
-                    Foam::word path, Foam::word name = "default_name");
+                   Foam::word path, Foam::word name = "default_name");
 
 
 };
@@ -554,7 +554,8 @@ namespace Foam
 template<typename T>
 Ostream& operator<< (Ostream& os, const Eigen::Matrix < T, -1, -1 > & mat)
 {
-    os << mat.rows() << mat.cols() << UList<T>(const_cast<Eigen::Matrix<T, -1, -1>&>
+    os << mat.rows() << mat.cols() << UList<T>(const_cast < Eigen::Matrix < T, -1,
+            -1 > & >
             (mat).data(), mat.size());
     return os;
 }
@@ -573,7 +574,8 @@ Istream& operator>> (Istream& is, Eigen::Matrix < T, -1, -1 > & mat)
 template<typename T>
 Ostream& operator<< (Ostream& os, const Eigen::Matrix < T, -1, 1 > & mat)
 {
-    os << mat.rows() << mat.cols() << UList<T>(const_cast<Eigen::Matrix<T, -1, 1>&>
+    os << mat.rows() << mat.cols() << UList<T>(const_cast < Eigen::Matrix < T, -1,
+            1 > & >
             (mat).data(), mat.size());
     return os;
 }
@@ -591,35 +593,41 @@ Istream& operator>> (Istream& is, Eigen::Matrix < T, -1, 1 > & mat)
 
 // Support for Eigen matrix transpose expression
 template<typename T>
-Ostream& operator<< (Ostream& os, const Eigen::Transpose<Eigen::Matrix<T, -1, -1>>& mat)
+Ostream& operator<< (Ostream& os, const Eigen::Transpose<Eigen::Matrix < T, -1,
+                     -1 >> & mat)
 {
-    Eigen::Matrix<T, -1, -1> evaluated = mat;
-    os << evaluated.rows() << evaluated.cols() << UList<T>(evaluated.data(), evaluated.size());
+    Eigen::Matrix < T, -1, -1 > evaluated = mat;
+    os << evaluated.rows() << evaluated.cols() << UList<T>(evaluated.data(),
+            evaluated.size());
     return os;
 }
 
 // Support for Eigen vector transpose expression
 template<typename T>
-Ostream& operator<< (Ostream& os, const Eigen::Transpose<Eigen::Matrix<T, -1, 1>>& mat)
+Ostream& operator<< (Ostream& os, const Eigen::Transpose<Eigen::Matrix < T, -1,
+                     1 >> & mat)
 {
-    Eigen::Matrix<T, 1, -1> evaluated = mat;
-    os << evaluated.rows() << evaluated.cols() << UList<T>(evaluated.data(), evaluated.size());
+    Eigen::Matrix < T, 1, -1 > evaluated = mat;
+    os << evaluated.rows() << evaluated.cols() << UList<T>(evaluated.data(),
+            evaluated.size());
     return os;
 }
 
 // Support for Eigen::Block (column/row views from matrices)
 template<typename T>
-Ostream& operator<< (Ostream& os, const Eigen::Block<Eigen::Matrix<T, -1, -1>, -1, 1, true>& mat)
+Ostream& operator<< (Ostream& os, const Eigen::Block<Eigen::Matrix < T, -1,
+                     -1 >, -1, 1, true > & mat)
 {
-    Eigen::Matrix<T, -1, 1> evaluated = mat;
+    Eigen::Matrix < T, -1, 1 > evaluated = mat;
     os << evaluated;
     return os;
 }
 
 template<typename T>
-Ostream& operator<< (Ostream& os, const Eigen::Block<Eigen::Matrix<T, -1, -1>, 1, -1, false>& mat)
+Ostream& operator<< (Ostream& os, const Eigen::Block<Eigen::Matrix < T, -1,
+                     -1 >, 1, -1, false > & mat)
 {
-    Eigen::Matrix<T, 1, -1> evaluated = mat;
+    Eigen::Matrix < T, 1, -1 > evaluated = mat;
     os << evaluated;
     return os;
 }

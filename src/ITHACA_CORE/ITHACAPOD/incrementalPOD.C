@@ -195,7 +195,7 @@ void incrementalPOD<Type, PatchField, GeoMesh>::addSnapshot(
         {
             Eigen::HouseholderQR<Eigen::MatrixXd> qr(this->EigenModes[0]);
             Eigen::MatrixXd thinQ(Eigen::MatrixXd::Identity(this->EigenModes[0].rows(),
-                                  rank));
+                    rank));
             this->EigenModes[0] = qr.householderQ() * thinQ;
         }
     }

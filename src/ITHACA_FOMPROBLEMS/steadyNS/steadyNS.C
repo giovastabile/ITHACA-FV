@@ -978,8 +978,8 @@ List <Eigen::MatrixXd> steadyNS::convective_term(label NUmodes, label NPmodes,
             for (label k = 0; k < Csize; k++)
             {
                 C_matrix[i](j, k) = fvc::domainIntegrate(L_U_SUPmodes[i] & fvc::div(
-                                        linearInterpolate(L_U_SUPmodes[j]) & L_U_SUPmodes[j].mesh().Sf(),
-                                        L_U_SUPmodes[k])).value();
+                        linearInterpolate(L_U_SUPmodes[j]) & L_U_SUPmodes[j].mesh().Sf(),
+                        L_U_SUPmodes[k])).value();
             }
         }
     }
@@ -1011,14 +1011,14 @@ Eigen::Tensor<double, 3> steadyNS::convective_term_tens(label NUmodes,
                 if (fluxMethod == "consistent")
                 {
                     C_tensor(i, j, k) = fvc::domainIntegrate(L_U_SUPmodes[i] & fvc::div(
-                                            L_PHImodes[j],
-                                            L_U_SUPmodes[k])).value();
+                            L_PHImodes[j],
+                            L_U_SUPmodes[k])).value();
                 }
                 else
                 {
                     C_tensor(i, j, k) = fvc::domainIntegrate(L_U_SUPmodes[i] & fvc::div(
-                                            linearInterpolate(L_U_SUPmodes[j]) & L_U_SUPmodes[j].mesh().Sf(),
-                                            L_U_SUPmodes[k])).value();
+                            linearInterpolate(L_U_SUPmodes[j]) & L_U_SUPmodes[j].mesh().Sf(),
+                            L_U_SUPmodes[k])).value();
                 }
             }
         }
@@ -1156,8 +1156,8 @@ List <Eigen::MatrixXd> steadyNS::div_momentum(label NUmodes, label NPmodes)
             for (label k = 0; k < G2size; k++)
             {
                 G_matrix[i](j, k) = fvc::domainIntegrate(fvc::grad(Pmodes[i]) & (fvc::div(
-                                        fvc::interpolate(L_U_SUPmodes[j]) & L_U_SUPmodes[j].mesh().Sf(),
-                                        L_U_SUPmodes[k]))).value();
+                        fvc::interpolate(L_U_SUPmodes[j]) & L_U_SUPmodes[j].mesh().Sf(),
+                        L_U_SUPmodes[k]))).value();
             }
         }
     }
@@ -1284,8 +1284,8 @@ Eigen::MatrixXd steadyNS::divergent_convective_background(label NPmodes,
         for (label j = 0; j < LDsize2; j++)
         {
             L_D_matrix(i, j) = - fvc::domainIntegrate(fvc::grad(Pmodes[i]) & fvc::div(
-                                   fvc::interpolate(vls) & vls.mesh().Sf(),
-                                   L_U_SUPmodes[j])).value();
+                    fvc::interpolate(vls) & vls.mesh().Sf(),
+                    L_U_SUPmodes[j])).value();
         }
     }
 
@@ -1328,7 +1328,7 @@ Eigen::MatrixXd steadyNS::pressure_BC1(label NUmodes, label NPmodes)
         for (label j = 0; j < P_BC2size; j++)
         {
             surfaceScalarField lpl((fvc::interpolate(fvc::laplacian(
-                                        L_U_SUPmodes[j])) & mesh.Sf()) * fvc::interpolate(Pmodes[i]));
+                    L_U_SUPmodes[j])) & mesh.Sf()) * fvc::interpolate(Pmodes[i]));
             double s = 0;
 
             for (label k = 0; k < lpl.boundaryField().size(); k++)
@@ -1373,8 +1373,8 @@ List <Eigen::MatrixXd> steadyNS::pressure_BC2(label NUmodes, label NPmodes)
             for (label k = 0; k < P2_BC2size; k++)
             {
                 surfaceScalarField div_m(fvc::interpolate(fvc::div(fvc::interpolate(
-                                             L_U_SUPmodes[j]) & mesh.Sf(),
-                                         L_U_SUPmodes[k])) & mesh.Sf() * fvc::interpolate(Pmodes[i]));
+                        L_U_SUPmodes[j]) & mesh.Sf(),
+                    L_U_SUPmodes[k])) & mesh.Sf() * fvc::interpolate(Pmodes[i]));
                 double s = 0;
 
                 for (label k = 0; k < div_m.boundaryField().size(); k++)
@@ -1408,8 +1408,8 @@ Eigen::Tensor<double, 3> steadyNS::pressureBC2(label NUmodes, label NPmodes)
             for (label k = 0; k < pressureBC2Size; k++)
             {
                 surfaceScalarField div_m(fvc::interpolate(fvc::div(fvc::interpolate(
-                                             L_U_SUPmodes[j]) & mesh.Sf(),
-                                         L_U_SUPmodes[k])) & mesh.Sf() * fvc::interpolate(Pmodes[i]));
+                        L_U_SUPmodes[j]) & mesh.Sf(),
+                    L_U_SUPmodes[k])) & mesh.Sf() * fvc::interpolate(Pmodes[i]));
                 double s = 0;
 
                 for (label k = 0; k < div_m.boundaryField().size(); k++)
@@ -1730,7 +1730,7 @@ Eigen::Tensor<double, 3> steadyNS::convective_term_flux_tens(label NUmodes,
                 }
 
                 Cf_tensor(i, j, k) = fvc::domainIntegrate(Pmodes[i]
-                                     * fvc::div(L_U_SUPmodesaux)).value();
+                    * fvc::div(L_U_SUPmodesaux)).value();
             }
         }
     }
@@ -1890,8 +1890,8 @@ Eigen::MatrixXd steadyNS::diffusive_term_consistent(label NUmodes,
         for (label j = 0; j < DFsize; j++)
         {
             phi_tmp = dt_dummy * nu_dummy() * fvc::flux(fvc::laplacian(
-                          dimensionedScalar("1", dimless, 1),
-                          L_U_SUPmodes[j]));
+                    dimensionedScalar("1", dimless, 1),
+                    L_U_SUPmodes[j]));
             volVectorField CoeffB = fvc::reconstruct(phi_tmp).ref();
             volVectorField CoeffA = fvc::reconstruct(L_PHImodes[i]).ref();
             DF_matrix(i, j) = fvc::domainIntegrate(CoeffA & CoeffB).value();
@@ -1921,7 +1921,7 @@ Eigen::MatrixXd steadyNS::pressure_gradient_term_consistent(label NUmodes,
         for (label j = 0; j < KF2size; j++)
         {
             volVectorField CoeffA = (fvc::reconstruct(dt_dummy * fvc::snGrad(
-                                         Pmodes[j]) * mag(Pmodes[j].mesh().magSf()))).ref();
+                    Pmodes[j]) * mag(Pmodes[j].mesh().magSf()))).ref();
             volVectorField CoeffB = fvc::reconstruct(L_PHImodes[i]).ref();
             KF_matrix(i, j) = fvc::domainIntegrate(CoeffA &   CoeffB).value();
         }

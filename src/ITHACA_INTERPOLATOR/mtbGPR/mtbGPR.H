@@ -45,35 +45,36 @@ SourceFiles
 
 class mtbGPR
 {
-public:
-    // Constructor from OpenFOAM dictionary
-    explicit mtbGPR(const Foam::dictionary& dict);
+    public:
+        // Constructor from OpenFOAM dictionary
+        explicit mtbGPR(const Foam::dictionary& dict);
 
-    // Destructor
-    ~mtbGPR();
+        // Destructor
+        ~mtbGPR();
 
-    // Fit function
-    void fit(const Eigen::MatrixXd& X, const Eigen::VectorXd& y);
+        // Fit function
+        void fit(const Eigen::MatrixXd& X, const Eigen::VectorXd& y);
 
-    // Predict function (mean only)
-    Foam::scalar predict(const Eigen::VectorXd& x);
+        // Predict function (mean only)
+        Foam::scalar predict(const Eigen::VectorXd& x);
 
-    // Predict for multiple points
-    Eigen::VectorXd predict(const Eigen::MatrixXd& X);
+        // Predict for multiple points
+        Eigen::VectorXd predict(const Eigen::MatrixXd& X);
 
-    // Print model info
-    void printInfo() const;
+        // Print model info
+        void printInfo() const;
 
-private:
-    mathtoolbox::GaussianProcessRegressor::KernelType parseKernelType(const Foam::word& kernelWord) const;
+    private:
+        mathtoolbox::GaussianProcessRegressor::KernelType parseKernelType(
+            const Foam::word& kernelWord) const;
 
-    std::unique_ptr<mathtoolbox::GaussianProcessRegressor> impl_;
-    Foam::word kernelTypeWord_;
-    bool useDataNormalization_;
-    bool optimizeHyperparams_;
-    Foam::scalar kernelScale_;
-    Foam::scalar lengthScale_;
-    Foam::scalar noise_; // observation noise hyperparameter
+        std::unique_ptr<mathtoolbox::GaussianProcessRegressor> impl_;
+        Foam::word kernelTypeWord_;
+        bool useDataNormalization_;
+        bool optimizeHyperparams_;
+        Foam::scalar kernelScale_;
+        Foam::scalar lengthScale_;
+        Foam::scalar noise_; // observation noise hyperparameter
 };
 
 #endif

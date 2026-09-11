@@ -120,16 +120,16 @@ class CompressibleSteadyNN : public CompressibleSteadyNS
                 /// Compute the coefficients for train
                 Info << "Computing the coefficients for U train" << endl;
                 Eigen::MatrixXd coeffL2U_train = ITHACAutilities::getCoeffs(UfieldTrain,
-                                                 Umodes,
-                                                 0, true);
+                    Umodes,
+                    0, true);
                 Info << "Computing the coefficients for p train" << endl;
                 Eigen::MatrixXd coeffL2P_train = ITHACAutilities::getCoeffs(PfieldTrain,
-                                                 Pmodes,
-                                                 0, true);
+                    Pmodes,
+                    0, true);
                 Info << "Computing the coefficients for nuT train" << endl;
                 Eigen::MatrixXd coeffL2Nut_train = ITHACAutilities::getCoeffs(nutFieldsTrain,
-                                                   nutModes,
-                                                   0, true);
+                    nutModes,
+                    0, true);
                 coeffL2U_train.transposeInPlace();
                 coeffL2P_train.transposeInPlace();
                 coeffL2Nut_train.transposeInPlace();
@@ -150,14 +150,14 @@ class CompressibleSteadyNN : public CompressibleSteadyNS
                                                "./ITHACAoutput/checkOff/");
                 // Compute the coefficients for test
                 Eigen::MatrixXd coeffL2U_test = ITHACAutilities::getCoeffs(UfieldTest,
-                                                Umodes,
-                                                0, true);
+                    Umodes,
+                    0, true);
                 Eigen::MatrixXd coeffL2P_test = ITHACAutilities::getCoeffs(PfieldTest,
-                                                Pmodes,
-                                                0, true);
+                    Pmodes,
+                    0, true);
                 Eigen::MatrixXd coeffL2Nut_test = ITHACAutilities::getCoeffs(nutFieldsTest,
-                                                  nutModes,
-                                                  0, true);
+                    nutModes,
+                    0, true);
                 coeffL2U_test.transposeInPlace();
                 coeffL2P_test.transposeInPlace();
                 coeffL2Nut_test.transposeInPlace();
@@ -247,11 +247,11 @@ class ReducedCompressibleSteadyNN : public ReducedCompressibleSteadyNS
             Eigen::MatrixXd eResidualOld = Eigen::MatrixXd::Zero(1, NmodesEproj);
             Eigen::MatrixXd pResidualOld = Eigen::MatrixXd::Zero(1, NmodesPproj);
             Eigen::VectorXd uResidual(Eigen::Map<Eigen::VectorXd>(uResidualOld.data(),
-                                      NmodesUproj));
+                    NmodesUproj));
             Eigen::VectorXd eResidual(Eigen::Map<Eigen::VectorXd>(eResidualOld.data(),
-                                      NmodesEproj));
+                    NmodesEproj));
             Eigen::VectorXd pResidual(Eigen::Map<Eigen::VectorXd>(pResidualOld.data(),
-                                      NmodesPproj));
+                    NmodesPproj));
             // Parameters definition
             ITHACAparameters* para = ITHACAparameters::getInstance();
             float residualJumpLim =
@@ -281,7 +281,7 @@ class ReducedCompressibleSteadyNN : public ReducedCompressibleSteadyNS
             Eigen::MatrixXd e = Eigen::MatrixXd::Zero(NmodesEproj, 1);
             Eigen::MatrixXd p = Eigen::MatrixXd::Zero(NmodesPproj, 1);
             Eigen::MatrixXd nutCoeff = ITHACAutilities::getCoeffs(nut, problem->nutModes,
-                                       NmodesNutProj, true);
+                NmodesNutProj, true);
             //vector Uinlet(170,0,0); // Vector for the inlet boundary condition
             label idInl =
                 problem->_mesh().boundaryMesh().findPatchID("inlet"); // ID of the inlet patch
@@ -401,11 +401,11 @@ class ReducedCompressibleSteadyNN : public ReducedCompressibleSteadyNS
                 rho = thermo.rho(); // Here rho is calculated as p*psi = p/(R*T)
                 rho.relax();
                 Info << "Ures = " << (uResidual.cwiseAbs()).sum() /
-                          (RedLinSysU[1].cwiseAbs()).sum() << endl;
+                     (RedLinSysU[1].cwiseAbs()).sum() << endl;
                 Info << "Eres = " << (eResidual.cwiseAbs()).sum() /
-                          (RedLinSysE[1].cwiseAbs()).sum() << endl;
+                     (RedLinSysE[1].cwiseAbs()).sum() << endl;
                 Info << "Pres = " << (pResidual.cwiseAbs()).sum() /
-                          (RedLinSysP[1].cwiseAbs()).sum() << endl;
+                     (RedLinSysP[1].cwiseAbs()).sum() << endl;
                 residualNorm = max(max((uResidual.cwiseAbs()).sum() /
                                        (RedLinSysU[1].cwiseAbs()).sum(),
                                        (pResidual.cwiseAbs()).sum() / (RedLinSysP[1].cwiseAbs()).sum()),
@@ -581,9 +581,9 @@ int main(int argc, char* argv[])
         double BumpAmp = para->ITHACAdict->lookupOrDefault<double>("BumpAmp", 0.1);
         example.mu.resize(OffNum, 2);
         Eigen::MatrixXd parTop = ITHACAutilities::rand(example.mu.rows(), 1, 0,
-                                 BumpAmp);
+            BumpAmp);
         Eigen::MatrixXd parBot = ITHACAutilities::rand(example.mu.rows(), 1, -BumpAmp,
-                                 0);
+            0);
         example.mu.leftCols(1) = parTop;
         example.mu.rightCols(1) = parBot;
         ITHACAstream::exportMatrix(example.mu, "parsOff", "eigen", "./");
@@ -757,13 +757,13 @@ int main(int argc, char* argv[])
                                   "./ITHACAoutput/checkOffSingle/");
         ITHACAstream::read_fields(offlineNut, nut, "./ITHACAoutput/checkOffSingle/");
         Eigen::MatrixXd errorU = ITHACAutilities::errorL2Rel(offlineU,
-                                 onlineU);
+            onlineU);
         Eigen::MatrixXd errorP = ITHACAutilities::errorL2Rel(offlineP,
-                                 onlineP);
+            onlineP);
         Eigen::MatrixXd errorE = ITHACAutilities::errorL2Rel(offlineE,
-                                 onlineE);
+            onlineE);
         Eigen::MatrixXd errorNut = ITHACAutilities::errorL2Rel(offlineNut,
-                                   onlineNut);
+            onlineNut);
         ///
         ITHACAstream::exportMatrix(errorU,
                                    "errorU" + name(NmodesUproj) + "_" + name(NmodesNutProj),     "python",

@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
     EnKF_1DinverseHeatTransfer example(argc, argv, Nseeds);
     // Reading parameters from file
     ITHACAparameters* para = ITHACAparameters::getInstance(example._mesh(),
-                             example._runTime());
+        example._runTime());
     example.k = para->ITHACAdict->lookupOrDefault<double>("thermalConductivity", 0);
     M_Assert(example.k > 0, "thermalConductivity, k, not specified");
     example.rho = para->ITHACAdict->lookupOrDefault<double>("density", 0);

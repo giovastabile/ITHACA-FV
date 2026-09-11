@@ -21,7 +21,7 @@ void LRSensitivity::buildSamplingSet(std::vector<std::string>& pdflist,
     for (label i = 0; i < No_parameters; i++)
     {
         MatX.col(i) = ITHACAsampling::samplingMC(pdflist[i], trainingRange(i, 0),
-                      trainingRange(i, 1), plist(i, 0), plist(i, 1), Npoints);
+            trainingRange(i, 1), plist(i, 0), plist(i, 1), Npoints);
     }
 }
 
@@ -57,7 +57,7 @@ void LRSensitivity::load_output()
     else
     {
         Foam::Info << "Model output not computed or assigned, program aborted" <<
-                  Foam::endl;
+                   Foam::endl;
         exit(0);
     }
 }
@@ -120,7 +120,7 @@ void LRSensitivity::getBetas()
     {
         Foam::Info <<
         "Statistics about inputs or output are not computed yet, nothing to do ..." <<
-                  Foam::endl;
+                   Foam::endl;
     }
 }
 
@@ -151,7 +151,7 @@ void LRSensitivity::assessQuality()
     {
         Foam::Info <<
         "Linear regression coefficients are not computed yet, nothing to do ..." <<
-                  Foam::endl;
+                   Foam::endl;
     }
 }
 

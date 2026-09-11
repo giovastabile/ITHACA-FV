@@ -66,13 +66,13 @@ void ConvLayer<Type, PatchField, GeoMesh>::setDomainDivision(label Nx, label Ny,
         label Nz)
 {
     M_Assert(((Nx != 1 && mesh.solutionD()[0] != -1 )  || (Nx == 1 &&
-              mesh.solutionD()[0] == -1)),
+            mesh.solutionD()[0] == -1)),
              "The mesh has valid components only along the y and z directions, set Nx = 1");
     M_Assert(((Ny != 1 && mesh.solutionD()[1] != -1 )  || (Ny == 1 &&
-              mesh.solutionD()[1] == -1)),
+            mesh.solutionD()[1] == -1)),
              "The mesh has valid components only along the x and z directions, set Ny = 1");
     M_Assert(((Nz != 1 && mesh.solutionD()[2] != -1 )  || (Nz == 1 &&
-              mesh.solutionD()[2] == -1)),
+            mesh.solutionD()[2] == -1)),
              "The mesh has valid components only along the x and y directions, set Nz = 1");
 
     for (label i = 0; i < ds.size(); i++)
@@ -112,8 +112,8 @@ void ConvLayer<Type, PatchField, GeoMesh>::setDomainDivision(label Nx, label Ny,
                 }
 
                 convPoints[index] = mesh.bounds().min() + cmptMultiply((ds * i), vector(1, 0,
-                                    0)) + cmptMultiply((ds * j), vector(0, 1, 0)) + cmptMultiply((ds * k), vector(0,
-                                        0, 1));
+                    0)) + cmptMultiply((ds * j), vector(0, 1, 0)) + cmptMultiply((ds * k), vector(0,
+                        0, 1));
                 index++;
             }
         }

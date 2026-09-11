@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
     Eigen::MatrixXd par_on_BC = ITHACAstream::readMatrix(par_online_BC);
     // Read some parameters from file
     ITHACAparameters* para = ITHACAparameters::getInstance(example._mesh(),
-                             example._runTime());
+        example._runTime());
     int NmodesUproj   = para->ITHACAdict->lookupOrDefault<int>("NmodesUproj", 5);
     int NmodesPproj   = para->ITHACAdict->lookupOrDefault<int>("NmodesPproj", 5);
     int NmodesTproj   = para->ITHACAdict->lookupOrDefault<int>("NmodesTproj", 5);
@@ -256,18 +256,18 @@ int main(int argc, char* argv[])
     for (int i = 0; i < List_of_modes.rows(); i++)
     {
         Eigen::MatrixXd coeffU = ITHACAutilities::getCoeffs(example.Ufield,
-                                 example.Umodes,
-                                 List_of_modes(i, 0) + example.liftfield.size() + NmodesSUPproj);
+            example.Umodes,
+            List_of_modes(i, 0) + example.liftfield.size() + NmodesSUPproj);
         Eigen::MatrixXd coeffT = ITHACAutilities::getCoeffs(example.Tfield, TLmodes,
-                                 List_of_modes(i, 0) + example.liftfieldT.size());
+            List_of_modes(i, 0) + example.liftfieldT.size());
         PtrList<volVectorField> rec_fieldU = ITHACAutilities::reconstructFromCoeff(
                 example.Umodes, coeffU, List_of_modes(i, 0));
         PtrList<volScalarField> rec_fieldT = ITHACAutilities::reconstructFromCoeff(
                 TLmodes, coeffT, List_of_modes(i, 0) + example.liftfieldT.size());
         Eigen::MatrixXd L2errorProjU = ITHACAutilities::errorL2Rel(example.Ufield,
-                                       rec_fieldU);
+            rec_fieldU);
         Eigen::MatrixXd L2errorProjT = ITHACAutilities::errorL2Rel(example.Tfield,
-                                       rec_fieldT);
+            rec_fieldT);
         L2errorProjMatrixU.col(i) = L2errorProjU;
         L2errorProjMatrixT.col(i) = L2errorProjT;
     }

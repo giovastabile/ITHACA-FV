@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
     tutorialIPOD example(argc, argv);
     // Read some parameters from file
     ITHACAparameters* para = ITHACAparameters::getInstance(example._mesh(),
-                             example._runTime());
+        example._runTime());
     int NmodesTout = para->ITHACAdict->lookupOrDefault<int>("NmodesTout", 15);
     int NmodesTproj = para->ITHACAdict->lookupOrDefault<int>("NmodesTproj", 10);
     double tolleranceSVD =

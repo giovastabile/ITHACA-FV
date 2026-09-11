@@ -49,43 +49,43 @@ SourceFiles
 
 class splinterRBF
 {
-public:
-    // Constructor
-    // kernelType can be "gaussian", "thin_plate_spline", "multiquadric", "inverse_multiquadric", "inverse_quadratic"
-    splinterRBF(const Foam::word& kernelType = "gaussian",
-        bool normalize = true,
-        Foam::scalar epsilon = 1.0);
+    public:
+        // Constructor
+        // kernelType can be "gaussian", "thin_plate_spline", "multiquadric", "inverse_multiquadric", "inverse_quadratic"
+        splinterRBF(const Foam::word& kernelType = "gaussian",
+                    bool normalize = true,
+                    Foam::scalar epsilon = 1.0);
 
-    // Constructor from OpenFOAM dictionary
-    splinterRBF(const Foam::dictionary& dict);
+        // Constructor from OpenFOAM dictionary
+        splinterRBF(const Foam::dictionary& dict);
 
-    // Destructor
-    ~splinterRBF();
+        // Destructor
+        ~splinterRBF();
 
-    // Fit function
-    void fit(const Eigen::MatrixXd& X, const Eigen::VectorXd& y);
+        // Fit function
+        void fit(const Eigen::MatrixXd& X, const Eigen::VectorXd& y);
 
-    // Predict function
-    Foam::scalar predict(const Eigen::VectorXd& x);
+        // Predict function
+        Foam::scalar predict(const Eigen::VectorXd& x);
 
-    // Predict for multiple points
-    Eigen::VectorXd predict(const Eigen::MatrixXd& X);
+        // Predict for multiple points
+        Eigen::VectorXd predict(const Eigen::MatrixXd& X);
 
-    // Print model info
-    void printInfo();
+        // Print model info
+        void printInfo();
 
-private:
-    std::unique_ptr<SPLINTER::RBFSpline> impl_;
-    Foam::word kernelType_;
-    bool normalize_;
-    Foam::scalar epsilon_;
+    private:
+        std::unique_ptr<SPLINTER::RBFSpline> impl_;
+        Foam::word kernelType_;
+        bool normalize_;
+        Foam::scalar epsilon_;
 
-    Eigen::VectorXd xMean_;
-    Eigen::VectorXd xStd_;
-    Foam::scalar yMean_;
-    Foam::scalar yStd_;
+        Eigen::VectorXd xMean_;
+        Eigen::VectorXd xStd_;
+        Foam::scalar yMean_;
+        Foam::scalar yStd_;
 
-    SPLINTER::RadialBasisFunctionType getKernelType(const Foam::word& kernelType);
+        SPLINTER::RadialBasisFunctionType getKernelType(const Foam::word& kernelType);
 };
 
 #endif

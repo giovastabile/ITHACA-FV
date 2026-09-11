@@ -40,26 +40,29 @@ namespace ITHACAutilities
 template<typename T>
 void multField(T& f1, double alpha)
 {
-  int NBC = f1.boundaryField().size();
-  Eigen::VectorXd f1v = Foam2Eigen::field2Eigen(f1);
-  List<Eigen::VectorXd> f1BC = Foam2Eigen::field2EigenBC(f1);
-  for (label k = 0; k < f1v.size(); k++)
-  {
-    f1v(k) *= alpha;
-  }
-  for (label l = 0; l < NBC; l++)
-  {
-    for (label k = 0; k < f1BC[l].size(); k++)
-    {
-      f1BC[l](k) *= alpha;
-    }
-  }
+    int NBC = f1.boundaryField().size();
+    Eigen::VectorXd f1v = Foam2Eigen::field2Eigen(f1);
+    List<Eigen::VectorXd> f1BC = Foam2Eigen::field2EigenBC(f1);
 
-  f1 = Foam2Eigen::Eigen2field(f1, f1v);
-  for (int k = 0; k < f1BC.size(); k++)
-  {
-    assignBC(f1, k, f1BC[k]);
-  }
+    for (label k = 0; k < f1v.size(); k++)
+    {
+        f1v(k) *= alpha;
+    }
+
+    for (label l = 0; l < NBC; l++)
+    {
+        for (label k = 0; k < f1BC[l].size(); k++)
+        {
+            f1BC[l](k) *= alpha;
+        }
+    }
+
+    f1 = Foam2Eigen::Eigen2field(f1, f1v);
+
+    for (int k = 0; k < f1BC.size(); k++)
+    {
+        assignBC(f1, k, f1BC[k]);
+    }
 }
 template void multField(volScalarField& f1, double alpha);
 template void multField(volVectorField& f1, double alpha);
@@ -70,11 +73,14 @@ void multField(T &f1, const Eigen::VectorXd alphaVec)
 {
     Eigen::VectorXd f1v = Foam2Eigen::field2Eigen(f1);
     List<Eigen::VectorXd> f1BC = Foam2Eigen::field2EigenBC(f1);
+
     for (label k = 0; k < f1v.size(); k++)
     {
         f1v(k) *= (alphaVec[k]);
     }
+
     f1 = Foam2Eigen::Eigen2field(f1, f1v);
+
     for (int k = 0; k < f1BC.size(); k++)
     {
         assignBC(f1, k, f1BC[k]);
@@ -85,97 +91,111 @@ template void multField(volVectorField& f1, const Eigen::VectorXd alphaVec);
 template void multField(volTensorField& f1, const Eigen::VectorXd alphaVec);
 
 template<typename T>
-void multField(PtrList<T> &f1, const Eigen::VectorXd alphaVec)
+void multField(PtrList<T>& f1, const Eigen::VectorXd alphaVec)
 {
-  for(label ith_field = 0 ; ith_field < f1.size() ; ith_field++){
-    Eigen::VectorXd f1v = Foam2Eigen::field2Eigen(f1[ith_field]);
-    List<Eigen::VectorXd> f1BC = Foam2Eigen::field2EigenBC(f1[ith_field]);
-    for (label k = 0; k < f1v.size(); k++)
+    for (label ith_field = 0 ; ith_field < f1.size() ; ith_field++)
     {
-        f1v(k) *= (alphaVec[k]);
+        Eigen::VectorXd f1v = Foam2Eigen::field2Eigen(f1[ith_field]);
+        List<Eigen::VectorXd> f1BC = Foam2Eigen::field2EigenBC(f1[ith_field]);
+
+        for (label k = 0; k < f1v.size(); k++)
+        {
+            f1v(k) *= (alphaVec[k]);
+        }
+
+        f1[ith_field] = Foam2Eigen::Eigen2field(f1[ith_field], f1v);
+
+        for (int k = 0; k < f1BC.size(); k++)
+        {
+            assignBC(f1[ith_field], k, f1BC[k]);
+        }
     }
-    f1[ith_field] = Foam2Eigen::Eigen2field(f1[ith_field], f1v);
-    for (int k = 0; k < f1BC.size(); k++)
-    {
-        assignBC(f1[ith_field], k, f1BC[k]);
-    }
-  }
 }
-template void multField(PtrList<volScalarField>& f1, const Eigen::VectorXd alphaVec);
-template void multField(PtrList<volVectorField>& f1, const Eigen::VectorXd alphaVec);
-template void multField(PtrList<volTensorField>& f1, const Eigen::VectorXd alphaVec);
+template void multField(PtrList<volScalarField>& f1,
+                        const Eigen::VectorXd alphaVec);
+template void multField(PtrList<volVectorField>& f1,
+                        const Eigen::VectorXd alphaVec);
+template void multField(PtrList<volTensorField>& f1,
+                        const Eigen::VectorXd alphaVec);
 
 
 template<typename T>
 void addFields(T& f1, const T& f2c, double alpha)
 {
-  T f2 = f2c;
-  int NBC = f1.boundaryField().size();
-  Eigen::VectorXd f1v = Foam2Eigen::field2Eigen(f1);
-  List<Eigen::VectorXd> f1BC = Foam2Eigen::field2EigenBC(f1);
-  Eigen::VectorXd f2v = Foam2Eigen::field2Eigen(f2);
-  List<Eigen::VectorXd> f2BC = Foam2Eigen::field2EigenBC(f2);
+    T f2 = f2c;
+    int NBC = f1.boundaryField().size();
+    Eigen::VectorXd f1v = Foam2Eigen::field2Eigen(f1);
+    List<Eigen::VectorXd> f1BC = Foam2Eigen::field2EigenBC(f1);
+    Eigen::VectorXd f2v = Foam2Eigen::field2Eigen(f2);
+    List<Eigen::VectorXd> f2BC = Foam2Eigen::field2EigenBC(f2);
 
-  for (label k = 0; k < f1v.size(); k++)
-  {
-    f1v(k) += alpha * f2v(k);
-  }
-  for (label l = 0; l < NBC; l++)
-  {
-    for (label k = 0; k < f1BC[l].size(); k++)
+    for (label k = 0; k < f1v.size(); k++)
     {
-      f1BC[l](k) += alpha * f2BC[l](k);
+        f1v(k) += alpha * f2v(k);
     }
-  }
 
-  f1 = Foam2Eigen::Eigen2field(f1, f1v);
-  for (int k = 0; k < f1BC.size(); k++)
-  {
-    assignBC(f1, k, f1BC[k]);
-  }
+    for (label l = 0; l < NBC; l++)
+    {
+        for (label k = 0; k < f1BC[l].size(); k++)
+        {
+            f1BC[l](k) += alpha * f2BC[l](k);
+        }
+    }
+
+    f1 = Foam2Eigen::Eigen2field(f1, f1v);
+
+    for (int k = 0; k < f1BC.size(); k++)
+    {
+        assignBC(f1, k, f1BC[k]);
+    }
 }
-template void addFields(volScalarField& f1, const volScalarField& f2c, double alpha);
-template void addFields(volVectorField& f1, const volVectorField& f2c, double alpha);
-template void addFields(volTensorField& f1, const volTensorField& f2c, double alpha);
+template void addFields(volScalarField& f1, const volScalarField& f2c,
+                        double alpha);
+template void addFields(volVectorField& f1, const volVectorField& f2c,
+                        double alpha);
+template void addFields(volTensorField& f1, const volTensorField& f2c,
+                        double alpha);
 
 
 template<typename T>
 void subtractFields(T& f1, const T& f2)
 {
-  addFields(f1, f2, -1.0);
+    addFields(f1, f2, -1.0);
 }
 template void subtractFields(volScalarField& f1, const volScalarField& f2);
 template void subtractFields(volVectorField& f1, const volVectorField& f2);
 template void subtractFields(volTensorField& f1, const volTensorField& f2);
 
 
-volTensorField tensorFieldProduct(const volScalarField& coef, const volTensorField& S)
+volTensorField tensorFieldProduct(const volScalarField& coef,
+                                  const volTensorField& S)
 {
-  return (coef * S);
+    return (coef * S);
 }
 
-volTensorField tensorFieldProduct(const volTensorField& coef, const volTensorField& S)
+volTensorField tensorFieldProduct(const volTensorField& coef,
+                                  const volTensorField& S)
 {
-  return (coef & S);
+    return (coef & S);
 }
 
 
 int dimensionField(const volTensorField& v)
 {
-  int d = 9;
-  return d;
+    int d = 9;
+    return d;
 }
 
 int dimensionField(const volVectorField& v)
 {
-  int d = 3;
-  return d;
+    int d = 3;
+    return d;
 }
 
 int dimensionField(const volScalarField& v)
 {
-  int d = 1;
-  return d;
+    int d = 1;
+    return d;
 }
 
 
@@ -249,7 +269,7 @@ void normalizeFields(
 {
     ITHACAparameters* para(ITHACAparameters::getInstance());
     word normType = para->ITHACAdict->lookupOrDefault<word>("normalizationNorm",
-                    "L2");
+        "L2");
     M_Assert(normType == "L2" ||
              normType == "Frobenius", "The normalizationNorm can be only L2 or Frobenius" );
     Eigen::MatrixXd eigenFields = Foam2Eigen::PtrList2Eigen(fields);
@@ -367,6 +387,7 @@ Eigen::MatrixXd getValues(PtrList<GeometricField<T, fvPatchField,
     Eigen::MatrixXd a = getValues(fields[0], indices, xyz);
     out.resize(a.rows(), fields.size());
     out.col(0) = a;
+
     for (label i = 1; i < fields.size(); i++)
     {
         out.col(i) = getValues(fields[i], indices, xyz);
@@ -378,9 +399,9 @@ Eigen::MatrixXd getValues(PtrList<GeometricField<T, fvPatchField,
 
 template
 Eigen::MatrixXd getValues(PtrList<GeometricField<scalar, fvPatchField,
-                                  volMesh >>& fields, labelList& indices, labelList* xyz);
+        volMesh >>& fields, labelList& indices, labelList* xyz);
 template
 Eigen::MatrixXd getValues(PtrList<GeometricField<vector, fvPatchField,
-                                  volMesh >>& fields, labelList& indices, labelList* xyz);
+        volMesh >>& fields, labelList& indices, labelList* xyz);
 
 }

@@ -399,7 +399,7 @@ void msrProblem::projectPPE(fileName folder, label NU, label NP, label NF,
     {
         Info <<
         "The model assumes 8 groups of precursors and 3 of decay heat, check NDrec and NDec dimensions..."
-                  << endl;
+             << endl;
         exit(0);
     }
 
@@ -619,7 +619,7 @@ List <Eigen::MatrixXd> msrProblem::convective_term(label NUmodes,
             for (label k = 0; k < Csize; k++)
             {
                 C_matrix[i](j, k) = fvc::domainIntegrate(Together[i] & fvc::div(
-                                        linearInterpolate(Together[j]) & Together[j].mesh().Sf(), Together[k])).value();
+                        linearInterpolate(Together[j]) & Together[j].mesh().Sf(), Together[k])).value();
             }
         }
     }
@@ -746,7 +746,7 @@ List <Eigen::MatrixXd> msrProblem::div_momentum(label NUmodes, label NPmodes)
             for (label k = 0; k < G2size; k++)
             {
                 G_matrix[i](j, k) = fvc::domainIntegrate(fvc::grad(Pmodes[i]) & (fvc::div(
-                                        fvc::interpolate(Together[j]) & Together[j].mesh().Sf(), Together[k]))).value();
+                        fvc::interpolate(Together[j]) & Together[j].mesh().Sf(), Together[k]))).value();
             }
         }
     }
@@ -807,7 +807,7 @@ Eigen::MatrixXd msrProblem::pressure_BC1(label NUmodes, label NPmodes)
         for (label j = 0; j < P_BC2size; j++)
         {
             surfaceScalarField lpl((fvc::interpolate(fvc::laplacian(
-                                        Together[j])) & mesh.Sf()) * fvc::interpolate(Pmodes[i]));
+                    Together[j])) & mesh.Sf()) * fvc::interpolate(Pmodes[i]));
             double s = 0;
 
             for (label k = 0; k < lpl.boundaryField().size(); k++)
@@ -863,8 +863,8 @@ List <Eigen::MatrixXd> msrProblem::pressure_BC2(label NUmodes, label NPmodes)
             for (label k = 0; k < P2_BC2size; k++)
             {
                 surfaceScalarField div_m(fvc::interpolate(fvc::div(fvc::interpolate(
-                                             Together[j]) & mesh.Sf(),
-                                         Together[k])) & mesh.Sf() * fvc::interpolate(Pmodes[i]));
+                        Together[j]) & mesh.Sf(),
+                    Together[k])) & mesh.Sf() * fvc::interpolate(Pmodes[i]));
                 double s = 0;
 
                 for (label k = 0; k < div_m.boundaryField().size(); k++)
@@ -956,7 +956,7 @@ List<Eigen::MatrixXd> msrProblem::laplacian_flux(label NFluxmodes,
             for (label k = 0; k < LFsize; k++)
             {
                 LF_matrix[i](j, k) = fvc::domainIntegrate(Fluxmodes[i] * fvc::laplacian(
-                                         Dmodes[j], Fluxmodes[k])).value();
+                        Dmodes[j], Fluxmodes[k])).value();
             }
         }
     }
@@ -1008,7 +1008,7 @@ List<Eigen::MatrixXd> msrProblem::prod_flux(label NFluxmodes, label NCmodes)
             for (label k = 0; k < PFsize; k++)
             {
                 PF_matrix[i](j, k) = fvc::domainIntegrate(Fluxmodes[i] * NSFmodes[j] *
-                                     Fluxmodes[k]).value();
+                    Fluxmodes[k]).value();
             }
         }
     }
@@ -1039,7 +1039,7 @@ List<Eigen::MatrixXd> msrProblem::abs_flux(label NFluxmodes, label NCmodes)
             for (label k = 0; k < AFsize; k++)
             {
                 AF_matrix[i](j, k) = fvc::domainIntegrate(Fluxmodes[i] * Amodes[j] *
-                                     Fluxmodes[k]).value();
+                    Fluxmodes[k]).value();
             }
         }
     }
@@ -1117,7 +1117,7 @@ List<Eigen::MatrixXd> msrProblem::stream_term(label NUmodes, label NPrecmodes,
             for (label k = 0; k < ST1size; k++)
             {
                 ST_matrix[i](j, k) = fvc::domainIntegrate(Precmodes[i] * fvc::div(
-                                         fvc::interpolate(Together[j]) & Together[j].mesh().Sf(), Precmodes[k])).value();
+                        fvc::interpolate(Together[j]) & Together[j].mesh().Sf(), Precmodes[k])).value();
             }
         }
     }
@@ -1191,7 +1191,7 @@ List<Eigen::MatrixXd> msrProblem::flux_source(label NFluxmodes,
             for (label k = 0; k < NFluxmodes; k++)
             {
                 FS_matrix[i](j, k) = fvc::domainIntegrate(Precmodes[i] * NSFmodes[j] *
-                                     Fluxmodes[k]).value();
+                    Fluxmodes[k]).value();
             }
         }
     }
@@ -1248,7 +1248,7 @@ List<Eigen::MatrixXd> msrProblem::stream_dec(label NUmodes, label NDecmodes,
             for (label k = 0; k < SD1size; k++)
             {
                 SD_matrix[i](j, k) = fvc::domainIntegrate(Decmodes[i] * fvc::div(
-                                         fvc::interpolate(Together[j]) & Together[j].mesh().Sf(), Decmodes[k])).value();
+                        fvc::interpolate(Together[j]) & Together[j].mesh().Sf(), Decmodes[k])).value();
             }
         }
     }
@@ -1324,7 +1324,7 @@ List<Eigen::MatrixXd> msrProblem::dec_fluxsource(label NFluxmodes,
             for (label k = 0; k < NFluxmodes; k++)
             {
                 DFS_matrix[i](j, k) = fvc::domainIntegrate(Decmodes[i] * SPmodes[j] *
-                                      Fluxmodes[k]).value();
+                    Fluxmodes[k]).value();
             }
         }
     }
@@ -1432,7 +1432,7 @@ List<Eigen::MatrixXd> msrProblem::temp_stream(label NUmodes, label NTmodes)
             for (label k = 0; k < TS1size; k++)
             {
                 TS_matrix[i](j, k) = fvc::domainIntegrate(TogetherT[i] * fvc::div(
-                                         fvc::interpolate(Together[j]) & Together[j].mesh().Sf(), TogetherT[k])).value();
+                        fvc::interpolate(Together[j]) & Together[j].mesh().Sf(), TogetherT[k])).value();
             }
         }
     }
@@ -1522,7 +1522,7 @@ List<Eigen::MatrixXd> msrProblem::temp_XSfluxsource(label NTmodes,
             for (label k = 0; k < NFluxmodes; k++)
             {
                 TXS_matrix[i](j, k) = fvc::domainIntegrate(TogetherT[i] * TXSmodes[j] *
-                                      Fluxmodes[k]).value();
+                    Fluxmodes[k]).value();
             }
         }
     }
@@ -1573,7 +1573,7 @@ List<Eigen::MatrixXd> msrProblem::temp_heatsource(label NTmodes,
             for (label k = 0; k < NDecmodes; k++)
             {
                 THS_matrix[i](j, k) = fvc::domainIntegrate(TogetherT[i] * vmodes[j] *
-                                      Decmodes[k]).value();
+                    Decmodes[k]).value();
             }
         }
     }
@@ -1805,7 +1805,7 @@ void msrProblem::msrcoeff(label& NC)
     for (label i = 0; i < NCmodes; i++)
     {
         Info << "Constructing v RadialBasisFunction for mode " << i + 1 <<
-                  endl;
+             endl;
         SAMPLES_v[i] = new SPLINTER::DataTable(1, 1);
 
         for (label j = 0; j < Ncol; j++)
@@ -1826,7 +1826,7 @@ void msrProblem::msrcoeff(label& NC)
     for (label i = 0; i < NCmodes; i++)
     {
         Info << "Constructing D RadialBasisFunction for mode " << i + 1 <<
-                  endl;
+             endl;
         SAMPLES_D[i] = new SPLINTER::DataTable(1, 1);
 
         for (label j = 0; j < Ncol; j++)
@@ -1839,7 +1839,7 @@ void msrProblem::msrcoeff(label& NC)
     }
 
     Eigen::MatrixXd Ncoeff_NSF = ITHACAutilities::getCoeffs(NSFFields,
-                                 NSFmodes);
+        NSFmodes);
     ITHACAstream::exportMatrix(Ncoeff_NSF, "Ncoeff_NSF", "matlab",
                                "./ITHACAoutput/Matrices/");
     SAMPLES_NSF.resize(NCmodes);
@@ -1848,7 +1848,7 @@ void msrProblem::msrcoeff(label& NC)
     for (label i = 0; i < NCmodes; i++)
     {
         Info << "Constructing NSF RadialBasisFunction for mode " << i + 1 <<
-                  endl;
+             endl;
         SAMPLES_NSF[i] = new SPLINTER::DataTable(1, 1);
 
         for (label j = 0; j < Ncol; j++)
@@ -1869,7 +1869,7 @@ void msrProblem::msrcoeff(label& NC)
     for (label i = 0; i < NCmodes; i++)
     {
         Info << "Constructing A RadialBasisFunction for mode " << i + 1 <<
-                  endl;
+             endl;
         SAMPLES_A[i] = new SPLINTER::DataTable(1, 1);
 
         for (label j = 0; j < Ncol; j++)
@@ -1882,7 +1882,7 @@ void msrProblem::msrcoeff(label& NC)
     }
 
     Eigen::MatrixXd Ncoeff_SP = ITHACAutilities::getCoeffs(SPFields,
-                                SPmodes);
+        SPmodes);
     ITHACAstream::exportMatrix(Ncoeff_SP, "Ncoeff_SP", "matlab",
                                "./ITHACAoutput/Matrices/");
     SAMPLES_SP.resize(NCmodes);
@@ -1891,7 +1891,7 @@ void msrProblem::msrcoeff(label& NC)
     for (label i = 0; i < NCmodes; i++)
     {
         Info << "Constructing  SP RadialBasisFunction for mode " << i + 1 <<
-                  endl;
+             endl;
         SAMPLES_SP[i] = new SPLINTER::DataTable(1, 1);
 
         for (label j = 0; j < Ncol; j++)
@@ -1904,7 +1904,7 @@ void msrProblem::msrcoeff(label& NC)
     }
 
     Eigen::MatrixXd Ncoeff_TXS = ITHACAutilities::getCoeffs(TXSFields,
-                                 TXSmodes);
+        TXSmodes);
     ITHACAstream::exportMatrix(Ncoeff_TXS, "Ncoeff_TXS", "matlab",
                                "./ITHACAoutput/Matrices/");
     SAMPLES_TXS.resize(NCmodes);
@@ -1913,7 +1913,7 @@ void msrProblem::msrcoeff(label& NC)
     for (label i = 0; i < NCmodes; i++)
     {
         Info << "Constructing  TXS RadialBasisFunction for mode " << i + 1 <<
-                  endl;
+             endl;
         SAMPLES_TXS[i] = new SPLINTER::DataTable(1, 1);
 
         for (label j = 0; j < Ncol; j++)

@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
     example_CG.d = d;
     // Reading tests to perform
     ITHACAparameters* para = ITHACAparameters::getInstance(example_paramBC._mesh(),
-                             example_paramBC._runTime());
+        example_paramBC._runTime());
     label CGtest = para->ITHACAdict->lookupOrDefault<int>("CGtest", 0);
     label CGnoiseTest = para->ITHACAdict->lookupOrDefault<int>("CGnoiseTest", 0);
     label CGnoiseLevelTest =
@@ -89,12 +89,12 @@ int main(int argc, char* argv[])
     // Reading parameters from ITHACAdict
     example_CG.cgIterMax = para->ITHACAdict->lookupOrDefault<int>("cgIterMax", 100);
     example_CG.Jtol =  para->ITHACAdict->lookupOrDefault<double>("Jtolerance",
-                       0.000001);
+        0.000001);
     example_CG.JtolRel =
         para->ITHACAdict->lookupOrDefault<double>("JrelativeTolerance",
             0.001);
     double rbfShapePar = para->ITHACAdict->lookupOrDefault<double>("rbfShapePar",
-                         0);
+        0);
     M_Assert(rbfShapePar > 0, "rbfShapePar not specified");
     example_paramBC.k =
         para->ITHACAdict->lookupOrDefault<double>("thermalConductivity", 0);

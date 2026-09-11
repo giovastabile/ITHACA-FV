@@ -165,7 +165,7 @@ Eigen::MatrixXd reducedProblem::solveLinearSys(List<Eigen::MatrixXd> LinSys,
 {
     const Eigen::MatrixXd& bc = Eigen::MatrixXd::Zero(0, 0);
     Eigen::MatrixXd y = reducedProblem::solveLinearSys(LinSys, x, residual, bc,
-                        solverType);
+        solverType);
     return y;
 }
 

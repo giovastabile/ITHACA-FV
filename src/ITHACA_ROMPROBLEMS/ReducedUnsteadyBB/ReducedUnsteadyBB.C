@@ -81,11 +81,11 @@ ReducedUnsteadyBB::ReducedUnsteadyBB(UnsteadyBB& FOMproblem)
     }
 
     newton_object_sup = newton_unsteadyBB_sup(Nphi_u + Nphi_prgh + Nphi_t,
-                        Nphi_u + Nphi_prgh + Nphi_t,
-                        FOMproblem);
+        Nphi_u + Nphi_prgh + Nphi_t,
+        FOMproblem);
     newton_object_PPE = newton_unsteadyBB_PPE(Nphi_u + Nphi_prgh + Nphi_t,
-                        Nphi_u + Nphi_prgh + Nphi_t,
-                        FOMproblem);
+        Nphi_u + Nphi_prgh + Nphi_t,
+        FOMproblem);
 }
 
 
@@ -126,7 +126,7 @@ int newton_unsteadyBB_sup::operator()(const Eigen::VectorXd& x,
     for (int i = 0; i < Nphi_u; i++)
     {
         cc = a_tmp.transpose() * Eigen::SliceFromTensor(problem->C_tensor, 0,
-             i) * a_tmp;
+            i) * a_tmp;
         fvec(i) = - M5(i) + M1(i) - cc(0, 0) - M10(i) - M2(i);
     }
 
@@ -212,7 +212,7 @@ int newton_unsteadyBB_PPE::operator()(const Eigen::VectorXd& x,
     for (int i = 0; i < Nphi_u; i++)
     {
         cc = a_tmp.transpose() * Eigen::SliceFromTensor(problem->C_tensor, 0,
-             i) * a_tmp;
+            i) * a_tmp;
         fvec(i) = - M5(i) + M1(i) - cc(0, 0) - M10(i) - M2(i);
     }
 
@@ -253,7 +253,7 @@ Eigen::MatrixXd ReducedUnsteadyBB::solveOnline_sup(Eigen::MatrixXd& temp_now_BC,
         Eigen::MatrixXd& vel_now_BC, int NParaSet, int startSnap)
 {
     Info << "################## Online solve N° " << NParaSet <<
-              " ##################" << endl;
+         " ##################" << endl;
     Info << "Solving for the parameter: " << temp_now_BC << endl;
     // Count number of time steps
     int counter = 0;
@@ -293,7 +293,7 @@ Eigen::MatrixXd ReducedUnsteadyBB::solveOnline_sup(Eigen::MatrixXd& temp_now_BC,
     y.setZero();
     // Calculate the time-dependent coefficients
     y.head(Nphi_u) = ITHACAutilities::getCoeffs(problem->Ufield[startSnap],
-                     LUmodes);
+        LUmodes);
 
     if  (Nphi_prgh != 0)
     {
@@ -364,12 +364,12 @@ Eigen::MatrixXd ReducedUnsteadyBB::solveOnline_sup(Eigen::MatrixXd& temp_now_BC,
         if (res.norm() < 1e-5)
         {
             Info << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
         else
         {
             Info << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
 
         tmp_sol(0) = time;
@@ -393,7 +393,7 @@ Eigen::MatrixXd ReducedUnsteadyBB::solveOnline_PPE(Eigen::MatrixXd&
         Eigen::MatrixXd& vel_now_BC, int NParaSet, int startSnap)
 {
     Info << "################## Online solve N° " << NParaSet <<
-              " ##################" << endl;
+         " ##################" << endl;
     Info << "Solving for the parameter: " << temp_now_BC << endl;
     // Count number of time steps
     int counter = 0;
@@ -449,7 +449,7 @@ Eigen::MatrixXd ReducedUnsteadyBB::solveOnline_PPE(Eigen::MatrixXd&
     y.setZero();
     // Calculate the time-dependent coefficients
     y.head(Nphi_u) = ITHACAutilities::getCoeffs(problem->Ufield[startSnap],
-                     LUmodes);
+        LUmodes);
 
     if  (Nphi_prgh != 0)
     {
@@ -533,12 +533,12 @@ Eigen::MatrixXd ReducedUnsteadyBB::solveOnline_PPE(Eigen::MatrixXd&
         if (res.norm() < 1e-5)
         {
             Info << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
         else
         {
             Info << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
 
         tmp_sol(0) = time;

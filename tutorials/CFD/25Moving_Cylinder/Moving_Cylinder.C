@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
     //double durationOff;
     // Read some parameters from file
     ITHACAparameters* para = ITHACAparameters::getInstance(example.meshPtr(),
-                             example._runTime());
+        example._runTime());
     //Eigen::MatrixXd parOff;
     // Read the par file where the parameters are stored
     std::ifstream exFileOff("./parsOff_mat.txt");
@@ -200,8 +200,8 @@ int main(int argc, char* argv[])
     //Info << example.Dfield.size() << endl;
     /// Getting the POD coeffs modes for pointDisplacement
     example.coeffL2 = ITHACAutilities::getCoeffs(example.Dfield,
-                      example.Dmodes,
-                      NmodesDproj, false);
+        example.Dmodes,
+        NmodesDproj, false);
     //exit(0);
     Eigen::MatrixXd parsOn;
     std::ifstream exFileOn("./parsOn_mat.txt");
@@ -325,12 +325,12 @@ int main(int argc, char* argv[])
     //Info << "The Online  phase  duration  is  equal  to " << durationOn << endl;
     return 0;
     Eigen::MatrixXd errL2U = ITHACAutilities::errorL2Rel(example.Ufield,
-                             reduced.UredFields);
+        reduced.UredFields);
     Info <<
     "======================= errL2U completed================================" <<
     "\n";
     Eigen::MatrixXd errL2P = ITHACAutilities::errorL2Rel(example.Pfield,
-                             reduced.PredFields);
+        reduced.PredFields);
     cnpy::save(errL2U, "./ITHACAoutput/DataFromRom/errL2U_" + name(
                    NmodesUproj) + "_" + name(NmodesPproj) + ".npy");
     cnpy::save(errL2P, "./ITHACAoutput/DataFromRom/errL2P_" + name(

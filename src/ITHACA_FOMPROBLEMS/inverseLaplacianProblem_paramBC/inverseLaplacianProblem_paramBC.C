@@ -77,8 +77,8 @@ void inverseLaplacianProblem_paramBC::set_gBaseFunctions()
                 scalar radius = Foam::sqrt((faceX - thermocoupleX) * (faceX - thermocoupleX) +
                                            (faceZ - thermocoupleZ) * (faceZ - thermocoupleZ));
                 gBaseFunctions[funcI][faceI] = Foam::exp(- (shapeParameter *
-                                               shapeParameter
-                                               * radius * radius));
+                    shapeParameter
+                    * radius * radius));
             }
         }
     }
@@ -213,11 +213,11 @@ void inverseLaplacianProblem_paramBC::parameterizedBCoffline(bool force)
                 metaData.basisType >> metaData.shapeParameter;
             fin.close();
             Info << "\nOffline FOUND with parameter:\n" <<
-                         "Number of thermocouples = " << metaData.numberTC <<
-                         "\nNumber of basis functions = " << metaData.numberBasis <<
-                         "\nType of basis functions = " << metaData.basisType <<
-                         "\nRBF shape parameters = " << metaData.shapeParameter <<
-                         "\n\nShould I recompute it? [y/n]" << endl;
+                    "Number of thermocouples = " << metaData.numberTC <<
+                    "\nNumber of basis functions = " << metaData.numberBasis <<
+                    "\nType of basis functions = " << metaData.basisType <<
+                    "\nRBF shape parameters = " << metaData.shapeParameter <<
+                    "\n\nShould I recompute it? [y/n]" << endl;
             std::cin >> recomputeOffline;
         }
         while (!cin.fail() && recomputeOffline != 'y' && recomputeOffline != 'n' );

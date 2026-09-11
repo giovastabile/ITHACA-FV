@@ -211,7 +211,7 @@ void getModes(
                 else if constexpr(std::is_same<pointMesh, GeoMesh>::value)
                 {
                     normFact(i, 0) = std::sqrt((modesEig.col(i).transpose() * modesEig.col(i))(0,
-                                               0));
+                        0));
                 }
 
                 if (Pstream::parRun())
@@ -223,7 +223,7 @@ void getModes(
             else if (PODnorm == "Frobenius")
             {
                 normFact(i, 0) = std::sqrt((modesEig.col(i).transpose() * modesEig.col(i))(0,
-                                           0));
+                    0));
 
                 if (Pstream::parRun())
                 {
@@ -250,8 +250,8 @@ void getModes(
             modesEigBC[i] = (SnapMatrixBC[i] * eigenVectoreig);
         }
 
-        Info << endl << "####### Normalized Eigenvalues of " << snapshots[0].name() 
-            << " #######" << endl << normFact << endl << endl;
+        Info << endl << "####### Normalized Eigenvalues of " << snapshots[0].name()
+             << " #######" << endl << normFact << endl << endl;
 
         for (label i = 0; i < nmodes; i++)
         {
@@ -1190,7 +1190,7 @@ DEIMmodes(List<Eigen::SparseMatrix<double >>& A,
         {
             Info <<
             "The number of requested modes cannot be bigger than the number of Snapshots - 2"
-                      << endl;
+                 << endl;
             exit(0);
         }
 
@@ -1861,7 +1861,7 @@ PtrList<GeometricField<Type, PatchField, GeoMesh >> DEIMmodes(
             else if (PODnorm == "Frobenius")
             {
                 normFact(i, 0) = std::sqrt((modesEig.col(i).transpose() * modesEig.col(i))(0,
-                                           0));
+                    0));
 
                 if (Pstream::parRun())
                 {

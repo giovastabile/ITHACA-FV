@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
     Eigen::VectorXd normalizingWeights = ITHACAutilities::getMassMatrixFV(
             Sp[0]).array();
     PtrList<volScalarField> modes = ITHACAPOD::DEIMmodes(Sp, NDEIM, "GappyDEIM",
-                                    S.name());
+        S.name());
     snapshotsModes = Foam2Eigen::PtrList2Eigen(modes);
     // To use the SVD modes from the HyperReduction class :
     // Eigen::VectorXd normalizingWeights;

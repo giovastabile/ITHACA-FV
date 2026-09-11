@@ -83,8 +83,9 @@ void DataTable::addSample(const DataPoint& sample)
         {
 #ifndef NDEBUG
             Foam::Info << "Discarding duplicate sample because allowDuplicates is false!" <<
-                      Foam::endl;
-            Foam::Info << "Initialise with DataTable(true) to set it to true." << Foam::endl;
+                       Foam::endl;
+            Foam::Info << "Initialise with DataTable(true) to set it to true." <<
+                       Foam::endl;
 #endif // NDEBUG
             return;
         }

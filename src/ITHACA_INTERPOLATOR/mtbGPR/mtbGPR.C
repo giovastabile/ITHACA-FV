@@ -43,9 +43,11 @@ mtbGPR::mtbGPR(const Foam::dictionary& dict)
 
 mtbGPR::~mtbGPR() = default;
 
-mathtoolbox::GaussianProcessRegressor::KernelType mtbGPR::parseKernelType(const Foam::word& kernelWord) const
+mathtoolbox::GaussianProcessRegressor::KernelType mtbGPR::parseKernelType(
+    const Foam::word& kernelWord) const
 {
     const Foam::word lower = kernelWord;
+
     if (lower == "matern")
     {
         return mathtoolbox::GaussianProcessRegressor::KernelType::ArdMatern52;
@@ -56,9 +58,9 @@ mathtoolbox::GaussianProcessRegressor::KernelType mtbGPR::parseKernelType(const 
     }
 
     FatalErrorInFunction
-        << "Unknown GPR kernel: " << kernelWord
-        << ". Valid options are: matern, squared_exp"
-        << Foam::exit(Foam::FatalError);
+            << "Unknown GPR kernel: " << kernelWord
+            << ". Valid options are: matern, squared_exp"
+            << Foam::exit(Foam::FatalError);
     return mathtoolbox::GaussianProcessRegressor::KernelType::ArdMatern52; // unreachable
 }
 
@@ -66,21 +68,23 @@ void mtbGPR::fit(const Eigen::MatrixXd& X, const Eigen::VectorXd& y)
 {
     if (X.rows() == 0)
     {
-        FatalErrorInFunction << "Input matrix has zero rows" << Foam::exit(Foam::FatalError);
+        FatalErrorInFunction << "Input matrix has zero rows" << Foam::exit(
+                                 Foam::FatalError);
     }
+
     if (X.cols() != y.size())
     {
         FatalErrorInFunction
-            << "Input size mismatch: cols(X) = " << X.cols() << ", size(y) = " << y.size()
-            << Foam::exit(Foam::FatalError);
+                << "Input size mismatch: cols(X) = " << X.cols() << ", size(y) = " << y.size()
+                << Foam::exit(Foam::FatalError);
     }
 
     const auto kernelType = parseKernelType(kernelTypeWord_);
-
-    Eigen::VectorXd kernelHyperparams = Eigen::VectorXd::Constant(X.rows() + 1, lengthScale_);
+    Eigen::VectorXd kernelHyperparams = Eigen::VectorXd::Constant(X.rows() + 1,
+        lengthScale_);
     kernelHyperparams[0] = kernelScale_;
-
-    impl_ = std::make_unique<mathtoolbox::GaussianProcessRegressor>(X, y, kernelType, useDataNormalization_);
+    impl_ = std::make_unique<mathtoolbox::GaussianProcessRegressor>(X, y,
+        kernelType, useDataNormalization_);
 
     if (optimizeHyperparams_)
     {
@@ -96,8 +100,10 @@ Foam::scalar mtbGPR::predict(const Eigen::VectorXd& x)
 {
     if (!impl_)
     {
-        FatalErrorInFunction << "mtbGPR used before calling fit()" << Foam::exit(Foam::FatalError);
+        FatalErrorInFunction << "mtbGPR used before calling fit()" << Foam::exit(
+                                 Foam::FatalError);
     }
+
     return impl_->PredictMean(x);
 }
 
@@ -105,14 +111,17 @@ Eigen::VectorXd mtbGPR::predict(const Eigen::MatrixXd& X)
 {
     if (!impl_)
     {
-        FatalErrorInFunction << "mtbGPR used before calling fit()" << Foam::exit(Foam::FatalError);
+        FatalErrorInFunction << "mtbGPR used before calling fit()" << Foam::exit(
+                                 Foam::FatalError);
     }
 
     Eigen::VectorXd result(X.cols());
+
     for (int i = 0; i < X.cols(); ++i)
     {
         result(i) = impl_->PredictMean(X.col(i));
     }
+
     return result;
 }
 
@@ -120,8 +129,10 @@ void mtbGPR::printInfo() const
 {
     Foam::Info << "mtbGPR Model Info:" << Foam::endl;
     Foam::Info << "\t kernel: " << kernelTypeWord_ << Foam::endl;
-    Foam::Info << "\t normalize: " << (useDataNormalization_ ? "true" : "false") << Foam::endl;
-    Foam::Info << "\t optimizeHyperparams: " << (optimizeHyperparams_ ? "true" : "false") << Foam::endl;
+    Foam::Info << "\t normalize: " << (useDataNormalization_ ? "true" : "false") <<
+               Foam::endl;
+    Foam::Info << "\t optimizeHyperparams: " << (optimizeHyperparams_ ? "true" :
+            "false") << Foam::endl;
     Foam::Info << "\t kernelScale: " << kernelScale_ << Foam::endl;
     Foam::Info << "\t lengthScale: " << lengthScale_ << Foam::endl;
     Foam::Info << "\t noise: " << noise_ << Foam::endl;

@@ -47,46 +47,46 @@ SourceFiles
 
 class mtbRBF
 {
-public:
-    // Constructor
-    // kernelType can be "gaussian", "linear", "thin_plate_spline", "cubic"
-    mtbRBF(const Foam::word& kernelType = "gaussian",
-        bool usePolynomialTerm = true,
-        bool useRegularization = true,
-        Foam::scalar lambda = 0.001,
-        bool normalize = true);
+    public:
+        // Constructor
+        // kernelType can be "gaussian", "linear", "thin_plate_spline", "cubic"
+        mtbRBF(const Foam::word& kernelType = "gaussian",
+               bool usePolynomialTerm = true,
+               bool useRegularization = true,
+               Foam::scalar lambda = 0.001,
+               bool normalize = true);
 
-    // Constructor from OpenFOAM dictionary
-    mtbRBF(const Foam::dictionary& dict);
+        // Constructor from OpenFOAM dictionary
+        mtbRBF(const Foam::dictionary& dict);
 
-    // Destructor
-    ~mtbRBF();
+        // Destructor
+        ~mtbRBF();
 
-    // Fit function
-    void fit(const Eigen::MatrixXd& X, const Eigen::VectorXd& y);
+        // Fit function
+        void fit(const Eigen::MatrixXd& X, const Eigen::VectorXd& y);
 
-    // Predict function
-    Foam::scalar predict(const Eigen::VectorXd& x);
+        // Predict function
+        Foam::scalar predict(const Eigen::VectorXd& x);
 
-    // Predict for multiple points
-    Eigen::VectorXd predict(const Eigen::MatrixXd& X);
+        // Predict for multiple points
+        Eigen::VectorXd predict(const Eigen::MatrixXd& X);
 
-    // Print model info
-    void printInfo();
+        // Print model info
+        void printInfo();
 
-private:
-    std::unique_ptr<mathtoolbox::RbfInterpolator> impl_;
-    Foam::word kernelType_;
-    bool useRegularization_;
-    bool usePolynomialTerm_;
-    Foam::scalar lambda_;
-    bool normalize_;
-    Foam::scalar epsilon_;
+    private:
+        std::unique_ptr<mathtoolbox::RbfInterpolator> impl_;
+        Foam::word kernelType_;
+        bool useRegularization_;
+        bool usePolynomialTerm_;
+        Foam::scalar lambda_;
+        bool normalize_;
+        Foam::scalar epsilon_;
 
-    Eigen::VectorXd xMean_;
-    Eigen::VectorXd xStd_;
-    Foam::scalar yMean_;
-    Foam::scalar yStd_;
+        Eigen::VectorXd xMean_;
+        Eigen::VectorXd xStd_;
+        Foam::scalar yMean_;
+        Foam::scalar yStd_;
 };
 
 #endif

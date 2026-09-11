@@ -13,7 +13,7 @@ example_CG.saveSolInLists = 1;
 int testSize = 10;
 
 Eigen::VectorXi numberTCperAxis = Eigen::VectorXi::LinSpaced(testSize, 1,
-                                  testSize);
+    testSize);
 ITHACAstream::exportMatrix(numberTCperAxis, "numberTCperAxis", "eigen",
                            outputFolder);
 
@@ -23,7 +23,7 @@ for (int i = 0; i < testSize; i++)
     Info << "\nTest " << i << endl;
     Info << "\n**************************************************** " << endl;
     Eigen::VectorXd TCcoord_temp = Eigen::VectorXd::LinSpaced(numberTCperAxis(
-                                       i) + 2, 0.0, 1.0);
+            i) + 2, 0.0, 1.0);
     Eigen::VectorXd TCcoord = TCcoord_temp.segment(1, numberTCperAxis(i));
     example_CG.thermocouplesPos.resize(numberTCperAxis(i) * numberTCperAxis(i));
     double TCyCoord = 0.2;

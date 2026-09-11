@@ -184,10 +184,10 @@ class IHTP01inverseLaplacian_paramBC: public inverseLaplacianProblem_paramBC
                 forAll(gBaseFunctions, baseJ)
                 {
                     mass(baseI, baseJ) = ITHACAutilities::L2productOnPatch(mesh,
-                                         gBaseFunctions[baseI], gBaseFunctions[baseJ], "hotSide");
+                        gBaseFunctions[baseI], gBaseFunctions[baseJ], "hotSide");
                 }
                 source(baseI) = ITHACAutilities::L2productOnPatch(mesh, gBaseFunctions[baseI],
-                                gTrue, "hotSide");
+                    gTrue, "hotSide");
             }
             return mass.fullPivLu().solve(source); //Vector of coefficients
         }

@@ -620,45 +620,45 @@ void reducedMSR::solveOnline(Eigen::MatrixXd vel_now, Eigen::MatrixXd temp_now,
     newton_object_n.operator()(w, res_n);
     newton_object_t.operator()(z, res_t);
     Info << "################## Online solve N° " <<  count_online_solve <<
-              " ##################" << endl;
+         " ##################" << endl;
 
     if (res_fd.norm() / y.norm() < 1e-5)
     {
         Info << green << "|F_fd(x)| = " << res_fd.norm() / y.norm() <<
-                              " - Minimun reached in " << hnls_fd.iter << " iterations " << def << endl
-                  << endl;
+                         " - Minimun reached in " << hnls_fd.iter << " iterations " << def << endl
+             << endl;
     }
     else
     {
         Info << red << "|F_fd(x)| = " << res_fd.norm() / y.norm() <<
-                            " - Minimun reached in " << hnls_fd.iter << " iterations " << def << endl
-                  << endl;
+                       " - Minimun reached in " << hnls_fd.iter << " iterations " << def << endl
+             << endl;
     }
 
     if (res_n.norm() / w.norm() < 1e-5)
     {
         Info << green << "|F_n(x)| = " << res_n.norm() / w.norm() <<
-                              " - Minimun reached in " << hnls_n.iter << " iterations " << def << endl <<
-                  endl;
+                         " - Minimun reached in " << hnls_n.iter << " iterations " << def << endl <<
+             endl;
     }
     else
     {
         Info << red << "|F_n(x)| = " << res_n.norm() / w.norm() <<
-                            " - Minimun reached in " << hnls_n.iter << " iterations " << def << endl <<
-                  endl;
+                       " - Minimun reached in " << hnls_n.iter << " iterations " << def << endl <<
+             endl;
     }
 
     if (res_t.norm() / z.norm() < 1e-5)
     {
         Info << green << "|F_t(x)| = " << res_t.norm() / z.norm() <<
-                              " - Minimun reached in " << hnls_t.iter << " iterations " << def << endl <<
-                  endl;
+                         " - Minimun reached in " << hnls_t.iter << " iterations " << def << endl <<
+             endl;
     }
     else
     {
         Info << red << "|F_t(x)| = " << res_t.norm() / z.norm() <<
-                            " - Minimun reached in " << hnls_t.iter << " iterations " << def << endl <<
-                  endl;
+                       " - Minimun reached in " << hnls_t.iter << " iterations " << def << endl <<
+             endl;
     }
 
     online_solution_fd[0](0, 0) = count_online_solve;

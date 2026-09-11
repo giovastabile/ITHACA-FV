@@ -42,7 +42,7 @@ Eigen::MatrixXd Foam2Eigen::field2Eigen(
     volScalarField& field)
 {
     Eigen::MatrixXd out = Eigen::Map<Eigen::MatrixXd>(const_cast<double*>(&
-                          (field[0])), field.size(), 1);
+        (field[0])), field.size(), 1);
     return out;
 };
 
@@ -51,7 +51,7 @@ Eigen::MatrixXd Foam2Eigen::field2Eigen(
     volVectorField& field)
 {
     Eigen::MatrixXd out = Eigen::Map<Eigen::MatrixXd>(&field.ref()[0][0],
-                          field.size() * 3, 1);
+        field.size() * 3, 1);
     return out;
 };
 
@@ -60,7 +60,7 @@ Eigen::MatrixXd Foam2Eigen::field2Eigen(
     volTensorField& field)
 {
     Eigen::MatrixXd out = Eigen::Map<Eigen::MatrixXd>(&field.ref()[0][0],
-                          field.size() * 9, 1);
+        field.size() * 9, 1);
     return out;
 };
 
@@ -69,7 +69,7 @@ Eigen::MatrixXd Foam2Eigen::field2Eigen(
     pointVectorField& field)
 {
     Eigen::MatrixXd out = Eigen::Map<Eigen::MatrixXd>(&field.ref()[0][0],
-                          field.size() * 3, 1);
+        field.size() * 3, 1);
     return out;
 };
 
@@ -78,7 +78,7 @@ Eigen::MatrixXd Foam2Eigen::field2Eigen(
     surfaceScalarField& field)
 {
     Eigen::MatrixXd out = Eigen::Map<Eigen::MatrixXd>(&field.ref()[0], field.size(),
-                          1);
+        1);
     return out;
 };
 
@@ -159,8 +159,8 @@ template <>
 Eigen::VectorXd Foam2Eigen::field2Eigen(const Field<scalar>& field)
 {
     Eigen::VectorXd out = Eigen::Map<Eigen::MatrixXd>(const_cast<double*>(&
-                          (field[0])),
-                          field.size(), 1);
+        (field[0])),
+        field.size(), 1);
     return out;
 }
 
@@ -168,8 +168,8 @@ template <>
 Eigen::VectorXd Foam2Eigen::field2Eigen(const Field<vector>& field)
 {
     Eigen::VectorXd out =  Eigen::Map<Eigen::MatrixXd>(const_cast<double*>(&
-                           (field[0][0])),
-                           field.size() * 3, 1);
+        (field[0][0])),
+        field.size() * 3, 1);
     return out;
 }
 
@@ -177,8 +177,8 @@ template <>
 Eigen::VectorXd Foam2Eigen::field2Eigen(const Field<tensor>& field)
 {
     Eigen::VectorXd out = Eigen::Map<Eigen::MatrixXd>(const_cast<double*>(&
-                          (field[0][0])),
-                          field.size() * 9, 1);
+        (field[0][0])),
+        field.size() * 9, 1);
     return out;
 }
 
@@ -187,8 +187,8 @@ Eigen::VectorXd Foam2Eigen::field2Eigen(const
                                         DimensionedField<scalar, Foam::volMesh>& field)
 {
     Eigen::VectorXd out = Eigen::Map<Eigen::MatrixXd>(const_cast<double*>(&
-                          (field[0])),
-                          field.size(), 1);
+        (field[0])),
+        field.size(), 1);
     return out;
 }
 
@@ -203,7 +203,7 @@ List<Eigen::VectorXd> Foam2Eigen::field2EigenBC(
     for (label i = 0; i < size; i++)
     {
         Out[i] = Eigen::Map<Eigen::VectorXd>(const_cast<double*>(&
-                                             (field.boundaryField()[i][0][0])),
+            (field.boundaryField()[i][0][0])),
                                              field.boundaryField()[i].size() * 9);
     }
 
@@ -228,7 +228,7 @@ List<Eigen::VectorXd> Foam2Eigen::field2EigenBC(
         for (label i = 0; i < size; i++ )
         {
             Out[i] = Eigen::Map<Eigen::VectorXd>(const_cast<double*>(&
-                                                 (field.boundaryField()[i][0][0])),
+                (field.boundaryField()[i][0][0])),
                                                  field.boundaryField()[i].size() * 3);
         }
     }
@@ -238,7 +238,7 @@ List<Eigen::VectorXd> Foam2Eigen::field2EigenBC(
                 i++ ) //field.boundaryField()[i].patchInternalField()()[k][j];
         {
             Out[i] = Eigen::Map<Eigen::VectorXd>(const_cast<double*>(&
-                                                 (field.boundaryField()[i].patchInternalField()()[0][0])),
+                (field.boundaryField()[i].patchInternalField()()[0][0])),
                                                  field.boundaryField()[i].patchInternalField()().size() * 3);
         }
     }
@@ -260,7 +260,7 @@ List<Eigen::VectorXd> Foam2Eigen::field2EigenBC(
     for (label i = 0; i < size; i++)
     {
         Out[i] = Eigen::Map<Eigen::VectorXd>(const_cast<double*>(&
-                                             (field.boundaryField()[i][0])), field.boundaryField()[i].size());
+            (field.boundaryField()[i][0])), field.boundaryField()[i].size());
     }
 
     return Out;

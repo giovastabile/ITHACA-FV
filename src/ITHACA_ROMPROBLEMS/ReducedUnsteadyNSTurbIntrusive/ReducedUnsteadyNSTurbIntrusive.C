@@ -77,7 +77,7 @@ ReducedUnsteadyNSTurbIntrusive::ReducedUnsteadyNSTurbIntrusive(
 
     newtonObject = newtonUnsteadyNSTurbIntrusive(Nphi_u, Nphi_u, fomProblem);
     newtonObjectPPE = newtonUnsteadyNSTurbIntrusivePPE(Nphi_u + Nphi_p,
-                      Nphi_u + Nphi_p, fomProblem);
+        Nphi_u + Nphi_p, fomProblem);
 }
 
 
@@ -123,7 +123,7 @@ int newtonUnsteadyNSTurbIntrusive::operator()(const Eigen::VectorXd& x,
     for (int i = 0; i < Nphi_u; i++)
     {
         cc = aTmp.transpose() * Eigen::SliceFromTensor(problem->cTotalTensor, 0,
-             i) * aTmp;
+            i) * aTmp;
         fvec(i) = - a_dot(i) + m1(i) - cc(0, 0) - m2(i);
 
         if (problem->bcMethod == "penalty")
@@ -206,7 +206,7 @@ int newtonUnsteadyNSTurbIntrusivePPE::operator()(const Eigen::VectorXd& x,
     for (int i = 0; i < Nphi_u; i++)
     {
         cc = aTmp.transpose() * Eigen::SliceFromTensor(problem->cTotalTensor, 0,
-             i) * aTmp;
+            i) * aTmp;
         fvec(i) = - a_dot(i) + m1(i) - cc(0, 0) - m2(i);
 
         if (problem->bcMethod == "penalty")
@@ -219,11 +219,11 @@ int newtonUnsteadyNSTurbIntrusivePPE::operator()(const Eigen::VectorXd& x,
     {
         int k = j + Nphi_u;
         gg = aTmp.transpose() * Eigen::SliceFromTensor(problem->gTensor, 0,
-             j) * aTmp;
+            j) * aTmp;
         bb = aTmp.transpose() * Eigen::SliceFromTensor(problem->bc2Tensor, 0,
-             j) * aTmp;
+            j) * aTmp;
         nn = aTmp.transpose() * Eigen::SliceFromTensor(problem->cTotalPPETensor, 0,
-             j) * aTmp;
+            j) * aTmp;
         fvec(k) = m3(j, 0) + gg(0, 0) - m7(j, 0) - nn(0, 0);
     }
 
@@ -352,19 +352,19 @@ void ReducedUnsteadyNSTurbIntrusive::solveOnline(Eigen::MatrixXd vel)
         newtonObject.yOldOld = newtonObject.y_old;
         newtonObject.y_old = y;
         Info << "################## Online solve N° " << count_online_solve <<
-                  " ##################" << endl;
+             " ##################" << endl;
         Info << "Time = " << time << endl;
         Info << "Solving for the parameter: " << vel_now << endl;
 
         if (res.norm() < 1e-5)
         {
             Info << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
         else
         {
             Info << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
 
         count_online_solve += 1;
@@ -500,19 +500,19 @@ void ReducedUnsteadyNSTurbIntrusive::solveOnlinePPE(Eigen::MatrixXd vel)
         newtonObjectPPE.yOldOld = newtonObjectPPE.y_old;
         newtonObjectPPE.y_old = y;
         Info << "################## Online solve N° " << count_online_solve <<
-                  " ##################" << endl;
+             " ##################" << endl;
         Info << "Time = " << time << endl;
         Info << "Solving for the parameter: " << vel_now << endl;
 
         if (res.norm() < 1e-5)
         {
             Info << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
         else
         {
             Info << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
 
         count_online_solve += 1;

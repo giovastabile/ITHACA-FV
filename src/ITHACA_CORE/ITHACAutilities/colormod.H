@@ -26,7 +26,10 @@ class Modifier
     public:
         Modifier(Code pCode) : code(pCode) {}
 
-        Code getCode() const { return code; }
+        Code getCode() const
+        {
+            return code;
+        }
 
         friend std::ostream&
         operator<<(std::ostream& os, const Modifier& mod)

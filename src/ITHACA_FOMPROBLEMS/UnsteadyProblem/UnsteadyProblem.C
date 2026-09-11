@@ -54,11 +54,11 @@ void UnsteadyProblem::setTimes(Time& timeObject)
 {
     ITHACAparameters* para(ITHACAparameters::getInstance());
     startTime = para->ITHACAdict->lookupOrDefault<scalar>("startTime",
-                timeObject.startTime().value());
+        timeObject.startTime().value());
     finalTime = para->ITHACAdict->lookupOrDefault<scalar>("finalTime",
-                timeObject.endTime().value());
+        timeObject.endTime().value());
     timeStep = para->ITHACAdict->lookupOrDefault<scalar>("timeStep",
-               timeObject.deltaT().value());
+        timeObject.deltaT().value());
     writeEvery = para->ITHACAdict->lookupOrDefault<scalar>("writeEvery", timeStep);
     M_Assert(finalTime > startTime,
              "The finalTime needs to be bigger than the startTime");

@@ -116,7 +116,7 @@ class HyperReduction_vectorFunction : public
             {
                 ret(3 * i) = std::exp(- 2 * std::pow(xPos[nodesList[i]] - mu(0) - 1, 2)
                                       - 2 * std::pow(yPos[nodesList[i]] - mu(1) - 0.5, 2));
-                ret(3 * i + 1) = std::exp(- 2 * std::pow(xPos[nodesList[i]] - mu(0) - 0.5, 2) 
+                ret(3 * i + 1) = std::exp(- 2 * std::pow(xPos[nodesList[i]] - mu(0) - 0.5, 2)
                                           - 2 * std::pow(yPos[nodesList[i]] - mu(1) - 0.5, 2));
                 ret(3 * i + 2) = std::exp(- 2 * std::pow(xPos[nodesList[i]] - mu(0) - 1.5, 2)
                                           - 2 * std::pow(yPos[nodesList[i]] - mu(1) - 0., 2));
@@ -196,7 +196,7 @@ void test_scalar(ITHACAparameters* para, Foam::fvMesh& mesh,
     int n_nodes = para->ITHACAdict->lookupOrDefault<int>("Nodes", 15);
     simpleControl simple(mesh);
     word methodName = para->ITHACAdict->lookupOrDefault<word>("HyperReduction",
-                      "GappyDEIM");
+        "GappyDEIM");
 #include "createFields.H"
     // List of volScalarField where the snapshots are stored
     PtrList<volScalarField> Sp;
@@ -251,7 +251,7 @@ void test_scalar(ITHACAparameters* para, Foam::fvMesh& mesh,
         {
             // Online evaluation of the non linear function
             Eigen::VectorXd aprfield = c.renormalizedBasisMatrix * c.onlineCoeffs(sfield(),
-                                       parTest.row(idTest));
+                parTest.row(idTest));
             // Transform to an OpenFOAM field and export
             volScalarField S2("S_online", Foam2Eigen::Eigen2field(S, aprfield));
             // Evaluate the full order function and export it
@@ -286,9 +286,9 @@ void test_scalar(ITHACAparameters* para, Foam::fvMesh& mesh,
         {
             // Online evaluation of the non linear function
             Eigen::VectorXd f = c.evaluate_expression(sfield(), parTest.row(idTest),
-                                c.localNodePoints);
+                c.localNodePoints);
             Eigen::VectorXd ff = Foam2Eigen::field2Eigen(c.evaluate_expression(Sp[0],
-                                 parTest.row(idTest)));
+                parTest.row(idTest)));
             double trueIntegral = (normalizingWeights.cwiseInverse().asDiagonal() *
                                    ff).array().sum();
             double testIntegral = (c.wPU * f).array().sum();
@@ -309,7 +309,7 @@ void test_vector(ITHACAparameters* para, Foam::fvMesh& mesh,
     int n_nodes = para->ITHACAdict->lookupOrDefault<int>("Nodes", 15);
     simpleControl simple(mesh);
     word methodName = para->ITHACAdict->lookupOrDefault<word>("HyperReduction",
-                      "GappyDEIM");
+        "GappyDEIM");
 #include "createFields.H"
     // List of volVectorField where the snapshots are stored
     PtrList<volVectorField> Sp;
@@ -365,7 +365,7 @@ void test_vector(ITHACAparameters* para, Foam::fvMesh& mesh,
         {
             // Online evaluation of the non linear function
             Eigen::VectorXd aprfield = c.renormalizedBasisMatrix * c.onlineCoeffs(sfield(),
-                                       parTest.row(idTest));
+                parTest.row(idTest));
             // Transform to an OpenFOAM field and export
             volVectorField S2("S_online", Foam2Eigen::Eigen2field(S, aprfield));
             // Evaluate the full order function and export it
@@ -401,7 +401,7 @@ void test_vector(ITHACAparameters* para, Foam::fvMesh& mesh,
         {
             // Online evaluation of the non linear function
             Eigen::VectorXd f = c.evaluate_expression(sfield(), parTest.row(idTest),
-                                c.localNodePoints);
+                c.localNodePoints);
             auto wholeField = c.evaluate_expression(Sp[0], parTest.row(idTest));
             Eigen::VectorXd ff = Foam2Eigen::field2Eigen(wholeField);
             double trueIntegral = (normalizingWeights.cwiseInverse().asDiagonal() *
@@ -424,7 +424,7 @@ void test_vector_scalar(ITHACAparameters* para, Foam::fvMesh& mesh,
     int n_nodes = para->ITHACAdict->lookupOrDefault<int>("Nodes", 15);
     simpleControl simple(mesh);
     word methodName = para->ITHACAdict->lookupOrDefault<word>("HyperReduction",
-                      "GappyDEIM");
+        "GappyDEIM");
 #include "createFields.H"
     // List of volVectorField where the snapshots are stored
     PtrList<volVectorField> Vp;
@@ -550,7 +550,7 @@ void test_vector_scalar(ITHACAparameters* para, Foam::fvMesh& mesh,
         {
             // Online evaluation of the non linear function
             Eigen::VectorXd f = c.evaluate_expression(sfield(), parTest.row(idTest),
-                                c.localNodePoints);
+                c.localNodePoints);
             HyperReduction_vectorScalarFunction::evaluate_expression(V, S,
                     parTest.row(idTest));
             Eigen::VectorXd ffV = Foam2Eigen::field2Eigen(V);

@@ -142,8 +142,8 @@ while (simple.loop() && residual > tolerance && csolve < maxIter )
     turbulence->correct();
     csolve = csolve + 1;
     Foam::Info << "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-         << "  ClockTime = "   << runTime.elapsedClockTime() << " s"
-         << Foam::endl << Foam::endl;
+               << "  ClockTime = "   << runTime.elapsedClockTime() << " s"
+               << Foam::endl << Foam::endl;
     saver++;
     Foam::Info << "saver ================== \t" << saver << Foam::endl;
 

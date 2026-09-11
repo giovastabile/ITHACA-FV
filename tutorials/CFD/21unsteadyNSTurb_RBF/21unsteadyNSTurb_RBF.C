@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
     tutorial21 example(argc, argv);
     // Read parameters from ITHACAdict file
     ITHACAparameters* para = ITHACAparameters::getInstance(example._mesh(),
-                             example._runTime());
+        example._runTime());
     int NmodesU = para->ITHACAdict->lookupOrDefault<int>("NmodesU", 10);
     int NmodesP = para->ITHACAdict->lookupOrDefault<int>("NmodesP", 10);
     int NmodesSUP = para->ITHACAdict->lookupOrDefault<int>("NmodesSUP", 10);
@@ -224,11 +224,11 @@ int main(int argc, char* argv[])
     example2.writeEvery = 0.1;
     example2.offlineSolve("./ITHACAoutput/Offline_check/");
     Eigen::MatrixXd errFrobU = ITHACAutilities::errorFrobRel(example2.Ufield,
-                               pod_rbf.uRecFields);
+        pod_rbf.uRecFields);
     Eigen::MatrixXd errFrobP =  ITHACAutilities::errorFrobRel(example2.Pfield,
-                                pod_rbf.pRecFields);
+        pod_rbf.pRecFields);
     Eigen::MatrixXd errFrobNut =  ITHACAutilities::errorFrobRel(example2.nutFields,
-                                  pod_rbf.nutRecFields);
+        pod_rbf.nutRecFields);
     ITHACAstream::exportMatrix(errFrobU, "errFrobU", "matlab",
                                "./ITHACAoutput/ErrorsFrob/");
     ITHACAstream::exportMatrix(errFrobP, "errFrobP", "matlab",
@@ -236,11 +236,11 @@ int main(int argc, char* argv[])
     ITHACAstream::exportMatrix(errFrobNut, "errFrobNut", "matlab",
                                "./ITHACAoutput/ErrorsFrob/");
     Eigen::MatrixXd errL2U = ITHACAutilities::errorL2Rel(example2.Ufield,
-                             pod_rbf.uRecFields);
+        pod_rbf.uRecFields);
     Eigen::MatrixXd errL2P =  ITHACAutilities::errorL2Rel(example2.Pfield,
-                              pod_rbf.pRecFields);
+        pod_rbf.pRecFields);
     Eigen::MatrixXd errL2Nut =  ITHACAutilities::errorL2Rel(example2.nutFields,
-                                pod_rbf.nutRecFields);
+        pod_rbf.nutRecFields);
     ITHACAstream::exportMatrix(errL2U, "errL2U", "matlab",
                                "./ITHACAoutput/ErrorsL2/");
     ITHACAstream::exportMatrix(errL2P, "errL2P", "matlab",

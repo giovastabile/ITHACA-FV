@@ -129,7 +129,7 @@ DenseVector BSpline::Builder::computeCoefficients(const BSpline& bspline) const
 #ifndef NDEBUG
         Foam::Info <<
         "BSpline::Builder::computeBSplineCoefficients: Computing B-spline control points using sparse solver."
-                  << Foam::endl;
+                   << Foam::endl;
 #endif // NDEBUG
         SparseLU<> s;
         //bool successfulSolve = (s.solve(A,Bx,Cx) && s.solve(A,By,Cy));
@@ -141,7 +141,7 @@ DenseVector BSpline::Builder::computeCoefficients(const BSpline& bspline) const
 #ifndef NDEBUG
         Foam::Info <<
         "BSpline::Builder::computeBSplineCoefficients: Computing B-spline control points using dense solver."
-                  << Foam::endl;
+                   << Foam::endl;
 #endif // NDEBUG
         DenseMatrix Ad = A.toDense();
         DenseQR<DenseVector> s;
@@ -598,7 +598,7 @@ std::vector<double> BSpline::Builder::extractUniqueSorted(
     std::vector<double> unique(values);
     std::sort(unique.begin(), unique.end());
     std::vector<double>::iterator it = unique_copy(unique.begin(), unique.end(),
-                                       unique.begin());
+        unique.begin());
     unique.resize(distance(unique.begin(), it));
     return unique;
 }

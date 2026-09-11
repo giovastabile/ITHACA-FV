@@ -98,7 +98,7 @@ int newton_steadyNS::operator()(const Eigen::VectorXd& x,
     for (int i = 0; i < Nphi_u; i++)
     {
         cc = a_tmp.transpose() * Eigen::SliceFromTensor(problem->C_tensor, 0,
-             i) * a_tmp;
+            i) * a_tmp;
         fvec(i) = M1(i) - cc(0, 0) - M2(i);
 
         if (problem->bcMethod == "penalty")
@@ -198,12 +198,12 @@ void reducedSteadyNS::solveOnline_sup(Eigen::MatrixXd vel)
     if (res.norm() < 1e-5 && Pstream::master())
     {
         Info << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                  hnls.iter << " iterations " << def << endl << endl;
+             hnls.iter << " iterations " << def << endl << endl;
     }
     else if (Pstream::master())
     {
         Info << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                  hnls.iter << " iterations " << def << endl << endl;
+             hnls.iter << " iterations " << def << endl << endl;
     }
 
     count_online_solve += 1;

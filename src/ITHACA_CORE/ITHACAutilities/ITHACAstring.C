@@ -39,49 +39,70 @@ namespace ITHACAutilities
 
 std::string str_trim(std::string const& s)
 {
-  auto const first{ s.find_first_not_of(' ') };
-  if (first == std::string::npos) return {};
-  auto const last{ s.find_last_not_of(' ') };
-  return s.substr(first, (last - first + 1));
+    auto const first{ s.find_first_not_of(' ') };
+
+    if (first == std::string::npos) return {};
+
+    auto const last{ s.find_last_not_of(' ') };
+
+    return s.substr(first, (last - first + 1));
 }
 
 // io format function for files name
 void str_format_io(std::string const& s, unsigned int nMax)
 {
-  if ( nMax > s.length() )
-  {
-    for (unsigned int n=0; n<s.length(); n++) std::cout << s[n];
-    for (unsigned int n=s.length(); n<nMax; n++) std::cout << " ";
-  }
-  else
-  {
-    for (unsigned int n=0; n<nMax-3; n++) std::cout << s[n];
-    for (unsigned int n=nMax-3; n<nMax; n++) std::cout << ".";
-  }
+    if ( nMax > s.length() )
+    {
+        for (unsigned int n = 0; n < s.length(); n++)
+        {
+            std::cout << s[n];
+        }
+
+        for (unsigned int n = s.length(); n < nMax; n++)
+        {
+            std::cout << " ";
+        }
+    }
+    else
+    {
+        for (unsigned int n = 0; n < nMax - 3; n++)
+        {
+            std::cout << s[n];
+        }
+
+        for (unsigned int n = nMax - 3; n < nMax; n++)
+        {
+            std::cout << ".";
+        }
+    }
 }
 
 std::string double2ConciseString(const double& d)
 {
     std::string s = std::to_string(d);
-
     // Removing trailling zeros
     int dot_pos = s.find_first_of('.');
-    if(dot_pos != std::string::npos)
+
+    if (dot_pos != std::string::npos)
     {
-        int ipos = s.size()-1;
-        while((s[ipos]=='0' || s[ipos]=='.') && ipos>dot_pos-1)
+        int ipos = s.size() - 1;
+
+        while ((s[ipos] == '0' || s[ipos] == '.') && ipos > dot_pos - 1)
         {
             --ipos;
         }
+
         s.erase(ipos + 1, std::string::npos);
     }
-  return s;
+
+    return s;
 }
 
 bool containsSubstring(std::string contain, std::string contained)
 {
     std::transform(contain.begin(), contain.end(), contain.begin(), ::tolower);
-    std::transform(contained.begin(), contained.end(), contained.begin(), ::tolower);
+    std::transform(contained.begin(), contained.end(), contained.begin(),
+                   ::tolower);
     return contain.find(contained) != std::string::npos;
 }
 
@@ -91,13 +112,23 @@ std::vector<int> extractIntFromString(std::string input)
     std::vector<int> numbers;
     int num;
 
-    for (char c : input) 
+    for (char c : input)
     {
-        if (isdigit(c)) ss << c;
-        else ss << ' ';
+        if (isdigit(c))
+        {
+            ss << c;
+        }
+        else
+        {
+            ss << ' ';
+        }
     }
+
     while (ss >> num)
+    {
         numbers.push_back(num);
+    }
+
     return numbers;
 }
 

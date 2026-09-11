@@ -81,7 +81,7 @@ void Foam::RBFInterpolation::calcB() const
     }
 
     Eigen::MatrixXd Aeig = Eigen::MatrixXd::Zero(controlPoints_.size() + polySize,
-                           controlPoints_.size() + polySize);
+        controlPoints_.size() + polySize);
     const label nControlPoints = controlPoints_.size();
 
     for (label i = 0; i < nControlPoints; i++)

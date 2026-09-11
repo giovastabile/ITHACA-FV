@@ -53,7 +53,7 @@ namespace ITHACAutilities
 /// @brief      Multiplication between a field of type vol[Scalar|Vector|Tensor]Field
 ///             and a double
 ///
-/// @param      f1  field 
+/// @param      f1  field
 /// @param      alpha double value
 ///
 template<typename T>
@@ -63,7 +63,7 @@ void multField(T& f1, double alpha);
 /// @brief      Multiplication between field of type vol[Scalar|Vector|Tensor]Field
 ///             and a vector
 ///
-/// @param      f1  field 
+/// @param      f1  field
 /// @param      alphaVec vector filled with double
 ///
 template<typename T>
@@ -74,20 +74,20 @@ void multField(T &f1, const Eigen::VectorXd alphaVec);
 ///             vol[Scalar|Vector|Tensor]Field
 ///
 ///
-/// @param      f1 PtrList of field 
+/// @param      f1 PtrList of field
 /// @param      f2 vector filled with double
 ///
 template<typename T>
-void multField(PtrList<T> &f1, const Eigen::VectorXd alphaVec);
+void multField(PtrList<T>& f1, const Eigen::VectorXd alphaVec);
 
 
 //------------------------------------------------------------------------------
-/// @brief      Perform the following operation 
+/// @brief      Perform the following operation
 ///             f1 + f2 * alpha with f1 and f2 being of type
 ///             vol[Scalar|Vector|Tensor]Field and alpha a double
 ///
 ///
-/// @param      f1 field 
+/// @param      f1 field
 /// @param      f2 field
 /// @param      alpha double
 ///
@@ -96,10 +96,10 @@ void addFields(T& f1, const T& f2c, double alpha = 1.0);
 
 
 //------------------------------------------------------------------------------
-/// @brief      Perform the substraction (f1 - f2) between two fields 
+/// @brief      Perform the substraction (f1 - f2) between two fields
 ///              of type vol[Scalar|Vector|Tensor]Field and alpha a double
 ///
-/// @param      f1 field 
+/// @param      f1 field
 /// @param      f2 field
 ///
 template<typename T>
@@ -110,35 +110,37 @@ void subtractFields(T& f1, const T& f2);
 /// @brief      Tensor field product between a volScalarField and a volTensorField
 ///
 /// @param      coef field
-/// @param      f1 field 
+/// @param      f1 field
 ///
-volTensorField tensorFieldProduct(const volScalarField& coef, const volTensorField& S);
+volTensorField tensorFieldProduct(const volScalarField& coef,
+                                  const volTensorField& S);
 
 //------------------------------------------------------------------------------
 /// @brief      Tensor field product between two volTensorFields
 ///
-/// @param      coef field 
-/// @param      S field 
+/// @param      coef field
+/// @param      S field
 ///
-volTensorField tensorFieldProduct(const volTensorField& coef, const volTensorField& S);
+volTensorField tensorFieldProduct(const volTensorField& coef,
+                                  const volTensorField& S);
 
 
 //------------------------------------------------------------------------------
 /// @brief      Return the dimension of a volTensorField
 ///
-/// @param      v 
+/// @param      v
 int dimensionField(const volTensorField& v);
 
 //------------------------------------------------------------------------------
 /// @brief      Return the dimension of a volVectorField
 ///
-/// @param      v 
+/// @param      v
 int dimensionField(const volVectorField& v);
 
 //------------------------------------------------------------------------------
 /// @brief      Return the dimension of a volScalarField
 ///
-/// @param      v 
+/// @param      v
 int dimensionField(const volScalarField& v);
 
 
@@ -159,7 +161,7 @@ template<class TypeField>
 PtrList<TypeField> averageSubtract(PtrList<TypeField>
                                    fields, Eigen::MatrixXd ind, PtrList<TypeField>& ave);
 
- 
+
 //-----------------------------------------------------------------------------
 /// @brief      Calculates the average of a list of fields
 ///
