@@ -43,7 +43,7 @@ Eigen::MatrixXd EnsembleKalmanFilter(Eigen::MatrixXd prior,
     if (P_rank < P.cols() || P_rank < P.rows())
     {
         Info << "Pseudo inverse of P should be implemented in the EnKF, exiting" <<
-                  endl;
+             endl;
         Info << P << endl;
         exit(10);
     }
@@ -61,7 +61,7 @@ Eigen::MatrixXd EnsembleKalmanFilter(Eigen::MatrixXd prior,
     if ((K.array() < 0.0).any())
     {
         Info << "WARNING: Kalman Gain is negative.\nK = \n" << K << endl <<
-                  endl;
+             endl;
     }
 
     return prior + Z * M;
@@ -107,7 +107,7 @@ Eigen::MatrixXd EnsembleKalmanFilter(PtrList<volScalarField>& prior,
     if (P_rank < P.cols() || P_rank < P.rows())
     {
         Info << "Pseudo inverse of P should be implemented in the EnKF, exiting" <<
-                  endl;
+             endl;
         Info << P << endl;
         exit(10);
     }
@@ -125,7 +125,7 @@ Eigen::MatrixXd EnsembleKalmanFilter(PtrList<volScalarField>& prior,
     if ((K.array() < 0.0).any())
     {
         Info << "WARNING: Kalman Gain is negative.\nK = \n" << K << endl <<
-                  endl;
+             endl;
     }
 
     return priorMatrix + Z * M;

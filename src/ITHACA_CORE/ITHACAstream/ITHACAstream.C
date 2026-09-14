@@ -147,27 +147,27 @@ void exportMatrix(Eigen::Matrix < T, -1, dim > & matrix,
 }
 
 template void exportMatrix(Eigen::Matrix < double, -1,
-                           -1 > & matrix, word Name, word type,
+        -1 > & matrix, word Name, word type,
                            word folder);
 
 template void exportMatrix(Eigen::Matrix < int, -1,
-                           -1 > & matrix, word Name, word type,
+        -1 > & matrix, word Name, word type,
                            word folder);
 
 template void exportMatrix(Eigen::Matrix < float, -1,
-                           -1 > & matrix, word Name, word type,
+        -1 > & matrix, word Name, word type,
                            word folder);
 
 template void exportMatrix(Eigen::Matrix < double, -1,
-                           1 > & matrix, word Name, word type,
+        1 > & matrix, word Name, word type,
                            word folder);
 
 template void exportMatrix(Eigen::Matrix < int, -1,
-                           1 > & matrix, word Name, word type,
+        1 > & matrix, word Name, word type,
                            word folder);
 
 template void exportMatrix(Eigen::Matrix < float, -1,
-                           1 > & matrix, word Name, word type,
+        1 > & matrix, word Name, word type,
                            word folder);
 
 void exportMatrix(List <Eigen::MatrixXd>& matrix, word Name,
@@ -325,10 +325,10 @@ void exportTensor(Eigen::Tensor<T, 3> tensor, word Name,
             str << Name << "(" << i + 1 << ",:,:)=[";
 
             for (int j = 0; j < Eigen::SliceFromTensor(tensor, 0,
-                    0).rows(); j++)
+                0).rows(); j++)
             {
                 for (int k = 0; k < Eigen::SliceFromTensor(tensor, 0,
-                        0).cols(); k++)
+                    0).cols(); k++)
                 {
                     str << " " << setprecision(10) << Eigen::SliceFromTensor(tensor, 0,
                         i)(j, k);
@@ -731,14 +731,14 @@ void read_fields(
     }
     else
     {
-        Info << "################ Parallel Reading the Data for " << field.name() << " #########" <<
+        Info << "################ Parallel Reading the Data for " << field.name() <<
+             " #########" <<
              endl;
-
         word timename = casename + "processor" + name(Pstream::myProcNo());
         Foam::Time runTime2(Foam::Time::controlDictName, ".", timename);
         int last_s = runTime2.times().size();
-
-        timename = field.mesh().time().rootPath() + "/" + field.mesh().time().caseName();
+        timename = field.mesh().time().rootPath() + "/" +
+                   field.mesh().time().caseName();
         timename = timename.substr(0, timename.find_last_of("\\/"));
         timename = timename + "/" + casename + "/" + "processor" + name(
                        Pstream::myProcNo());
@@ -806,7 +806,8 @@ void readConvergedFields(
     int par = 1;
     M_Assert(ITHACAutilities::check_folder(casename + "/" + name(par)) != 0,
              "No parameter dependent solutions stored into Offline folder");
-    Info << "######### Reading the Data for " << field.name() << " #########" << endl;
+    Info << "######### Reading the Data for " << field.name() << " #########" <<
+         endl;
 
     while (ITHACAutilities::check_folder(casename + "/" + name(par)))
     {
@@ -999,7 +1000,11 @@ void exportSolution(GeometricField<Type, PatchField, GeoMesh>& s,
         ITHACAutilities::createSymLink(folder);
         GeometricField<Type, PatchField, GeoMesh> act(fieldName, s);
         fileName fieldname = folder + "/" + subfolder + "/" + fieldName;
-        OFstream os(fieldname);
+        OFstream os
+        (
+            fieldname,
+            s.time().writeFormat()
+        );
         act.writeHeader(os);
         os << act << endl;
     }
@@ -1010,7 +1015,11 @@ void exportSolution(GeometricField<Type, PatchField, GeoMesh>& s,
         GeometricField<Type, PatchField, GeoMesh> act(fieldName, s);
         fileName fieldname = folder + "/processor" + name(Pstream::myProcNo()) + "/" +
                              subfolder + "/" + fieldName;
-        OFstream os(fieldname);
+        OFstream os
+        (
+            fieldname,
+            s.time().writeFormat()
+        );
         act.writeHeader(os);
         os << act << endl;
     }
@@ -1046,7 +1055,11 @@ void exportSolution(GeometricField<Type, PatchField, GeoMesh>& s,
         mkDir(folder + "/" + subfolder);
         ITHACAutilities::createSymLink(folder);
         fileName fieldname = folder + "/" + subfolder + "/" + s.name();
-        OFstream os(fieldname);
+        OFstream os
+        (
+            fieldname,
+            s.time().writeFormat()
+        );
         s.writeHeader(os);
         os << s << endl;
     }
@@ -1056,7 +1069,11 @@ void exportSolution(GeometricField<Type, PatchField, GeoMesh>& s,
         ITHACAutilities::createSymLink(folder);
         fileName fieldname = folder + "/processor" + name(Pstream::myProcNo()) + "/" +
                              subfolder + "/" + s.name();
-        OFstream os(fieldname);
+        OFstream os
+        (
+            fieldname,
+            s.time().writeFormat()
+        );
         s.writeHeader(os);
         os << s << endl;
     }
@@ -1092,12 +1109,13 @@ template void exportSolution(
 void writePoints(pointField points, fileName folder,
                  fileName subfolder)
 {
+    ITHACAparameters* para(ITHACAparameters::getInstance());
     if (!Pstream::parRun())
     {
         mkDir(folder + "/" + subfolder);
         ITHACAutilities::createSymLink(folder);
         fileName fieldname = folder + "/" + subfolder + "/" + "points";
-        OFstream os(fieldname);
+        OFstream os(fieldname, para->runTime.writeFormat());
         os << "FoamFile \n { \n version     2.0; \n format      ascii; \n class       vectorField; \n location    ""1 / polyMesh""; \n object      points; \n }"
            << endl;
         os << points << endl;
@@ -1108,7 +1126,7 @@ void writePoints(pointField points, fileName folder,
         ITHACAutilities::createSymLink(folder);
         fileName fieldname = folder + "/processor" + name(Pstream::myProcNo()) + "/" +
                              subfolder + "/" + "points";
-        OFstream os(fieldname);
+        OFstream os(fieldname, para->runTime.writeFormat());
         os << "FoamFile \n { \n version     2.0; \n format      ascii; \n class       vectorField; \n location    ""1 / polyMesh""; \n object      points; \n }"
            << endl;
         os << points << endl;
@@ -1239,9 +1257,10 @@ template void readLastFields(PtrList<surfaceVectorField>&
 template<typename T>
 void exportList(T& list, word folder, word filename)
 {
+    ITHACAparameters* para(ITHACAparameters::getInstance());
     mkDir(folder);
     word fieldname = folder + "/" + filename;
-    OFstream os(fieldname);
+    OFstream os(fieldname, para->runTime.writeFormat());
 
     for (int i = 0; i < list.size(); i++)
     {
@@ -1296,7 +1315,7 @@ readFieldByIndex(
 
 template<typename T>
 void read_snapshot(T& snapshot, const Foam::word snap_time,
-                                  Foam::word path, Foam::word name)
+                   Foam::word path, Foam::word name)
 {
     // ITHACAparameters* para(ITHACAparameters::getInstance());
     const fvMesh& mesh = snapshot.mesh();
@@ -1317,8 +1336,9 @@ void read_snapshot(T& snapshot, const Foam::word snap_time,
 
         if (!ITHACAutilities::containsSubstring(path, pathProcessor + "/"))
         {
-            path = path_start + arg_path.substr(0, arg_path.find_last_of("\\/")) + pathProcessor
-                              + "/" + arg_path.substr(arg_path.find_last_of("\\/"), arg_path.size());
+            path = path_start + arg_path.substr(0,
+                                                arg_path.find_last_of("\\/")) + pathProcessor
+                   + "/" + arg_path.substr(arg_path.find_last_of("\\/"), arg_path.size());
         }
         else
         {
@@ -1341,7 +1361,6 @@ void read_snapshot(T& snapshot, const Foam::word snap_time,
         abort();
     }
 
-
     T snapshot_dummy(
         IOobject
         (
@@ -1351,17 +1370,16 @@ void read_snapshot(T& snapshot, const Foam::word snap_time,
             IOobject::MUST_READ
         ),
         mesh);
-
     snapshot = snapshot_dummy;
 }
 
 
 template void read_snapshot(Foam::volScalarField& snapshot,
-        const Foam::word snap_time, Foam::word path, Foam::word name);
+                            const Foam::word snap_time, Foam::word path, Foam::word name);
 template void read_snapshot(Foam::volVectorField& snapshot,
-        const Foam::word snap_time, Foam::word path, Foam::word name);
+                            const Foam::word snap_time, Foam::word path, Foam::word name);
 template void read_snapshot(Foam::volTensorField& snapshot,
-        const Foam::word snap_time, Foam::word path, Foam::word name);
+                            const Foam::word snap_time, Foam::word path, Foam::word name);
 
 
 

@@ -765,7 +765,7 @@ void changeBCtype(
     label BC_ind)
 {
     field.boundaryFieldRef().set(BC_ind, fvPatchField<Type>::New(BCtype,
-                                 field.mesh().boundary()[BC_ind], field));
+            field.mesh().boundary()[BC_ind], field));
 }
 
 template void changeBCtype<scalar>
@@ -808,7 +808,7 @@ template void assignMixedBC<vector>(
 template<typename T>
 void setToZero(T& f1)
 {
-  multField(f1, 0.0);
+    multField(f1, 0.0);
 }
 template void setToZero(volScalarField& f1);
 template void setToZero(volVectorField& f1);

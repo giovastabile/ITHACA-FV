@@ -99,7 +99,7 @@ reducedUnsteadyNST::reducedUnsteadyNST(unsteadyNST& FOMproblem)
     }
 
     newton_object_sup = newton_unsteadyNST_sup(Nphi_u + Nphi_p, Nphi_u + Nphi_p,
-                        FOMproblem);
+        FOMproblem);
     newton_object_sup_t = newton_unsteadyNST_sup_t(Nphi_t, Nphi_t, FOMproblem);
 }
 
@@ -293,7 +293,7 @@ void reducedUnsteadyNST::solveOnline_sup(Eigen::MatrixXd& vel_now,
         newton_object_sup_t.operator()(z, rest);
         newton_object_sup_t.z_old = z;
         Info << "################## Online solve N° " << count_online_solve <<
-                  " ##################" << endl;
+             " ##################" << endl;
         Info << "Time = " << time << endl;
         Info << "Solving for the parameter: " << vel_now << endl;
         Info << "Solving for the parameter: " << temp_now << endl;
@@ -301,23 +301,23 @@ void reducedUnsteadyNST::solveOnline_sup(Eigen::MatrixXd& vel_now,
         if (res.norm() < 1e-5)
         {
             Info << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
         else
         {
             Info << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
 
         if (rest.norm() < 1e-5)
         {
             Info << green << "|F(x)| = " << rest.norm() << " - Minimun reached in " <<
-                      hnlst.iter << " iterations " << def << endl << endl;
+                 hnlst.iter << " iterations " << def << endl << endl;
         }
         else
         {
             Info << red << "|F(x)| = " << rest.norm() << " - Minimun reached in " <<
-                      hnlst.iter << " iterations " << def << endl << endl;
+                 hnlst.iter << " iterations " << def << endl << endl;
         }
 
         count_online_solve += 1;

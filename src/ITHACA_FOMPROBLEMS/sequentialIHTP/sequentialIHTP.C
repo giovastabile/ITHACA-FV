@@ -184,7 +184,7 @@ void sequentialIHTP::setSpaceBasis(word type, scalar shapeParameter, label Npod)
             radius_kb(funcI, faceI) = radius;
             // Kabir Calculate the value of the kernel function and assign it to heatFluxSpaceBasis[funcI][faceI]
             heatFluxSpaceBasis[funcI][faceI] = Foam::sqrt(1 + (shapeParameter * radius) *
-                                               (shapeParameter * radius));            // Kabir: Multiquadric kernel
+                (shapeParameter * radius));            // Kabir: Multiquadric kernel
             // heatFluxSpaceBasis[funcI][faceI] = Foam::exp(-1.0 * (shapeParameter * shapeParameter) * (radius * radius));       // Kabir: Gaussian kernel
             // heatFluxSpaceBasis[funcI][faceI] = 1.0 / (1.0 + (shapeParameter * radius) * (shapeParameter * radius));           // Kabir: Inverse Quadratic Kernel
             // heatFluxSpaceBasis[funcI][faceI] = 1.0 / Foam::sqrt(1.0 + (shapeParameter * radius) * (shapeParameter * radius)); // Kabir: Inverse Multiquadric Kernel
@@ -460,7 +460,7 @@ void sequentialIHTP::parameterizedBCoffline(bool force)
     ITHACAstream::exportMatrix(singularValues, "ThetaSingularValues", "eigen",
                                folderOffline);
     Eigen::MatrixXd ThetaTI = Theta * Eigen::MatrixXd::Identity(Theta.rows(),
-                              Theta.cols());
+        Theta.cols());
     ITHACAstream::exportMatrix(ThetaTI, "ThetaTI", "eigen",
                                folderOffline);
     offlineFlag = 0;
@@ -1060,7 +1060,7 @@ Eigen::VectorXd sequentialIHTP::fieldValueAtThermocouples(
     forAll(thermocouplesPos, tcI)
     {
         fieldInt(tcI) = fieldInterp->interpolate(thermocouplesPos[tcI],
-                        thermocouplesCellID[tcI]);
+            thermocouplesCellID[tcI]);
     }
     return fieldInt;
 }

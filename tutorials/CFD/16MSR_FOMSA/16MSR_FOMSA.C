@@ -176,11 +176,11 @@ int main(int argc, char* argv[])
     std::string dist = {"normal"};
     // sample the values using ITHACA::sampling
     prova.mu.row(0) = ITHACAsampling::samplingMC(dist, prova.mu_range(0, 0),
-                      prova.mu_range(0, 1), nu0, signu, prova.Tnumber);
+        prova.mu_range(0, 1), nu0, signu, prova.Tnumber);
     prova.mu.row(1) = ITHACAsampling::samplingMC(dist, prova.mu_range(1, 0),
-                      prova.mu_range(1, 1), betatot0, sigbeta, prova.Tnumber);
+        prova.mu_range(1, 1), betatot0, sigbeta, prova.Tnumber);
     prova.mu.row(2) = ITHACAsampling::samplingMC(dist, prova.mu_range(2, 0),
-                      prova.mu_range(2, 1), dlam30, sigdlam3, prova.Tnumber);
+        prova.mu_range(2, 1), dlam30, sigdlam3, prova.Tnumber);
     double tstart = std::time(0);
     Eigen::MatrixXd mu_f = prova.mu;
 

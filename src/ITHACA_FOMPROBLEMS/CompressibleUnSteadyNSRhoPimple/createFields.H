@@ -155,7 +155,7 @@ _fvOptions = autoPtr<fv::options>(new fv::options(mesh));
 correctPhi = pimple.dict().getOrDefault("correctPhi", mesh.dynamic());
 checkMeshCourantNo = pimple.dict().getOrDefault("checkMeshCourantNo", false);
 moveMeshOuterCorrectors = pimple.dict().getOrDefault("moveMeshOuterCorrectors",
-                          false);
+    false);
 //const dimensionedScalar rhoMax("rhoMax", dimDensity, GREAT, pimple.dict());
 //const dimensionedScalar rhoMin("rhoMin", dimDensity, Zero, pimple.dict());
 

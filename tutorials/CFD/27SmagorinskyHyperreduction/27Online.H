@@ -61,44 +61,46 @@ class tutorial27_online
         float Ck;
         float Ce;
 
-        volScalarField* nut0=nullptr;
-        volScalarField* delta=nullptr;
-        volScalarField* aaa=nullptr;
-        volScalarField* inv2aaa=nullptr;
-        volTensorField* fullDefField=nullptr;
-        volScalarField* bbb=nullptr;
-        volScalarField* ccc=nullptr;
-        volScalarField* sqrtk=nullptr;
-        volScalarField* nut=nullptr;
-        volVectorField* stressField=nullptr;
-        volVectorField* meanSmagOnMagicNeighborhoods=nullptr;
-        volScalarField* meanNutOnMagicPoints=nullptr;
+        volScalarField* nut0 = nullptr;
+        volScalarField* delta = nullptr;
+        volScalarField* aaa = nullptr;
+        volScalarField* inv2aaa = nullptr;
+        volTensorField* fullDefField = nullptr;
+        volScalarField* bbb = nullptr;
+        volScalarField* ccc = nullptr;
+        volScalarField* sqrtk = nullptr;
+        volScalarField* nut = nullptr;
+        volVectorField* stressField = nullptr;
+        volVectorField* meanSmagOnMagicNeighborhoods = nullptr;
+        volScalarField* meanNutOnMagicPoints = nullptr;
 
 
-    tutorial27_online(StoredParameters* parameters);
+        tutorial27_online(StoredParameters* parameters);
 
-    // Evaluate nut at the magic points
-    void evaluateApproxNut(const Eigen::VectorXd& reducedCoeffs);
+        // Evaluate nut at the magic points
+        void evaluateApproxNut(const Eigen::VectorXd& reducedCoeffs);
 
-    // Compute Smagorinsky term at the magic points
-    Eigen::VectorXd computeApproxSmagMg(const Eigen::VectorXd& reducedCoeffs);
+        // Compute Smagorinsky term at the magic points
+        Eigen::VectorXd computeApproxSmagMg(const Eigen::VectorXd& reducedCoeffs);
 
-    // Reshape output for nut at the magic points
-    Eigen::VectorXd computeApproxNutMg(const Eigen::VectorXd& reducedCoeffs);
+        // Reshape output for nut at the magic points
+        Eigen::VectorXd computeApproxNutMg(const Eigen::VectorXd& reducedCoeffs);
 
-    // Compute the hyperreduction prediction for Smagorinsky
-    Eigen::VectorXd predictSmagROMCoeffs(const Eigen::VectorXd& reducedCoeffs);
+        // Compute the hyperreduction prediction for Smagorinsky
+        Eigen::VectorXd predictSmagROMCoeffs(const Eigen::VectorXd& reducedCoeffs);
 
-    // Compute a vector field onto velocity modes from its reduced temporal modes. Homogenize to a stress if specified.
-    volVectorField computeROMproj_fromCoeffs(const Eigen::VectorXd& reducedCoeffs, bool stressUnit=false);
+        // Compute a vector field onto velocity modes from its reduced temporal modes. Homogenize to a stress if specified.
+        volVectorField computeROMproj_fromCoeffs(const Eigen::VectorXd& reducedCoeffs,
+                bool stressUnit = false);
 
-    // Compute the coefficients of a vector field in the velocity basis (V^T f)
-    Eigen::VectorXd computeROMcoeffs_fromFullDim(volVectorField& f_full);
+        // Compute the coefficients of a vector field in the velocity basis (V^T f)
+        Eigen::VectorXd computeROMcoeffs_fromFullDim(volVectorField& f_full);
 
-    // Compute the reference Smagorinsky term (from reduced velocity)
-    volVectorField computeSmagTerm_fromChronos(const Eigen::VectorXd& reducedCoeffs);
+        // Compute the reference Smagorinsky term (from reduced velocity)
+        volVectorField computeSmagTerm_fromChronos(const Eigen::VectorXd&
+                reducedCoeffs);
 
-    // Perfom the prediction on the test time steps and compare the results to the reference
-    void prediction();
+        // Perfom the prediction on the test time steps and compare the results to the reference
+        void prediction();
 
 };

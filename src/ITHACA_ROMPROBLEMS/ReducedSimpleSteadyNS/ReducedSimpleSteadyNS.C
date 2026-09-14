@@ -120,7 +120,7 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         problem->para->ITHACAdict->lookupOrDefault<float>("normalizedResidualLim",
             1e-5);
     maxIterOn = problem->para->ITHACAdict->lookupOrDefault<int>("maxIterOn",
-                1000);
+        1000);
     scalar residual_jump(1 + residualJumpLim);
     //problem->restart();
     volScalarField& P = problem->_p();
@@ -237,16 +237,16 @@ void reducedSimpleSteadyNS::solveOnline_Simple(scalar mu_now,
         {
             Info << "Residual jump = " << residual_jump << endl;
             Info << "Normalized residual = " << std::max(U_norm_res,
-                      P_norm_res) << endl;
+                    P_norm_res) << endl;
         }
     }
 
     Info << "Solution " << counter << " converged in " << iter <<
-                 " iterations." << endl;
+            " iterations." << endl;
     Info << "Final normalized residual for velocity: " << U_norm_res <<
-              endl;
+         endl;
     Info << "Final normalized residual for pressure: " << P_norm_res <<
-              endl;
+         endl;
     ULmodes.reconstruct(U, a, "Uaux");
     P.rename("Paux");
     problem->Pmodes.reconstruct(P, b, "Paux");

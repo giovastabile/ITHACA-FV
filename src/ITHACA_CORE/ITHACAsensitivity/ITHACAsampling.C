@@ -68,7 +68,7 @@ Eigen::VectorXd ITHACAsampling::samplingMC(std::string pdftype, double& lowerE,
     else
     {
         Foam::Info << "pdf '" << pdftype << "' not implemented, programm aborted" <<
-                  Foam::endl;
+                   Foam::endl;
         exit(0);
     }
 

@@ -196,13 +196,13 @@ int main(int argc, char* argv[])
     Eigen::MatrixXd par_on_BC = ITHACAstream::readMatrix(par_online_BC);
     // Read some parameters from file
     ITHACAparameters* para = ITHACAparameters::getInstance(example._mesh(),
-                             example._runTime());
+        example._runTime());
     word stabilization = para->ITHACAdict->lookupOrDefault<word>("Stabilization",
-                         "supremizer");
+        "supremizer");
     int NmodesUproj   = para->ITHACAdict->lookupOrDefault<int>("NmodesUproj", 5);
     int NmodesPproj   = para->ITHACAdict->lookupOrDefault<int>("NmodesPproj", 5);
     int NmodesPrghproj = para->ITHACAdict->lookupOrDefault<int>("NmodesPrghproj",
-                         5);
+        5);
     int NmodesTproj   = para->ITHACAdict->lookupOrDefault<int>("NmodesTproj", 5);
     int NmodesSUPproj = 0;
 
@@ -317,18 +317,18 @@ int main(int argc, char* argv[])
     for (int i = 0; i < List_of_modes.rows(); i++)
     {
         Eigen::MatrixXd coeffU = ITHACAutilities::getCoeffs(example.Ufield, ULmodes,
-                                 List_of_modes(i, 0) + example.liftfield.size() + NmodesSUPproj);
+            List_of_modes(i, 0) + example.liftfield.size() + NmodesSUPproj);
         Eigen::MatrixXd coeffT = ITHACAutilities::getCoeffs(example.Tfield, TLmodes,
-                                 List_of_modes(i, 0) + example.liftfieldT.size());
+            List_of_modes(i, 0) + example.liftfieldT.size());
         PtrList<volVectorField> rec_fieldU = ITHACAutilities::reconstructFromCoeff(
                 ULmodes, coeffU, List_of_modes(i,
                                                0) + example.liftfield.size() + NmodesSUPproj);
         PtrList<volScalarField> rec_fieldT = ITHACAutilities::reconstructFromCoeff(
                 TLmodes, coeffT, List_of_modes(i, 0) + example.liftfieldT.size());
         Eigen::MatrixXd L2errorProjU = ITHACAutilities::errorL2Rel(example.Ufield,
-                                       rec_fieldU);
+            rec_fieldU);
         Eigen::MatrixXd L2errorProjT = ITHACAutilities::errorL2Rel(example.Tfield,
-                                       rec_fieldT);
+            rec_fieldT);
         L2errorProjMatrixU.col(i) = L2errorProjU;
         L2errorProjMatrixT.col(i) = L2errorProjT;
     }

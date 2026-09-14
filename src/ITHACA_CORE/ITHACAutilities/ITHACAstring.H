@@ -41,7 +41,7 @@ namespace ITHACAutilities
 {
 
 //------------------------------------------------------------------------------
-/// @brief      Trim a string cf. 
+/// @brief      Trim a string cf.
 ///             https://stackoverflow.com/questions/25829143/trim-whitespace-from-a-string
 ///
 /// @param      String s

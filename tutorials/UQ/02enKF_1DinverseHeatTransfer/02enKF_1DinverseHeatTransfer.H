@@ -274,7 +274,7 @@ class EnKF_1DinverseHeatTransfer: public laplacianProblem
                 double initialTime = timeI * deltaTime + startTime;
                 Info << "\n\nTime " << initialTime + deltaTime << endl;
                 Eigen::MatrixXd forecastOutput = forecastStep(initialTime, timeI,
-                                                 initialTime + deltaTime);
+                    initialTime + deltaTime);
 
                 if (forecastOutput.cols() > 0)
                 {
@@ -285,7 +285,7 @@ class EnKF_1DinverseHeatTransfer: public laplacianProblem
                     Eigen::VectorXd meas = measurements.col(samplesCounter - 1);
                     // Kalman filter
                     posteriorSamples = ITHACAmuq::muq2ithaca::EnsembleKalmanFilter(Tensemble, meas,
-                                       Eigen::MatrixXd::Identity(meas.size(), meas.size()) * meas_cov, forecastOutput);
+                        Eigen::MatrixXd::Identity(meas.size(), meas.size()) * meas_cov, forecastOutput);
 
                     for (int i = 0; i < Nseeds; i++)
                     {
@@ -321,9 +321,9 @@ class EnKF_1DinverseHeatTransfer: public laplacianProblem
 
                 probe_mean.col(timeI) = ensambleProbe.rowwise().mean();
                 probe_MaxConfidence.col(timeI) = ITHACAmuq::muq2ithaca::quantile(ensambleProbe,
-                                                 0.95);
+                    0.95);
                 probe_minConfidence.col(timeI) = ITHACAmuq::muq2ithaca::quantile(ensambleProbe,
-                                                 0.05);
+                    0.05);
             }
 
             ITHACAstream::exportMatrix(probe_mean, "probe_mean", "eigen", outputFolder);
@@ -372,7 +372,7 @@ class EnKF_1DinverseHeatTransfer: public laplacianProblem
                     observationMat.conservativeResize(observationMat.rows(),
                                                       observationMat.cols() + 1);
                     Eigen::MatrixXd observationForCheck = solve(T, outputFolder, fieldName,
-                                                          reconstructionFlag);
+                        reconstructionFlag);
                     M_Assert(observationForCheck.cols() == 1,
                              "The forecast step passed trough more than a sampling step");
                     observationMat.col(i) = observationForCheck;
@@ -460,7 +460,7 @@ class EnKF_1DinverseHeatTransfer: public laplacianProblem
             int stateSize = T.size();
             Eigen::VectorXd prior_mu = Eigen::MatrixXd::Ones(stateSize, 1) * mean;
             Eigen::MatrixXd prior_cov = Eigen::MatrixXd::Identity(stateSize,
-                                        stateSize) * cov;
+                stateSize) * cov;
             priorDensity = std::make_shared<muq::Modeling::Gaussian>(prior_mu, prior_cov);
         }
 
@@ -482,9 +482,9 @@ class EnKF_1DinverseHeatTransfer: public laplacianProblem
             int stateSize = T.size();
             Eigen::VectorXd modelError_mu = Eigen::MatrixXd::Ones(stateSize, 1) * mean;
             Eigen::MatrixXd modelError_cov = Eigen::MatrixXd::Identity(stateSize,
-                                             stateSize) * cov;
+                stateSize) * cov;
             modelErrorDensity = std::make_shared<muq::Modeling::Gaussian>(modelError_mu,
-                                modelError_cov);
+                modelError_cov);
         }
 
         /// Setup of the measurement noise distribution
@@ -495,9 +495,9 @@ class EnKF_1DinverseHeatTransfer: public laplacianProblem
             M_Assert(obsSize > 0, "Read measurements before setting up the noise");
             Eigen::VectorXd measNoise_mu = Eigen::MatrixXd::Ones(obsSize, 1) * mean;
             Eigen::MatrixXd measNoise_cov = Eigen::MatrixXd::Identity(obsSize,
-                                            obsSize) * cov;
+                obsSize) * cov;
             measNoiseDensity = std::make_shared<muq::Modeling::Gaussian>(measNoise_mu,
-                               measNoise_cov);
+                measNoise_cov);
         }
 };
 

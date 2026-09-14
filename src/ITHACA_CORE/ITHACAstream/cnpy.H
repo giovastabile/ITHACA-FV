@@ -221,7 +221,7 @@ template<typename T> void npy_save(std::string fname, const T* data,
         if (word_size != sizeof(T))
         {
             Foam::Info << "libnpy error: " << fname << " has word size " << word_size <<
-                         " but npy_save appending data sized " << sizeof(T) << "\n";
+                          " but npy_save appending data sized " << sizeof(T) << "\n";
             assert( word_size == sizeof(T) );
         }
 
@@ -229,7 +229,7 @@ template<typename T> void npy_save(std::string fname, const T* data,
         {
             Foam::Info <<
             "libnpy error: npy_save attempting to append misdimensioned data to " << fname
-                      << "\n";
+                       << "\n";
             assert(true_data_shape.size() != shape.size());
         }
 
@@ -237,8 +237,9 @@ template<typename T> void npy_save(std::string fname, const T* data,
         {
             if (shape[i] != true_data_shape[i])
             {
-                Foam::Info << "libnpy error: npy_save attempting to append misshaped data to " <<
-                          fname << "\n";
+                Foam::Info << "libnpy error: npy_save attempting to append misshaped data to "
+                           <<
+                           fname << "\n";
                 assert(shape[i] == true_data_shape[i]);
             }
         }

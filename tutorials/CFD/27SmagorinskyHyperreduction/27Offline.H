@@ -37,29 +37,29 @@ class tutorial27_offline
 {
     public:
 
-            StoredParameters* m_parameters;
-            UnsteadyNSTurb* m_UnsteadyNSTurb;
+        StoredParameters* m_parameters;
+        UnsteadyNSTurb* m_UnsteadyNSTurb;
 
-            volVectorField* meanU;
-            label nModesU;
-            PtrList<volVectorField> spatialModesU;
+        volVectorField* meanU;
+        label nModesU;
+        PtrList<volVectorField> spatialModesU;
 
-            Eigen::MatrixXd covMatrixU;
-            Eigen::MatrixXd temporalModesU;
-            Eigen::MatrixXd temporalModesUSimulation;
+        Eigen::MatrixXd covMatrixU;
+        Eigen::MatrixXd temporalModesU;
+        Eigen::MatrixXd temporalModesUSimulation;
 
-            word interpolatedField;
-            label nModesHR;
-            label nMagicPoints;
-            List<int> magicPoints;
+        word interpolatedField;
+        label nModesHR;
+        label nMagicPoints;
+        List<int> magicPoints;
 
 
-    tutorial27_offline(int argc, char* argv[]);
+        tutorial27_offline(int argc, char* argv[]);
 
-    // Compute POD on velocity and on the hyperreduced term. Then select the magic points
-    void decompose();
+        // Compute POD on velocity and on the hyperreduced term. Then select the magic points
+        void decompose();
 
-    // Compute the matrix for fast online prediction of the nonpolynomial term 
-    void project();
+        // Compute the matrix for fast online prediction of the nonpolynomial term
+        void project();
 
 };

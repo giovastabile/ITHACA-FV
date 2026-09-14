@@ -55,13 +55,13 @@ int main(int argc, char* argv[])
     int obsSize = H.rows();
     Info <<
     "In this tutorial we have a dynamical system in the form:\ndx/dt = A * x" <<
-              endl;
+         endl;
     Info << "with A = \n" << A << endl;
     Info << "We observe the state x by mean of the observation matrix \nH = \n"
-              << H << endl;
+         << H << endl;
     Info <<
     "The objective is to reconstruct the vector state knowing H and x0 = \n" <<
-              x0.transpose() <<
+         x0.transpose() <<
     "\nbut having a wrong A" << endl;
     Info << "A_wrong =\n" << Aw << endl;
     int Ntimes = 201;
@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
     for (int timeI = 0; timeI < Ntimes - 1; timeI++)
     {
         Eigen::VectorXd xNew = (A * deltaTime + Eigen::MatrixXd::Identity(A.rows(),
-                                A.cols()))  * xOld;
+            A.cols()))  * xOld;
         xOld = xNew;
         Eigen::VectorXd dNew = H * xNew;
         X.col(timeI + 1) = xNew;
@@ -100,12 +100,12 @@ int main(int argc, char* argv[])
     Eigen::VectorXd x = x0;
     Eigen::VectorXd prior_mu = x * 0.0;
     Eigen::MatrixXd prior_cov = Eigen::MatrixXd::Identity(stateSize,
-                                stateSize) * 0.5;
+        stateSize) * 0.5;
     auto priorDensity = std::make_shared<muq::Modeling::Gaussian>(prior_mu,
-                        prior_cov);
+        prior_cov);
     Eigen::VectorXd modelError_mu = x * 0.0;
     Eigen::MatrixXd modelError_cov = Eigen::MatrixXd::Identity(stateSize,
-                                     stateSize) * 0.7;
+        stateSize) * 0.7;
     auto modelErrorDensity = std::make_shared<muq::Modeling::Gaussian>
                              (modelError_mu, modelError_cov);
     Eigen::MatrixXd posteriorSamples(stateSize, Nseeds);
@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
         for (int i = 0; i < Nseeds; i++)
         {
             forwardSamples.col(i) = (A * deltaTime + Eigen::MatrixXd::Identity(A.rows(),
-                                     A.cols())) * priorSamples.col(i) + modelErrorDensity->Sample();
+                A.cols())) * priorSamples.col(i) + modelErrorDensity->Sample();
         }
 
         sampleFlag--;
@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
             Eigen::VectorXd meas = obs.col(sampleI);
             //Kalman filter
             posteriorSamples = ITHACAmuq::muq2ithaca::EnsembleKalmanFilter(forwardSamples,
-                               meas, meas_cov, H * forwardSamples);
+                meas, meas_cov, H * forwardSamples);
             sampleI++;
         }
         else
@@ -158,9 +158,9 @@ int main(int argc, char* argv[])
 
         posteriorMean.col(timeI + 1) = posteriorSamples.rowwise().mean();
         minConfidence.col(timeI + 1) = ITHACAmuq::muq2ithaca::quantile(posteriorSamples,
-                                       0.05);
+            0.05);
         maxConfidence.col(timeI + 1) = ITHACAmuq::muq2ithaca::quantile(posteriorSamples,
-                                       0.95);
+            0.95);
     }
 
     ITHACAstream::exportMatrix(posteriorMean, "posteriorMean", "eigen",

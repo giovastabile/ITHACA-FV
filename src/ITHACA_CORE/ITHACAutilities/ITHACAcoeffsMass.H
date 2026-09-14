@@ -213,14 +213,14 @@ template<typename T>
 T project_to_POD_basis(T& field, PtrList<T>& modes);
 
 //------------------------------------------------------------------------------
-/// @brief      Compute the projection of a field in a POD basis 
-/// @details    To project field on their own POD basis because removing the mean 
+/// @brief      Compute the projection of a field in a POD basis
+/// @details    To project field on their own POD basis because removing the mean
 ///             to project and adding it after projecting
 
 /// @tparam     T type of field, can be vol[Scalar|Vector|Tensor]Field
 /// @param      field field of type T to project
 /// @param      modes PtrList<T> containing the POD modes to project onto
-/// @param      meanField field of type T, removed from field before projecting and added back 
+/// @param      meanField field of type T, removed from field before projecting and added back
 ///                       at the end (for projecting a field on its own POD basis)
 
 /// @return     Projected field

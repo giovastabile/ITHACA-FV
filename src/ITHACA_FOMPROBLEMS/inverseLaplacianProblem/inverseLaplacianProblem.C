@@ -267,7 +267,7 @@ Eigen::VectorXd inverseLaplacianProblem::fieldValueAtThermocouples(
     forAll(thermocouplesPos, tcI)
     {
         fieldInt(tcI) = fieldInterp->interpolate(thermocouplesPos[tcI],
-                        thermocouplesCellID[tcI]);
+            thermocouplesCellID[tcI]);
     }
     return fieldInt;
 }

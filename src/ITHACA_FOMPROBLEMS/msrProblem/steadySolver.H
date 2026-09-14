@@ -51,7 +51,7 @@ while (simple.loop(runTime))
          << "  ClockTime = " << runTime.elapsedClockTime() << " s"
          << nl << endl;
     powerDens = (1 - decbetaTot) * flux * SP1 + (decLam1 * dec1 + decLam2 * dec2 +
-                decLam3 * dec3);
+        decLam3 * dec3);
     exportSolution(U, name(counter), "./ITHACAoutput/Offline/");
     exportSolution(p, name(counter), "./ITHACAoutput/Offline/");
     exportSolution(flux, name(counter), "./ITHACAoutput/Offline/");

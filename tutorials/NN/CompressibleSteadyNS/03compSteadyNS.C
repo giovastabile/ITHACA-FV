@@ -119,16 +119,16 @@ class CompressibleSteadyNN : public CompressibleSteadyNS
                 /// Compute the coefficients for train
                 Info << "Computing the coefficients for U train" << endl;
                 Eigen::MatrixXd coeffL2U_train = ITHACAutilities::getCoeffs(UfieldTrain,
-                                                 Umodes,
-                                                 0, true);
+                    Umodes,
+                    0, true);
                 Info << "Computing the coefficients for p train" << endl;
                 Eigen::MatrixXd coeffL2P_train = ITHACAutilities::getCoeffs(PfieldTrain,
-                                                 Pmodes,
-                                                 0, true);
+                    Pmodes,
+                    0, true);
                 Info << "Computing the coefficients for nuT train" << endl;
                 Eigen::MatrixXd coeffL2Nut_train = ITHACAutilities::getCoeffs(nutFieldsTrain,
-                                                   nutModes,
-                                                   0, true);
+                    nutModes,
+                    0, true);
                 coeffL2U_train.transposeInPlace();
                 coeffL2P_train.transposeInPlace();
                 coeffL2Nut_train.transposeInPlace();
@@ -149,14 +149,14 @@ class CompressibleSteadyNN : public CompressibleSteadyNS
                                                "./ITHACAoutput/checkOff/");
                 // Compute the coefficients for test
                 Eigen::MatrixXd coeffL2U_test = ITHACAutilities::getCoeffs(UfieldTest,
-                                                Umodes,
-                                                0, true);
+                    Umodes,
+                    0, true);
                 Eigen::MatrixXd coeffL2P_test = ITHACAutilities::getCoeffs(PfieldTest,
-                                                Pmodes,
-                                                0, true);
+                    Pmodes,
+                    0, true);
                 Eigen::MatrixXd coeffL2Nut_test = ITHACAutilities::getCoeffs(nutFieldsTest,
-                                                  nutModes,
-                                                  0, true);
+                    nutModes,
+                    0, true);
                 coeffL2U_test.transposeInPlace();
                 coeffL2P_test.transposeInPlace();
                 coeffL2Nut_test.transposeInPlace();
@@ -303,11 +303,11 @@ class ReducedCompressibleSteadyNN : public ReducedCompressibleSteadyNS
             Eigen::MatrixXd eResidualOld = Eigen::MatrixXd::Zero(1, NmodesEproj);
             Eigen::MatrixXd pResidualOld = Eigen::MatrixXd::Zero(1, NmodesPproj);
             Eigen::VectorXd uResidual(Eigen::Map<Eigen::VectorXd>(uResidualOld.data(),
-                                      NmodesUproj));
+                    NmodesUproj));
             Eigen::VectorXd eResidual(Eigen::Map<Eigen::VectorXd>(eResidualOld.data(),
-                                      NmodesEproj));
+                    NmodesEproj));
             Eigen::VectorXd pResidual(Eigen::Map<Eigen::VectorXd>(pResidualOld.data(),
-                                      NmodesPproj));
+                    NmodesPproj));
             // Parameters definition
             ITHACAparameters* para = ITHACAparameters::getInstance();
             float residualJumpLim =
@@ -339,12 +339,12 @@ class ReducedCompressibleSteadyNN : public ReducedCompressibleSteadyNS
             //Eigen::MatrixXd u = Eigen::MatrixXd::Zero(NmodesUproj, 1);
             //Eigen::MatrixXd e = Eigen::MatrixXd::Zero(NmodesEproj, 1);
             Eigen::MatrixXd e = ITHACAutilities::getCoeffs(E, problem->Emodes, NmodesEproj,
-                                true);
+                true);
             Eigen::MatrixXd u = ITHACAutilities::getCoeffs(U, problem->Umodes, NmodesUproj,
-                                true);
+                true);
             //Eigen::MatrixXd p = Eigen::MatrixXd::Zero(NmodesPproj, 1);
             Eigen::MatrixXd p = ITHACAutilities::getCoeffs(P, problem->Pmodes, NmodesPproj,
-                                true);
+                true);
             //Eigen::MatrixXd nutCoeff = ITHACAutilities::getCoeffs(nut, problem->nutModes, NmodesNutProj, true);
             //problem->nutModes.reconstruct(nut, nutCoeff, "nut");
             Eigen::MatrixXd  nutCoeff = problem->evalNet(u, mu_now);
@@ -473,11 +473,11 @@ class ReducedCompressibleSteadyNN : public ReducedCompressibleSteadyNS
                 rho = thermo.rho(); // Here rho is calculated as p*psi = p/(R*T)
                 rho.relax();
                 Info << "Ures = " << (uResidual.cwiseAbs()).sum() /
-                          (RedLinSysU[1].cwiseAbs()).sum() << endl;
+                     (RedLinSysU[1].cwiseAbs()).sum() << endl;
                 Info << "Eres = " << (eResidual.cwiseAbs()).sum() /
-                          (RedLinSysE[1].cwiseAbs()).sum() << endl;
+                     (RedLinSysE[1].cwiseAbs()).sum() << endl;
                 Info << "Pres = " << (pResidual.cwiseAbs()).sum() /
-                          (RedLinSysP[1].cwiseAbs()).sum() << endl;
+                     (RedLinSysP[1].cwiseAbs()).sum() << endl;
                 residualNorm = max(max((uResidual.cwiseAbs()).sum() /
                                        (RedLinSysU[1].cwiseAbs()).sum(),
                                        (pResidual.cwiseAbs()).sum() / (RedLinSysP[1].cwiseAbs()).sum()),

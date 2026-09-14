@@ -49,31 +49,31 @@ class splinterRBF;
 
 class ithacaInterpolator
 {
-public:
-    // Constructor from OpenFOAM dictionary
-    ithacaInterpolator(const Foam::dictionary& dict);
+    public:
+        // Constructor from OpenFOAM dictionary
+        ithacaInterpolator(const Foam::dictionary& dict);
 
-    // Destructor
-    ~ithacaInterpolator();
+        // Destructor
+        ~ithacaInterpolator();
 
-    // Fit function
-    void fit(const Eigen::MatrixXd& X, const Eigen::VectorXd& y);
+        // Fit function
+        void fit(const Eigen::MatrixXd& X, const Eigen::VectorXd& y);
 
-    // Predict function
-    double predict(const Eigen::VectorXd& x);
+        // Predict function
+        double predict(const Eigen::VectorXd& x);
 
-    // Predict for multiple points
-    Eigen::VectorXd predict(const Eigen::MatrixXd& X);
+        // Predict for multiple points
+        Eigen::VectorXd predict(const Eigen::MatrixXd& X);
 
-    // Print model information
-    void printInfo() const;
+        // Print model information
+        void printInfo() const;
 
-private:
-    std::unique_ptr<mtbGPR> mtbGPR_;
-    std::unique_ptr<mtbRBF> mtb_;
-    std::unique_ptr<splinterRBF> splinter_;
-    std::string algorithm_;
-    std::string package_;
+    private:
+        std::unique_ptr<mtbGPR> mtbGPR_;
+        std::unique_ptr<mtbRBF> mtb_;
+        std::unique_ptr<splinterRBF> splinter_;
+        std::string algorithm_;
+        std::string package_;
 };
 
 #endif

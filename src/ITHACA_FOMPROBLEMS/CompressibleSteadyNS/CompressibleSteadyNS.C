@@ -178,7 +178,7 @@ volScalarField CompressibleSteadyNS::getKinEnTerm(volVectorField& U,
     surfaceScalarField& phi = _phi();
     volScalarField& rho = _rho();
     volScalarField kinEn = fvc::div(phi, volScalarField("Ekp",
-                                    0.5 * magSqr(U) + p / rho));
+        0.5 * magSqr(U) + p / rho));
     return kinEn;
 }
 
@@ -212,7 +212,7 @@ surfaceScalarField CompressibleSteadyNS::getPhiHbyA(fvVectorMatrix& Ueqn,
     volScalarField rAU(1.0 /
                        Ueqn.A()); // Inverse of the diagonal part of the U equation matrix
     HbyA.reset(new volVectorField(constrainHbyA(rAU * Ueqn.H(), U,
-                                  p))); // H is the extra diagonal part summed to the r.h.s. of the U equation
+            p))); // H is the extra diagonal part summed to the r.h.s. of the U equation
     phiHbyA.reset(new surfaceScalarField("phiHbyA",
                                          fvc::interpolate(rho)*fvc::flux(HbyA())));
     return phiHbyA;

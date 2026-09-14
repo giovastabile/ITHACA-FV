@@ -163,7 +163,7 @@ void surfaceAverage(T& field, const label patchInt, const label patchExt,
     for (int i = 0; i < indexesInt.size(); i++)
     {
         Foam::Vector<scalar> mirror = surfaceFindMirrorPoint(field, patchInt, patchExt,
-                                      i);
+            i);
         label closest = surfaceFindClosest(field, patchInt, patchExt, mirror);
         result.append(0.5 * field[closest] + 0.5 * field[indexesInt[i]]);
     }
@@ -186,7 +186,7 @@ void surfaceJump(T& field, const label patchInt, const label patchExt,
     for (int i = 0; i < indexesInt.size(); i++)
     {
         Foam::Vector<scalar> mirror = surfaceFindMirrorPoint(field, patchInt, patchExt,
-                                      i);
+            i);
         label closest = surfaceFindClosest(field, patchInt, patchExt, mirror);
         result.append(field[closest] - field[indexesInt[i]]);
     }

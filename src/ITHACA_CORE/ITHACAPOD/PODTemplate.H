@@ -74,7 +74,7 @@ class PODTemplate
         // end time of the Simulation
         const Foam::label l_endTimeSimulation;
 
-        // Path to the directory where the snapshots are stored 
+        // Path to the directory where the snapshots are stored
         // (usually casenameData, but can be different through 3rd arg in constructor)
         fileName snapshotsPath;
 
@@ -132,7 +132,8 @@ class PODTemplate
 
     public :
         // Constructor
-        PODTemplate(Parameters* myParameters, const Foam::word& myfield_name, const word& mySnapshots_path = "default_path");
+        PODTemplate(Parameters* myParameters, const Foam::word& myfield_name,
+                    const word& mySnapshots_path = "default_path");
 
         // Destructor
         virtual ~PODTemplate();
@@ -272,12 +273,28 @@ class PODTemplate
 
 
         // Modify parameters for the snapshots. Useful if they are different from the OpenFOAM simulation
-        void set_snapFolderParams(label nSnapshot=-1, label nSnapshotSimulation=-1, label startTime=-1, label endTime=-1)
+        void set_snapFolderParams(label nSnapshot = -1, label nSnapshotSimulation = -1,
+                                  label startTime = -1, label endTime = -1)
         {
-            if (nSnapshot != -1) {l_nSnapshot = nSnapshot;}
-            if (nSnapshotSimulation != -1) {l_nSnapshotSimulation = nSnapshotSimulation;}
-            if (startTime != -1) {l_startTime = startTime;}
-            if (endTime != -1) {l_endTime = endTime;}
+            if (nSnapshot != -1)
+            {
+                l_nSnapshot = nSnapshot;
+            }
+
+            if (nSnapshotSimulation != -1)
+            {
+                l_nSnapshotSimulation = nSnapshotSimulation;
+            }
+
+            if (startTime != -1)
+            {
+                l_startTime = startTime;
+            }
+
+            if (endTime != -1)
+            {
+                l_endTime = endTime;
+            }
         };
 
 };

@@ -36,15 +36,16 @@ PODTemplate<T>::PODTemplate(Parameters* myParameters,
     }
 
     word pathProcessor("");
+
     if (Pstream::parRun())
     {
         pathProcessor = "processor" + name(Pstream::myProcNo()) + "/";
     }
+
     timeFolders = runTime2.findTimes(snapshotsPath + pathProcessor);
-
-    l_startTime = Time::findClosestTimeIndex(timeFolders,std::stoi(runTime2.times()[l_startTime].name()));
+    l_startTime = Time::findClosestTimeIndex(timeFolders,
+        std::stoi(runTime2.times()[l_startTime].name()));
     l_endTime = l_startTime + l_nSnapshot - 1;
-
     f_field = new T(
         IOobject
         (
@@ -97,6 +98,7 @@ void PODTemplate<T>::define_paths()
     }
 
     word pathProcessor("");
+
     if (Pstream::parRun())
     {
         pathProcessor = "processor" + name(Pstream::myProcNo()) + "/";
@@ -110,7 +112,7 @@ void PODTemplate<T>::define_paths()
     folder_covMatrix = "./ITHACAoutput/CovMatrices" + pathHilbertSpace
                        + pathCentered + "/";
     exist_covMatrix = ITHACAutilities::check_file(folder_covMatrix + name_covMatrix
-                      + ".npy");
+        + ".npy");
     // name and folder of the eigen decomposition
     name_eigenValues = "Eigenvalues_" + f_field->name();
     name_eigenValuesNormalized = "EigenvaluesNormalized_" + f_field->name();
@@ -119,18 +121,19 @@ void PODTemplate<T>::define_paths()
     folder_eigen = "./ITHACAoutput/EigenValuesandVector"
                    + pathCentered + "_" + std::to_string(l_nmodes) + "modes/";
     exist_eigenDecomposition = ITHACAutilities::check_file(folder_eigen +
-                               name_eigenValues + ".npy")
+        name_eigenValues + ".npy")
                                && ITHACAutilities::check_file(folder_eigen + name_eigenVector + ".npy");
     // folder of the spatial modes and check if every modes were already computed
     folder_spatialModes = "./ITHACAoutput/spatialModes"
                           + pathCentered + "_" + std::to_string(l_nmodes) + "modes/";
-    exist_spatialModes = ITHACAutilities::check_file(folder_spatialModes + pathProcessor + "1/" +
-                         f_field->name());
+    exist_spatialModes = ITHACAutilities::check_file(folder_spatialModes +
+        pathProcessor + "1/" +
+        f_field->name());
     // folder of the temporal modes and check if modes were already computed
     folder_temporalModes = "./ITHACAoutput/temporalModes"
                            + pathCentered + "_" + std::to_string(l_nmodes) + "modes/";
     exist_temporalModes = ITHACAutilities::check_file(folder_temporalModes +
-                          f_field->name() + ".npy");
+        f_field->name() + ".npy");
     // folder of the temporal modes and check if modes were already computed
     folder_temporalModesSimulation = "./ITHACAoutput/temporalModesSimulation"
                                      + pathCentered + "_" + std::to_string(l_nmodes) + "modes/";
@@ -139,7 +142,7 @@ void PODTemplate<T>::define_paths()
     // folder of mean field and check if mean was already computed
     folder_mean = "./ITHACAoutput/mean/";
     exist_noMean = !ITHACAutilities::check_file(folder_mean + "/" + pathProcessor +
-                    std::to_string(1) + "/" + f_field->name());
+        std::to_string(1) + "/" + f_field->name());
 }
 
 
@@ -180,7 +183,8 @@ void PODTemplate<T>::computeMeanField()
             for (label j = 0; j < l_nSnapshot; j++)
             {
                 // Read the j-th field
-                ITHACAstream::read_snapshot(snapshotj, timeFolders[l_startTime+j].name(), snapshotsPath);
+                ITHACAstream::read_snapshot(snapshotj, timeFolders[l_startTime + j].name(),
+                                            snapshotsPath);
                 lift(snapshotj);
                 // add j-th field to meanfield
                 ITHACAutilities::addFields(*f_meanField, snapshotj);
@@ -202,10 +206,10 @@ void PODTemplate<T>::computeMeanField()
 
         double energyMean = ITHACAutilities::dot_product_L2(*f_meanField, *f_meanField);
         double energyHilbertMean = ITHACAutilities::dot_product_POD(*f_meanField,
-                                   *f_meanField, l_hilbertSp);
+            *f_meanField, l_hilbertSp);
         m_parameters->set_meanEnergy( f_meanField->name(), energyMean);
         m_parameters->set_meanEnergy( f_meanField->name() + "_" + l_hilbertSp,
-                                            energyHilbertMean);
+                                      energyHilbertMean);
     }
     else
     {
@@ -269,7 +273,7 @@ void PODTemplate<T>::findTempFile(Eigen::MatrixXd* covMat, int* index1,
             {
                 int num1, num2;
                 char endFileName[12];
-                strncpy(endFileName, entry->d_name+strlen(entry->d_name)-12, 12);
+                strncpy(endFileName, entry->d_name + strlen(entry->d_name) -12, 12);
                 sscanf(endFileName, "%*[^0-9]%d_%d", &num1, &num2);
                 *index1 = num1;
                 *index2 = num2;
@@ -327,7 +331,7 @@ void PODTemplate<T>::findTempFile(Eigen::MatrixXd* covMat, int* index1,
         *index1 = INDEX[0][0];
         *index2 = INDEX[0][1];
         Info << "    -> RESTART from INDEX : " << *index1 << " " << *index2 <<
-             " (oldest *_temp_*.npy file)" << endl;
+                " (oldest *_temp_*.npy file)" << endl;
         char str1[10];
         sprintf(str1, "%d", *index1);
         char str2[10];
@@ -356,6 +360,7 @@ template<typename T>
 void PODTemplate<T>::saveTempCovMatrix(Eigen::MatrixXd& covMatrix, int i, int j)
 {
     word filename = nameTempCovMatrix(i, j);
+
     if (Pstream::master())
     {
         cnpy::save(covMatrix, filename);
@@ -423,7 +428,7 @@ Eigen::MatrixXd PODTemplate<T>::buildCovMatrix()
     Eigen::MatrixXd covMatrix;
     covMatrix.setConstant(l_nSnapshot, l_nSnapshot, CovUnrealValue);
     bool exist_covMatrix_bin = ITHACAutilities::check_file(folder_covMatrix +
-                               name_covMatrix);
+        name_covMatrix);
     int valI, valJ;
     //initializing value of etapeI and etapeJ : no temp file found
     int etapeI, etapeJ;
@@ -541,13 +546,15 @@ Eigen::MatrixXd PODTemplate<T>::buildCovMatrix()
 
             snapshotsEnd.clear();
         }
+
         // covMatrix is symetric, the lower part is used to build the upper part
         covMatrix = covMatrix.selfadjointView<Eigen::Lower>();
+
         if (Pstream::master())
         {
             cnpy::save(covMatrix, folder_covMatrix + name_covMatrix + ".npy");
-
         }
+
         // Delete previous covMatrix temp file after saving the current one
         if (r == 0)
         {
@@ -570,8 +577,9 @@ Eigen::MatrixXd PODTemplate<T>::buildCovMatrix()
     else
     {
         Info << "Reading (binary) the covariance matrix of the " << f_field->name() <<
-             " field" << endl;
+                " field" << endl;
         ITHACAstream::ReadDenseMatrix(covMatrix, folder_covMatrix, name_covMatrix);
+
         if (Pstream::master())
         {
             cnpy::save(covMatrix, folder_covMatrix + name_covMatrix + ".npy");
@@ -598,7 +606,7 @@ Eigen::MatrixXd PODTemplate<T>::buildCovMatrix()
     {
         Info << "\n!!! OUPS !!! Unreal value [" << CovUnrealValue << "] found " <<
              NbCovUnrealValue << " times in triangular up part of " << name_covMatrix <<
-             " !!!\n" << endl;
+                            " !!!\n" << endl;
         abort();
     }
 
@@ -623,9 +631,9 @@ void PODTemplate<T>::addCovMatrixTriCoeff(Eigen::MatrixXd& covMatrix,
     Info << "Adding the triangular block [" << indTri.index_start << ":" <<
          indTri.index_end - 1 << "]x["
          << indTri.index_start << ":" << indTri.index_end - 1 <<
-         "] to the covariance matrix" << endl;
+                             "] to the covariance matrix" << endl;
     Eigen::MatrixXd covMatrixTemp(ITHACAutilities::dot_product_POD(snapshots,
-                                  snapshots, l_hilbertSp, weightBC, patchBC));
+            snapshots, l_hilbertSp, weightBC, patchBC));
 
     for (label i = 0; i < indTri.index_end - indTri.index_start; i++)
     {
@@ -649,9 +657,9 @@ void PODTemplate<T>::addCovMatrixSquareCoeff(Eigen::MatrixXd& covMatrix,
     Info << "Adding the square block [" << indSquare.index1_start << ":" <<
          indSquare.index1_end - 1 << "]x["
          << indSquare.index2_start << ":" << indSquare.index2_end - 1 <<
-         "] to the covariance matrix" << endl;
+                                 "] to the covariance matrix" << endl;
     Eigen::MatrixXd covMatrixTemp(ITHACAutilities::dot_product_POD(snapshots1,
-                                  snapshots2, l_hilbertSp, weightBC, patchBC));
+            snapshots2, l_hilbertSp, weightBC, patchBC));
 
     for (label i = 0; i < indSquare.index1_end - indSquare.index1_start; i++)
     {
@@ -678,7 +686,8 @@ void PODTemplate<T>::diagonalisation(Eigen::MatrixXd& covMatrix,
         if (w_eigensolver == "spectra")
         {
             Spectra::DenseSymMatProd<double> op(covMatrix);
-            Spectra::SymEigsSolver<Spectra::DenseSymMatProd<double>> es(op, l_nmodes, l_nSnapshot);
+            Spectra::SymEigsSolver<Spectra::DenseSymMatProd<double>> es(op, l_nmodes,
+                    l_nSnapshot);
             std::cout << "Using Spectra EigenSolver " << std::endl;
             es.init();
             es.compute(Spectra::SortRule::LargestAlge);
@@ -711,12 +720,12 @@ void PODTemplate<T>::diagonalisation(Eigen::MatrixXd& covMatrix,
             cnpy::save(eigenValueseig, folder_eigen + name_eigenValues + ".npy");
             // save the eigen vectors
             cnpy::save(eigenVectoreig,
-                    folder_eigen + "/Eigenvector_" + f_field->name() + ".npy");
+                       folder_eigen + "/Eigenvector_" + f_field->name() + ".npy");
             // save the norm of each Modes
             cnpy::save(eigenValueseigLam,
-                    folder_eigen + "/EigenvectorLambda_" + f_field->name() + ".npy");
+                       folder_eigen + "/EigenvectorLambda_" + f_field->name() + ".npy");
             Eigen::VectorXd eigenValueseigNormalized = eigenValueseig /
-                    eigenValueseig.sum();
+                eigenValueseig.sum();
             Eigen::VectorXd cumEigenValues(eigenValueseigNormalized);
 
             for (int j = 1; j < cumEigenValues.size(); ++j)
@@ -726,7 +735,7 @@ void PODTemplate<T>::diagonalisation(Eigen::MatrixXd& covMatrix,
 
             // save eigen values normalized
             cnpy::save(eigenValueseigNormalized,
-                    folder_eigen + name_eigenValuesNormalized + ".npy");
+                       folder_eigen + name_eigenValuesNormalized + ".npy");
             // save the cumulated eigen values
             cnpy::save(cumEigenValues, folder_eigen + name_cumEigenValues + ".npy");
         }
@@ -786,11 +795,13 @@ PtrList<T> PODTemplate<T>::computeSpatialModes(Eigen::VectorXd& eigenValueseig,
         for (label j = 0; j < l_nSnapshot; j++)
         {
             T snapshotj = *f_field;
-            ITHACAstream::read_snapshot(snapshotj, timeFolders[l_startTime+j].name(), snapshotsPath);
+            ITHACAstream::read_snapshot(snapshotj, timeFolders[l_startTime + j].name(),
+                                        snapshotsPath);
 
-            if ((m_parameters->get_DEIMInterpolatedField() == "nut" 
-                || ITHACAutilities::containsSubstring(m_parameters->get_DEIMInterpolatedField(), "reducedNut")) 
-                && l_hilbertSp == "dL2")
+            if ((m_parameters->get_DEIMInterpolatedField() == "nut"
+                    || ITHACAutilities::containsSubstring(m_parameters->get_DEIMInterpolatedField(),
+                                                              "reducedNut"))
+                    && l_hilbertSp == "dL2")
             {
                 ITHACAutilities::multField(snapshotj, m_parameters->get_deltaWeight());
             }
@@ -878,7 +889,7 @@ void PODTemplate<T>::getModes(PtrList<T>& spatialModes,
     Info << "Number of test snapshots : " << l_nSnapshotSimulation << endl;
     Info << "Number of blocks : " << l_nBlocks << endl;
     Info << "Centered datas or not : " << b_centeredOrNot <<
-         " (1 centered, 0 not centered)" << endl;
+            " (1 centered, 0 not centered)" << endl;
     Info << "Name of eigensolver used : " << w_eigensolver << endl;
     Info << "Results folder : " << "ITHACAoutput" << endl;
     computeMeanField();
@@ -912,18 +923,20 @@ Eigen::MatrixXd PODTemplate<T>::computeSimulationTemporalModes(
     if (!exist_temporalModesSimulation)
     {
         Info << "Computing the Simulation temporal modes of the " << f_field->name() <<
-             " field" << endl;
+                " field" << endl;
         mkDir( folder_temporalModesSimulation );
         label l_startTimeSimulation(l_endTime);
 
         for (label j = 0; j < l_nSnapshotSimulation; j++)
         {
             T snapshotj = *f_field;
-            ITHACAstream::read_snapshot(snapshotj, timeFolders[l_startTimeSimulation+j].name(), snapshotsPath);
+            ITHACAstream::read_snapshot(snapshotj,
+                                        timeFolders[l_startTimeSimulation + j].name(), snapshotsPath);
 
-            if ((m_parameters->get_DEIMInterpolatedField() == "nut" 
-                 || ITHACAutilities::containsSubstring(m_parameters->get_DEIMInterpolatedField(), "reducedNut")) 
-                 && l_hilbertSp == "dL2")
+            if ((m_parameters->get_DEIMInterpolatedField() == "nut"
+                    || ITHACAutilities::containsSubstring(m_parameters->get_DEIMInterpolatedField(),
+                                                              "reducedNut"))
+                    && l_hilbertSp == "dL2")
             {
                 ITHACAutilities::multField(snapshotj, m_parameters->get_deltaWeight());
             }
@@ -933,20 +946,20 @@ Eigen::MatrixXd PODTemplate<T>::computeSimulationTemporalModes(
             for (label i = 0; i < l_nmodes; i++)
             {
                 temporalModesSimulation(j, i) = ITHACAutilities::dot_product_POD(snapshotj,
-                                                f_spatialModes[i], l_hilbertSp, weightBC, patchBC, weightH1);
+                    f_spatialModes[i], l_hilbertSp, weightBC, patchBC, weightH1);
             }
         }
 
         if (Pstream::master())
         {
             cnpy::save(temporalModesSimulation,
-                   folder_temporalModesSimulation + f_field->name() + ".npy");
+                       folder_temporalModesSimulation + f_field->name() + ".npy");
         }
     }
     else
     {
         Info << "Reading the Simulation temporal modes of the " << f_field->name() <<
-             " field" << endl;
+                " field" << endl;
         cnpy::load(temporalModesSimulation,
                    folder_temporalModesSimulation + f_field->name() + ".npy");
     }

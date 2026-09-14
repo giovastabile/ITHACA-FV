@@ -120,9 +120,11 @@ void Fang2017filter::setObservationTime(int _observationStart,
     M_Assert(_observationStart > 0, "First observation timestep can't be 0");
     observationStart = _observationStart;
     observationDelta = _observationDelta;
-    Foam::Info << "First observation at time = " << timeVector(observationStart) << " s"
-         << endl;
-    Foam::Info << "Observations taken every " << observationDelta << " timesteps" << endl;
+    Foam::Info << "First observation at time = " << timeVector(
+                   observationStart) << " s"
+               << endl;
+    Foam::Info << "Observations taken every " << observationDelta << " timesteps" <<
+               endl;
     observationBoolVec = Eigen::VectorXi::Zero(timeVector.size() - 1);
 
     for (int i = observationStart - 1; i < Ntimes; i += observationDelta)
@@ -143,17 +145,17 @@ void Fang2017filter::setModelError(double cov, bool univariate)
     {
         modelError_mu = Eigen::VectorXd::Zero(1);
         modelError_cov = Eigen::MatrixXd::Identity(1,
-                         1) * cov;
+            1) * cov;
     }
     else
     {
         modelError_mu = Eigen::VectorXd::Zero(stateSize);
         modelError_cov = Eigen::MatrixXd::Identity(stateSize,
-                         stateSize) * cov;
+            stateSize) * cov;
     }
 
     modelErrorDensity = std::make_shared<muq::Modeling::Gaussian>(modelError_mu,
-                        modelError_cov);
+        modelError_cov);
     modelErrorFlag = 1;
 }
 
@@ -165,9 +167,9 @@ void Fang2017filter::setMeasNoise(double cov)
              "Read measurements before setting up the measurement noise");
     Eigen::VectorXd measNoise_mu = Eigen::VectorXd::Zero(observationSize);
     Eigen::MatrixXd measNoise_cov = Eigen::MatrixXd::Identity(observationSize,
-                                    observationSize) * cov;
+        observationSize) * cov;
     measNoiseDensity = std::make_shared<muq::Modeling::Gaussian>(measNoise_mu,
-                       measNoise_cov);
+        measNoise_cov);
     measurementNoiseFlag = 1;
 }
 
@@ -386,18 +388,18 @@ void Fang2017filter::run(int innerLoopMax, word outputFolder)
                 }
 
                 Foam::Info << "\ndebug : parameterPriorMean = " <<
-                          parameterPriorMean << Foam::endl;
+                           parameterPriorMean << Foam::endl;
                 Foam::Info << "\ndebug : parameterMean.col(" << timeStepI << ") =\n" <<
-                          parameterMean.col(timeStepI) << Foam::endl;
+                           parameterMean.col(timeStepI) << Foam::endl;
             }
             else
             {
                 Foam::Info << "\ndebug : parameterMean before loop =\n" <<
-                          parameterMean.col(timeStepI) << Foam::endl;
+                           parameterMean.col(timeStepI) << Foam::endl;
                 setParameterPriorDensity(parameterMean.col(timeStepI), parameterPriorCov);
                 sampleParameterDist();
                 Foam::Info << "\ndebug : parameterMean after loop =\n" <<
-                          parameterMean.col(timeStepI) << Foam::endl;
+                           parameterMean.col(timeStepI) << Foam::endl;
             }
 
             stateProjection();
@@ -408,8 +410,8 @@ void Fang2017filter::run(int innerLoopMax, word outputFolder)
                 Eigen::MatrixXd measNoiseSamps = ensembleFromDensity(measNoiseDensity);
                 observeState();
                 Foam::Info << "\ndebug : observation =\n" <<
-                          observations.col(observationBoolVec.head(timeStepI + 1).sum() - 1) <<
-                          Foam::endl;
+                           observations.col(observationBoolVec.head(timeStepI + 1).sum() - 1) <<
+                           Foam::endl;
                 updateJointEns(
                     observations.col(
                         observationBoolVec.head(timeStepI + 1).sum() - 1));
@@ -423,9 +425,9 @@ void Fang2017filter::run(int innerLoopMax, word outputFolder)
         parameterEns.assignSamples(jointEns.getSamples().bottomRows(parameterSize));
         stateMean.col(timeStepI) = jointEns.mean().head(stateSize);
         state_maxConf.col(timeStepI) = muq2ithaca::quantile(stateEns.getSamples(),
-                                       0.95);
+            0.95);
         state_minConf.col(timeStepI) = muq2ithaca::quantile(stateEns.getSamples(),
-                                       0.05);
+            0.05);
         parameter_maxConf.col(timeStepI) = muq2ithaca::quantile(
                                                parameterEns.getSamples(),
                                                0.95);

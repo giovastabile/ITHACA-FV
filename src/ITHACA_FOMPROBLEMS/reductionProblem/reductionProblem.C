@@ -316,33 +316,33 @@ std::vector<SPLINTER::RBFSpline> reductionProblem::getCoeffManifoldRBF(
         if (rbfBasis == "GAUSSIAN")
         {
             rbfsplines.push_back(SPLINTER::RBFSpline(samples,
-                                 SPLINTER::RadialBasisFunctionType::GAUSSIAN));
+                    SPLINTER::RadialBasisFunctionType::GAUSSIAN));
         }
         else if (rbfBasis == "THIN_PLATE")
         {
             rbfsplines.push_back(SPLINTER::RBFSpline(samples,
-                                 SPLINTER::RadialBasisFunctionType::THIN_PLATE_SPLINE));
+                    SPLINTER::RadialBasisFunctionType::THIN_PLATE_SPLINE));
         }
         else if (rbfBasis == "MULTI_QUADRIC")
         {
             rbfsplines.push_back(SPLINTER::RBFSpline(samples,
-                                 SPLINTER::RadialBasisFunctionType::MULTIQUADRIC));
+                    SPLINTER::RadialBasisFunctionType::MULTIQUADRIC));
         }
         else if (rbfBasis == "INVERSE_QUADRIC")
         {
             rbfsplines.push_back(SPLINTER::RBFSpline(samples,
-                                 SPLINTER::RadialBasisFunctionType::INVERSE_QUADRIC));
+                    SPLINTER::RadialBasisFunctionType::INVERSE_QUADRIC));
         }
         else if (rbfBasis == "INVERSE_MULTI_QUADRIC")
         {
             rbfsplines.push_back(SPLINTER::RBFSpline(samples,
-                                 SPLINTER::RadialBasisFunctionType::INVERSE_MULTIQUADRIC));
+                    SPLINTER::RadialBasisFunctionType::INVERSE_MULTIQUADRIC));
         }
         else
         {
             Info <<
             "Unknown string for rbfBasis. Valid types are 'GAUSSIAN', 'THIN_PLATE', 'MULTI_QUADRIC', 'INVERSE_QUADRIC', 'INVERSE_MULTI_QUADRIC'"
-                      << endl;
+                 << endl;
             exit(0);
         }
     }
@@ -400,33 +400,33 @@ std::vector<SPLINTER::RBFSpline> reductionProblem::getCoeffManifoldRBF(
         if (rbfBasis == "GAUSSIAN")
         {
             rbfsplines.push_back(SPLINTER::RBFSpline(samples,
-                                 SPLINTER::RadialBasisFunctionType::GAUSSIAN));
+                    SPLINTER::RadialBasisFunctionType::GAUSSIAN));
         }
         else if (rbfBasis == "THIN_PLATE")
         {
             rbfsplines.push_back(SPLINTER::RBFSpline(samples,
-                                 SPLINTER::RadialBasisFunctionType::THIN_PLATE_SPLINE));
+                    SPLINTER::RadialBasisFunctionType::THIN_PLATE_SPLINE));
         }
         else if (rbfBasis == "MULTI_QUADRIC")
         {
             rbfsplines.push_back(SPLINTER::RBFSpline(samples,
-                                 SPLINTER::RadialBasisFunctionType::MULTIQUADRIC));
+                    SPLINTER::RadialBasisFunctionType::MULTIQUADRIC));
         }
         else if (rbfBasis == "INVERSE_QUADRIC")
         {
             rbfsplines.push_back(SPLINTER::RBFSpline(samples,
-                                 SPLINTER::RadialBasisFunctionType::INVERSE_QUADRIC));
+                    SPLINTER::RadialBasisFunctionType::INVERSE_QUADRIC));
         }
         else if (rbfBasis == "INVERSE_MULTI_QUADRIC")
         {
             rbfsplines.push_back(SPLINTER::RBFSpline(samples,
-                                 SPLINTER::RadialBasisFunctionType::INVERSE_MULTIQUADRIC));
+                    SPLINTER::RadialBasisFunctionType::INVERSE_MULTIQUADRIC));
         }
         else
         {
             Info <<
             "Unknown string for rbfBasis. Valid types are 'GAUSSIAN', 'THIN_PLATE', 'MULTI_QUADRIC', 'INVERSE_QUADRIC', 'INVERSE_MULTI_QUADRIC'"
-                      << endl;
+                 << endl;
             exit(0);
         }
     }

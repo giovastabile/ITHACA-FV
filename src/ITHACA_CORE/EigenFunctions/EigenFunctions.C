@@ -126,12 +126,14 @@ Eigen::VectorXd repeatElements(Eigen::VectorXd input, int n)
 {
     if (!(n > 0))
     {
-        Info << "The integer for the EigenFunctions::repeat method must be positive. Aborting" << endl;
+        Info << "The integer for the EigenFunctions::repeat method must be positive. Aborting"
+             << endl;
         abort();
     }
     else
     {
         Eigen::VectorXd output(input.size() * n);
+
         for (int i = 0; i < input.size(); i++)
         {
             for (int r = 0; r < n; r++)
@@ -139,6 +141,7 @@ Eigen::VectorXd repeatElements(Eigen::VectorXd input, int n)
                 output(i * n + r) = input(i);
             }
         }
+
         return output;
     }
 }
@@ -155,6 +158,7 @@ Eigen::VectorXd reorderVectorFromDim(Eigen::VectorXd input, int dim)
     {
         Eigen::VectorXd output(input.size());
         int n = int(input.size() / dim);
+
         for (int i = 0; i < n; i++)
         {
             for (int d = 0; d < dim; d++)
@@ -162,6 +166,7 @@ Eigen::VectorXd reorderVectorFromDim(Eigen::VectorXd input, int dim)
                 output(i * dim + d) = input(i + d * dim);
             }
         }
+
         return output;
     }
 }

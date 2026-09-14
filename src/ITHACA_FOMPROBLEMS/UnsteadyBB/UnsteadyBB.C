@@ -294,7 +294,7 @@ void UnsteadyBB::solvesupremizer(word type)
     else
     {
         Info << "You must specify the variable type with either snapshots or modes"
-                  << endl;
+             << endl;
         exit(0);
     }
 
@@ -966,9 +966,9 @@ Eigen::MatrixXd UnsteadyBB::buoyant_term_poisson(label NPrghmodes,
         {
             HP_matrix(i, j) = fvc::domainIntegrate(fvc::reconstruct(fvc::snGrad(
                     Prghmodes[i]) *
-                                                   Prghmodes[i].mesh().magSf())  & fvc::reconstruct(
-                                                           ghf * fvc::snGrad(-(beta * (L_T_modes[j])))
-                                                           * L_T_modes[j].mesh().magSf())).value();
+                Prghmodes[i].mesh().magSf())  & fvc::reconstruct(
+                        ghf * fvc::snGrad(-(beta * (L_T_modes[j])))
+                        * L_T_modes[j].mesh().magSf())).value();
         }
     }
 
@@ -1010,8 +1010,8 @@ List<Eigen::MatrixXd> UnsteadyBB::convective_term_temperature(label NUmodes,
             for (label k = 0; k < Qsizet; k++)
             {
                 Q_matrix[i](j, k) = fvc::domainIntegrate(L_T_modes[i] * fvc::div(
-                                        fvc::interpolate(L_U_SUPmodes[j]) & L_U_SUPmodes[j].mesh().Sf(),
-                                        L_T_modes[k])).value();
+                        fvc::interpolate(L_U_SUPmodes[j]) & L_U_SUPmodes[j].mesh().Sf(),
+                        L_T_modes[k])).value();
             }
         }
 

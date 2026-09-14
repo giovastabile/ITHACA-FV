@@ -16,7 +16,7 @@ ITHACAstream::exportSolution(gTrueField,
 int testSize = 40;
 
 Eigen::VectorXi numberTCperAxis = Eigen::VectorXi::LinSpaced(testSize, 1,
-                                  testSize + 1);
+    testSize + 1);
 ITHACAstream::exportMatrix(numberTCperAxis, "numberTCperAxis", "eigen",
                            outputFolder);
 
@@ -26,7 +26,7 @@ for (int i = 0; i < testSize; i++)
     Info << "\nTest " << i << endl;
     Info << "\n**************************************************** " << endl;
     Eigen::VectorXd TCcoord_temp = Eigen::VectorXd::LinSpaced(numberTCperAxis(
-                                       i) + 2, 0.0, 1.0);
+            i) + 2, 0.0, 1.0);
     Eigen::VectorXd TCcoord = TCcoord_temp.segment(1, numberTCperAxis(i));
     example_paramBC.thermocouplesPos.resize(numberTCperAxis(i) * numberTCperAxis(
             i));
@@ -69,7 +69,7 @@ for (int i = 0; i < testSize; i++)
     example_paramBC.thermocouplesRead = 0;
     example_paramBC.readThermocouples();
     example_paramBC.Tmeas = Eigen::VectorXd::Zero(numberTCperAxis(
-                                i) * numberTCperAxis(i));
+            i) * numberTCperAxis(i));
     example_paramBC.Tmeas = example_paramBC.fieldValueAtThermocouples(Ttrue);
     example_paramBC.set_gParametrized("rbf", rbfShapePar);
     example_paramBC.parameterizedBCoffline(1);

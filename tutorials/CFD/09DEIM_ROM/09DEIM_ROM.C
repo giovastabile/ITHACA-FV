@@ -208,9 +208,9 @@ class DEIMLaplacian: public laplacianProblem
             fvMesh& mesh  =  const_cast<fvMesh&>(T.mesh());
             // Differential Operator
             DEIMmatrice->fieldA = autoPtr<volScalarField>(new volScalarField(
-                                      DEIMmatrice->generateSubmeshMatrix(2, mesh, T)));
+                    DEIMmatrice->generateSubmeshMatrix(2, mesh, T)));
             DEIMmatrice->fieldB = autoPtr<volScalarField>(new volScalarField(
-                                      DEIMmatrice->generateSubmeshVector(2, mesh, T)));
+                    DEIMmatrice->generateSubmeshVector(2, mesh, T)));
             // Source Terms
             ModesTEig = Foam2Eigen::PtrList2Eigen(Tmodes);
             ModesTEig.conservativeResize(ModesTEig.rows(), NmodesT);
@@ -266,7 +266,7 @@ int main(int argc, char* argv[])
     DEIMLaplacian example(argc, argv);
     // Read some parameters from file
     ITHACAparameters* para = ITHACAparameters::getInstance(example._mesh(),
-                             example._runTime());
+        example._runTime());
     // Create the offline parameters for the solve
     example.mu = ITHACAutilities::rand(100, 2, -0.5, 0.5);
     // Solve the offline problem to compute the snapshots for the projections
@@ -285,13 +285,13 @@ int main(int argc, char* argv[])
     example_new.OnlineSolveFull(par_new1, "Online_full");
     // Output some infos
     Info << endl << "The FOM Solve took: " << example_new.time_full  <<
-                              " seconds." << endl;
+                    " seconds." << endl;
     Info << endl << "The ROM Solve took: " << example.time_rom  <<
-                              " seconds." << endl;
+                    " seconds." << endl;
     Info << endl << "The Speed-up is: " << example_new.time_full /
-              example.time_rom  << endl << endl;
+         example.time_rom  << endl << endl;
     Eigen::MatrixXd error = ITHACAutilities::errorL2Abs(example_new.Tfield,
-                            example.Tonline);
+        example.Tonline);
     Info << "The mean L2 error is: " << error.mean() << endl;
     return 0;
 }

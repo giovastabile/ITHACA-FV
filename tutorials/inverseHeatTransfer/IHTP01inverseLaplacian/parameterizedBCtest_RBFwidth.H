@@ -9,7 +9,7 @@ ITHACAstream::exportSolution(gTrueField,
                              "gTrue");
 
 Eigen::VectorXd rbfWidth = EigenFunctions::ExpSpaced(0.001, 100,
-                           rbfWidthTest_size);
+    rbfWidthTest_size);
 ITHACAstream::exportMatrix(rbfWidth, "rbfShapeParameters", "eigen",
                            outputFolder);
 
@@ -82,9 +82,9 @@ for (int i = 0; i < rbfWidthTest_size; i++)
                                  std::to_string(i + 1), outputFolder,
                                  "relativeErrorField");
     heatFluxL2norm(i) = ITHACAutilities::L2normOnPatch(mesh, relativeErrorField,
-                        "hotSide");
+        "hotSide");
     heatFluxLinfNorm(i) = ITHACAutilities::LinfNormOnPatch(mesh, relativeErrorField,
-                          "hotSide");
+        "hotSide");
 }
 
 ITHACAstream::exportMatrix(condNumber, "condNumber", "eigen",

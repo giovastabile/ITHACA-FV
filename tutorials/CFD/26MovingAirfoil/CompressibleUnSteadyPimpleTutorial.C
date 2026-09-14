@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
     double durationOff;
     // Read some parameters from file
     ITHACAparameters* para = ITHACAparameters::getInstance(example.meshPtr(),
-                             example._runTime());
+        example._runTime());
     // Read the par file where the parameters are stored
     int NmodesUout  =  readInt(para->ITHACAdict->lookup("NmodesUout"));
     int NmodesPout  =  readInt(para->ITHACAdict->lookup("NmodesPout"));
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
     //exit(0);
     durationOff = (std::clock() - startOff);
     Info << "The Offline phase  duration  is  equal  to " << durationOff <<
-              endl;
+         endl;
 
     if (example.podex == 0 )
     {

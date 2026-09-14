@@ -98,7 +98,7 @@ int newtonSteadyNSTurbSUP::operator()(const Eigen::VectorXd& x,
     for (int i = 0; i < Nphi_u; i++)
     {
         cc = aTmp.transpose() * Eigen::SliceFromTensor(problem->C_tensor, 0,
-             i) * aTmp - gNut.transpose() *
+            i) * aTmp - gNut.transpose() *
              Eigen::SliceFromTensor(problem->cTotalTensor, 0, i) * aTmp;
         fvec(i) = m1(i) - cc(0, 0) - m2(i);
 
@@ -160,7 +160,7 @@ int newtonSteadyNSTurbPPE::operator()(const Eigen::VectorXd& x,
     for (int i = 0; i < Nphi_u; i++)
     {
         cc = aTmp.transpose() * Eigen::SliceFromTensor(problem->C_tensor, 0,
-             i) * aTmp - gNut.transpose() *
+            i) * aTmp - gNut.transpose() *
              Eigen::SliceFromTensor(problem->cTotalTensor, 0, i) * aTmp;
         fvec(i) = m1(i) - cc(0, 0) - m2(i);
 
@@ -174,7 +174,7 @@ int newtonSteadyNSTurbPPE::operator()(const Eigen::VectorXd& x,
     {
         int k = j + Nphi_u;
         gg = aTmp.transpose() * Eigen::SliceFromTensor(problem->gTensor, 0,
-             j) * aTmp;
+            j) * aTmp;
         //fvec(k) = m3(j, 0) - gg(0, 0) - m6(j, 0) + bb(0, 0);
         fvec(k) = m3(j, 0) + gg(0, 0) - m7(j, 0);
     }
@@ -246,6 +246,7 @@ void ReducedSteadyNSTurb::solveOnlineSUP(Eigen::MatrixXd vel)
 
     // Convert vel_now to vector for RBF interpolation
     Eigen::VectorXd vel_vec = vel_now.col(0);
+
     for (int i = 0; i < nphiNut; i++)
     {
         newtonObjectSUP.gNut(i) = problem->rbfSplines[i]->predict(vel_vec);
@@ -257,18 +258,18 @@ void ReducedSteadyNSTurb::solveOnlineSUP(Eigen::MatrixXd vel)
     Eigen::VectorXd res(y);
     newtonObjectSUP.operator()(y, res);
     Info << "################## Online solve N° " << count_online_solve <<
-              " ##################" << endl;
+         " ##################" << endl;
     Info << "Solving for the parameter: " << vel_now << endl;
 
     if (res.norm() < 1e-5)
     {
         Info << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                  hnls.iter << " iterations " << def << endl << endl;
+             hnls.iter << " iterations " << def << endl << endl;
     }
     else
     {
         Info << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                  hnls.iter << " iterations " << def << endl << endl;
+             hnls.iter << " iterations " << def << endl << endl;
     }
 
     count_online_solve += 1;
@@ -311,6 +312,7 @@ void ReducedSteadyNSTurb::solveOnlinePPE(Eigen::MatrixXd vel)
 
     // Convert vel_now to vector for RBF interpolation
     Eigen::VectorXd vel_vec = vel_now.col(0);
+
     for (int i = 0; i < nphiNut; i++)
     {
         newtonObjectPPE.gNut(i) = problem->rbfSplines[i]->predict(vel_vec);
@@ -322,18 +324,18 @@ void ReducedSteadyNSTurb::solveOnlinePPE(Eigen::MatrixXd vel)
     Eigen::VectorXd res(y);
     newtonObjectPPE.operator()(y, res);
     Info << "################## Online solve N° " << count_online_solve <<
-              " ##################" << endl;
+         " ##################" << endl;
     Info << "Solving for the parameter: " << vel_now << endl;
 
     if (res.norm() < 1e-5)
     {
         Info << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                  hnls.iter << " iterations " << def << endl << endl;
+             hnls.iter << " iterations " << def << endl << endl;
     }
     else
     {
         Info << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                  hnls.iter << " iterations " << def << endl << endl;
+             hnls.iter << " iterations " << def << endl << endl;
     }
 
     count_online_solve += 1;

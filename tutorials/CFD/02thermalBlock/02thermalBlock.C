@@ -260,7 +260,7 @@ void offline_stage(tutorial02& example, tutorial02& FOM_test)
 {
     // Read some parameters from file
     ITHACAparameters* para = ITHACAparameters::getInstance(example._mesh(),
-                             example._runTime());
+        example._runTime());
     int NmodesTout = para->ITHACAdict->lookupOrDefault<int>("NmodesTout", 15);
     int NmodesTproj = para->ITHACAdict->lookupOrDefault<int>("NmodesTproj", 10);
     // Set the number of parameters
@@ -328,5 +328,5 @@ void online_stage(tutorial02& example, tutorial02& FOM_test)
     reduced.reconstruct("./ITHACAoutput/Reconstruction");
     // Compute the error on the testing set
     Eigen::MatrixXd error = ITHACAutilities::errorL2Rel(FOM_test.Tfield,
-                            reduced.Trec);
+        reduced.Trec);
 }

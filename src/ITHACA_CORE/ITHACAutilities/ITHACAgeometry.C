@@ -144,9 +144,9 @@ List<vector> displacedSegment(List<vector> x0, double mux1,
     for (label i = 0; i < x0.size(); i++)
     {
         limin = Foam::sqrt(pow(x0[i][0] - minimum[0], 2) + pow(x0[i][1] - minimum[1],
-                           2));
+            2));
         limax = Foam::sqrt(pow(x0[i][0] - maximum[0], 2) + pow(x0[i][1] - maximum[1],
-                           2));
+            2));
         xdef[i][0] = x0[i][0] + mux1 * (1 - limin / l) + mux2 * (1 - limax / l);
         xdef[i][1] = x0[i][1] + muy1 * (1 - limin / l) + muy2 * (1 - limax / l);
         xdef[i][2] = x0[i][2];
@@ -214,7 +214,7 @@ vector displacePolabel(vector x0, vector x_low, vector x_up,
     Info << abs((x_low + t1 * direction - x0)[1]) << endl;
     Info << abs((x_low + t2 * direction - x0)[2]) << endl;
     M_Assert(abs(abs((x_low + t0 * direction - x0)[0]) + abs((
-                     x_low + t0 * direction - x0)[1]) + abs((x_low + t0 * direction - x0)[2])) <
+                x_low + t0 * direction - x0)[1]) + abs((x_low + t0 * direction - x0)[2])) <
              1e-6, "The givent polabel is not on the segment");
     vector def_polabel = x_low_def + t1 * direction_def;
     Info << def_polabel << endl;
@@ -260,8 +260,8 @@ Field<vector> rotateMesh(fvMesh& mesh, double r1, double r2,
             else if (angleVariationMethod == "Sigmoid")
             {
                 double theta = alpha / 180 *  constant::mathematical::pi * (1 - 1 /
-                               (1 + std::exp(
-                                    -v * (l - (r1 + r2) / 2))));
+                    (1 + std::exp(
+                         -v * (l - (r1 + r2) / 2))));
                 quaternion q(axis, theta);
                 pointRot[movingPointsIDs[i]] = q.transform(pointNow);
             }
@@ -401,7 +401,7 @@ volScalarField meshNonOrtho(fvMesh& mesh,
                             volScalarField& NonOrtho)
 {
     scalarField sno = (polyMeshTools::faceOrthogonality(mesh, mesh.Sf(),
-                       mesh.C())).ref();
+        mesh.C())).ref();
 
     for (label i = 0; i < sno.size(); i++)
     {

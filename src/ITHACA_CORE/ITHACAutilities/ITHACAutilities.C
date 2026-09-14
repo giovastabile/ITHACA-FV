@@ -111,7 +111,7 @@ template<typename T>
 List<T> combineList(List<List<T >>& doubleList)
 {
     List<T> a = ListListOps::combine<List<T >> (doubleList,
-                accessOp<List<T >> ());
+        accessOp<List<T >> ());
 #if OPENFOAM >= 1812
     inplaceUniqueSort(a);
 #else
@@ -217,7 +217,7 @@ Eigen::MatrixXd invertMatrix(Eigen::MatrixXd& matrixToInvert,
     {
         Eigen::LLT<Eigen::MatrixXd> lltOfA(matrixToInvert);
         return lltOfA.solve(Eigen::MatrixXd::Identity(matrixToInvert.rows(),
-                            matrixToInvert.cols()));
+                matrixToInvert.cols()));
     }
     else if (inversionMethod == "bdcSvd")
     {

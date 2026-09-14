@@ -25,15 +25,16 @@ License
 
     You should have received a copy of the GNU Lesser General Public License
     along with ITHACA-FV. If not, see <http://www.gnu.org/licenses/>.
-    
+
 \*---------------------------------------------------------------------------*/
 
 #include "splinterRBF.H"
 
-splinterRBF::splinterRBF(const Foam::word& kernelType, bool normalize, Foam::scalar epsilon)
-:   kernelType_(kernelType),
-    normalize_(normalize),
-    epsilon_(epsilon)
+splinterRBF::splinterRBF(const Foam::word& kernelType, bool normalize,
+                         Foam::scalar epsilon)
+    :   kernelType_(kernelType),
+        normalize_(normalize),
+        epsilon_(epsilon)
 {
 }
 
@@ -46,7 +47,8 @@ splinterRBF::splinterRBF(const Foam::dictionary& dict)
 
 splinterRBF::~splinterRBF() = default;
 
-SPLINTER::RadialBasisFunctionType splinterRBF::getKernelType(const Foam::word& kernelType)
+SPLINTER::RadialBasisFunctionType splinterRBF::getKernelType(
+    const Foam::word& kernelType)
 {
     if (kernelType == "gaussian")
     {
@@ -83,10 +85,10 @@ SPLINTER::RadialBasisFunctionType splinterRBF::getKernelType(const Foam::word& k
     else
     {
         FatalErrorInFunction
-            << "Unknown kernel type: " << kernelType
-            << ". Valid options are: gaussian, linear, cubic, quintic, multiquadric, "
-            << "inverse_multiquadric, inverse_quadratic, thin_plate_spline"
-            << Foam::exit(Foam::FatalError);
+                << "Unknown kernel type: " << kernelType
+                << ". Valid options are: gaussian, linear, cubic, quintic, multiquadric, "
+                << "inverse_multiquadric, inverse_quadratic, thin_plate_spline"
+                << Foam::exit(Foam::FatalError);
         return SPLINTER::RadialBasisFunctionType::GAUSSIAN; // Unreachable, but suppresses warning
     }
 }
@@ -99,6 +101,7 @@ void splinterRBF::fit(const Eigen::MatrixXd& X, const Eigen::VectorXd& y)
     {
         // Input normalization
         xMean_ = X.rowwise().mean();
+
         if (X.cols() > 1)
         {
             Eigen::MatrixXd centered = X.colwise() - xMean_;
@@ -109,14 +112,19 @@ void splinterRBF::fit(const Eigen::MatrixXd& X, const Eigen::VectorXd& y)
             xStd_ = Eigen::VectorXd::Ones(X.rows());
         }
 
-        for(int i=0; i<xStd_.size(); ++i) {
-            if(xStd_(i) < 1e-16) xStd_(i) = 1.0; 
+        for (int i = 0; i < xStd_.size(); ++i)
+        {
+            if (xStd_(i) < 1e-16)
+            {
+                xStd_(i) = 1.0;
+            }
         }
 
-        Eigen::MatrixXd X_norm = (X.colwise() - xMean_).array().colwise() / xStd_.array();
-
+        Eigen::MatrixXd X_norm = (X.colwise() - xMean_).array().colwise() /
+                                 xStd_.array();
         // Output normalization
         yMean_ = y.mean();
+
         if (y.size() > 1)
         {
             Eigen::VectorXd yCentered = y.array() - yMean_;
@@ -126,8 +134,11 @@ void splinterRBF::fit(const Eigen::MatrixXd& X, const Eigen::VectorXd& y)
         {
             yStd_ = 1.0;
         }
-        
-        if(yStd_ < 1e-16) yStd_ = 1.0;
+
+        if (yStd_ < 1e-16)
+        {
+            yStd_ = 1.0;
+        }
 
         Eigen::VectorXd y_norm = (y.array() - yMean_) / yStd_;
 
@@ -143,8 +154,9 @@ void splinterRBF::fit(const Eigen::MatrixXd& X, const Eigen::VectorXd& y)
             data.addSample(X.col(i), y(i));
         }
     }
-    
-    impl_ = std::make_unique<SPLINTER::RBFSpline>(data, getKernelType(kernelType_), epsilon_);
+
+    impl_ = std::make_unique<SPLINTER::RBFSpline>(data, getKernelType(kernelType_),
+        epsilon_);
 }
 
 Foam::scalar splinterRBF::predict(const Eigen::VectorXd& x)
@@ -155,6 +167,7 @@ Foam::scalar splinterRBF::predict(const Eigen::VectorXd& x)
         Foam::scalar y_pred_norm = impl_->eval(x_norm);
         return y_pred_norm * yStd_ + yMean_;
     }
+
     return impl_->eval(x);
 }
 
@@ -164,12 +177,14 @@ Eigen::VectorXd splinterRBF::predict(const Eigen::MatrixXd& X)
 
     if (normalize_)
     {
-        Eigen::MatrixXd X_norm = (X.colwise() - xMean_).array().colwise() / xStd_.array();
-        
+        Eigen::MatrixXd X_norm = (X.colwise() - xMean_).array().colwise() /
+                                 xStd_.array();
+
         for (int i = 0; i < X.cols(); ++i)
         {
             result(i) = impl_->eval(X_norm.col(i));
         }
+
         return result.array() * yStd_ + yMean_;
     }
 
@@ -177,6 +192,7 @@ Eigen::VectorXd splinterRBF::predict(const Eigen::MatrixXd& X)
     {
         result(i) = impl_->eval(X.col(i));
     }
+
     return result;
 }
 

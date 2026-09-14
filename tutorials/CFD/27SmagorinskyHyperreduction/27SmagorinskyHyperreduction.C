@@ -38,15 +38,11 @@ SourceFiles
 int main(int argc, char* argv[])
 {
     tutorial27_offline offlinePart(argc, argv);
-
     // Compute POD on velocity and on the hyperreduced term. Then select the magic points
     offlinePart.decompose();
-
-    // Compute the matrix for fast online prediction of the nonpolynomial term 
+    // Compute the matrix for fast online prediction of the nonpolynomial term
     offlinePart.project();
-
     tutorial27_online onlinePart(offlinePart.m_parameters);
-
     // Perfom the prediction on the test time steps and compare the results to the reference
     onlinePart.prediction();
 }

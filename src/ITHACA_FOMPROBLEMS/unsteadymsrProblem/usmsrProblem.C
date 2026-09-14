@@ -203,7 +203,7 @@ void usmsrProblem::truthSolve(List<scalar> mu_now)
              << "  ClockTime = " << runTime.elapsedClockTime() << " s"
              << nl << endl;
         powerDens = (1 - decbetaTot) * flux * SP + (decLam1 * dec1 + decLam2 * dec2 +
-                    decLam3 * dec3);
+            decLam3 * dec3);
 
         if (checkWrite(runTime))
         {
@@ -468,7 +468,7 @@ void usmsrProblem::truthSolve(List<scalar> mu_now, std::string folder)
              << "  ClockTime = " << runTime.elapsedClockTime() << " s"
              << nl << endl;
         powerDens = (1 - decbetaTot) * flux * SP + (decLam1 * dec1 + decLam2 * dec2 +
-                    decLam3 * dec3);
+            decLam3 * dec3);
 
         if (checkWrite(runTime))
         {

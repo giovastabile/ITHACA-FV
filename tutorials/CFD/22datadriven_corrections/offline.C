@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
     if (argc == 1)
     {
         Info << "Pass 'supremizer' or 'poisson' as first arguments."
-                  << endl;
+             << endl;
         return 0;
     }
 
@@ -181,22 +181,22 @@ void supremizer_approach(tutorial22& example)
     example.inletIndexT.resize(1, 1);
     example.inletIndexT << 1;
     ITHACAparameters* para = ITHACAparameters::getInstance(example._mesh(),
-                             example._runTime());
+        example._runTime());
     int NmodesU = para->ITHACAdict->lookupOrDefault<int>("NmodesU", 5);
     int NmodesP = para->ITHACAdict->lookupOrDefault<int>("NmodesP", 5);
     int NmodesSUP = para->ITHACAdict->lookupOrDefault<int>("NmodesSUP", 5);
     int NmodesNUT = para->ITHACAdict->lookupOrDefault<int>("NmodesNUT", 5);
     int NmodesProject = para->ITHACAdict->lookupOrDefault<int>("NmodesProject", 5);
     int NmodesMatrixRec = para->ITHACAdict->lookupOrDefault<int>("NmodesMatrixRec",
-                          5);
+        5);
     double penaltyFactor =
         para->ITHACAdict->lookupOrDefault<double>("penaltyFactor", 5);
     double U_BC = para->ITHACAdict->lookupOrDefault<double>("U_BC", 0.001);
     double romStartTime = para->ITHACAdict->lookupOrDefault<double>("romStartTime",
-                          0);
+        0);
     double romEndTime = para->ITHACAdict->lookupOrDefault<double>("romEndTime", 3);
     double romTimeStep = para->ITHACAdict->lookupOrDefault<double>("romTimeStep",
-                         0.001);
+        0.001);
     double e = para->ITHACAdict->lookupOrDefault<double>("RBFradius", 1);
     example.startTime = 20;
     example.finalTime = 40;
@@ -215,11 +215,11 @@ void supremizer_approach(tutorial22& example)
                         example.supex, 1, NmodesProject);
     example.projectSUP("./Matrices", NmodesU, NmodesP, NmodesSUP, NmodesNUT);
     Eigen::MatrixXd coeefs = ITHACAutilities::getCoeffs(example.Ufield,
-                             example.L_U_SUPmodes);
+        example.L_U_SUPmodes);
     Eigen::MatrixXd coeefsNut = ITHACAutilities::getCoeffs(example.nutFields,
-                                example.nutModes);
+        example.nutModes);
     Eigen::MatrixXd coeefsP = ITHACAutilities::getCoeffs(example.Pfield,
-                              example.Pmodes);
+        example.Pmodes);
     cnpy::save(coeefs, "./ITHACAoutput/Matrices/coeefs.npy");
     cnpy::save(coeefsNut, "./ITHACAoutput/Matrices/coeefsNut.npy");
     cnpy::save(coeefsP, "./ITHACAoutput/Matrices/coeefsP.npy");
@@ -235,22 +235,22 @@ void poisson_approach(tutorial22& example)
     example.inletIndexT.resize(1, 1);
     example.inletIndexT << 1;
     ITHACAparameters* para = ITHACAparameters::getInstance(example._mesh(),
-                             example._runTime());
+        example._runTime());
     int NmodesU = para->ITHACAdict->lookupOrDefault<int>("NmodesU", 5);
     int NmodesP = para->ITHACAdict->lookupOrDefault<int>("NmodesP", 5);
     int NmodesSUP = para->ITHACAdict->lookupOrDefault<int>("NmodesSUP", 5);
     int NmodesNUT = para->ITHACAdict->lookupOrDefault<int>("NmodesNUT", 5);
     int NmodesProject = para->ITHACAdict->lookupOrDefault<int>("NmodesProject", 5);
     int NmodesMatrixRec = para->ITHACAdict->lookupOrDefault<int>("NmodesMatrixRec",
-                          5);
+        5);
     double penaltyFactor =
         para->ITHACAdict->lookupOrDefault<double>("penaltyFactor", 5);
     double U_BC = para->ITHACAdict->lookupOrDefault<double>("U_BC", 0.001);
     double romStartTime = para->ITHACAdict->lookupOrDefault<double>("romStartTime",
-                          0);
+        0);
     double romEndTime = para->ITHACAdict->lookupOrDefault<double>("romEndTime", 3);
     double romTimeStep = para->ITHACAdict->lookupOrDefault<double>("romTimeStep",
-                         0.001);
+        0.001);
     double e = para->ITHACAdict->lookupOrDefault<double>("RBFradius", 1);
     example.startTime = 20;
     example.finalTime = 40;
@@ -269,11 +269,11 @@ void poisson_approach(tutorial22& example)
                         example.supex, 1, NmodesProject);
     example.projectPPE("./Matrices", NmodesU, NmodesP, NmodesSUP, NmodesNUT);
     Eigen::MatrixXd coeefs = ITHACAutilities::getCoeffs(example.Ufield,
-                             example.L_U_SUPmodes);
+        example.L_U_SUPmodes);
     Eigen::MatrixXd coeefsNut = ITHACAutilities::getCoeffs(example.nutFields,
-                                example.nutModes);
+        example.nutModes);
     Eigen::MatrixXd coeefsP = ITHACAutilities::getCoeffs(example.Pfield,
-                              example.Pmodes);
+        example.Pmodes);
     cnpy::save(coeefs, "./ITHACAoutput/Matrices/coeefs.npy");
     cnpy::save(coeefsNut, "./ITHACAoutput/Matrices/coeefsNut.npy");
     cnpy::save(coeefsP, "./ITHACAoutput/Matrices/coeefsP.npy");

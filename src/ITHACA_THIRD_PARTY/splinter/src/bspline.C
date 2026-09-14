@@ -355,7 +355,7 @@ DenseMatrix BSpline::computeKnotAverages() const
 
     // Fill knot average matrix one column at the time
     DenseMatrix knot_averages = DenseMatrix::Zero(basis.getNumBasisFunctions(),
-                                numVariables);
+        numVariables);
 
     for (unsigned int i = 0; i < numVariables; i++)
     {
@@ -415,7 +415,7 @@ void BSpline::regularizeKnotVectors(std::vector<double>& lb,
         // in higher dimensions because reallocation is necessary. This can be prevented by
         // precomputing the number of nonzeros when preallocating memory (see myKroneckerProduct).
         int numKnotsLB = multiplicityTarget - basis.getKnotMultiplicity(dim,
-                         lb.at(dim));
+            lb.at(dim));
 
         if (numKnotsLB > 0)
         {
@@ -423,7 +423,7 @@ void BSpline::regularizeKnotVectors(std::vector<double>& lb,
         }
 
         int numKnotsUB = multiplicityTarget - basis.getKnotMultiplicity(dim,
-                         ub.at(dim));
+            ub.at(dim));
 
         if (numKnotsUB > 0)
         {

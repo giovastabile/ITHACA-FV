@@ -365,7 +365,7 @@ int newton_usmsr_n::operator()(const Eigen::VectorXd& n,
         pf = nsf_c.transpose() * problem->PF_matrix[i] * c_tmp * (1 - btot);
         af = a_c.transpose() * problem->AF_matrix[i] * c_tmp;
         fvecn(i) = -F_dot(i) + lf(0, 0) + pf(0, 0) - af(0,
-                   0) + F3_1(i) + F3_2(i) + F3_3(i) + F3_4(i) + F3_5(i) + F3_6(i) + F3_7(i) + F3_8(
+            0) + F3_1(i) + F3_2(i) + F3_3(i) + F3_4(i) + F3_5(i) + F3_6(i) + F3_7(i) + F3_8(
                        i);
     }
 
@@ -527,7 +527,7 @@ int newton_usmsr_t::operator()(const Eigen::VectorXd& t,
         dhs2 = v_c.transpose() * problem->THS2_matrix[i] * f2_tmp * (dl2 / cp);
         dhs3 = v_c.transpose() * problem->THS3_matrix[i] * f3_tmp * (dl3 / cp);
         fvect(i) = -T_dot(i) - tt(0, 0) + T1(i) + xsf(0, 0) + dhs1(0, 0) + dhs2(0,
-                   0) + dhs3(0, 0);
+            0) + dhs3(0, 0);
     }
 
     int pfvect = Nphi_T;
@@ -599,7 +599,7 @@ void reducedusMSR::solveOnline(Eigen::MatrixXd vel_now,
     }
 
     w.head(Nphi_flux) = ITHACAutilities::getCoeffs(Fluxsnapshots[startSnap],
-                        Fluxmodes);
+        Fluxmodes);
     pos_w += Nphi_flux;
     w.segment(pos_w, Nphi_prec1) = ITHACAutilities::getCoeffs(
                                        Prec1snapshots[startSnap], Prec1modes);
@@ -830,46 +830,46 @@ void reducedusMSR::solveOnline(Eigen::MatrixXd vel_now,
         newton_object_t.operator()(z, res_t);
         newton_object_t.z_old = z;
         Info << "################## Online solve N° " << count_online_solve <<
-                  " ##################" << endl;
+             " ##################" << endl;
         Info << "Time = " << time << endl;
 
         if (res_fd.norm() / y.norm() < 1e-5)
         {
             Info << green << "|F_fd(x)| = " << res_fd.norm() / y.norm() <<
-                                  " - Minimun reached in " << hnls_fd.iter << " iterations " << def << endl
-                      << endl;
+                             " - Minimun reached in " << hnls_fd.iter << " iterations " << def << endl
+                 << endl;
         }
         else
         {
             Info << red << "|F_fd(x)| = " << res_fd.norm() / y.norm() <<
-                                " - Minimun reached in " << hnls_fd.iter << " iterations " << def << endl
-                      << endl;
+                           " - Minimun reached in " << hnls_fd.iter << " iterations " << def << endl
+                 << endl;
         }
 
         if (res_n.norm() / w.norm() < 1e-5)
         {
             Info << green << "|F_n(x)| = " << res_n.norm() / w.norm() <<
-                                  " - Minimun reached in " << hnls_n.iter << " iterations " << def << endl <<
-                      endl;
+                             " - Minimun reached in " << hnls_n.iter << " iterations " << def << endl <<
+                 endl;
         }
         else
         {
             Info << red << "|F_n(x)| = " << res_n.norm() / w.norm() <<
-                                " - Minimun reached in " << hnls_n.iter << " iterations " << def << endl <<
-                      endl;
+                           " - Minimun reached in " << hnls_n.iter << " iterations " << def << endl <<
+                 endl;
         }
 
         if (res_t.norm() / z.norm() < 1e-5)
         {
             Info << green << "|F_t(x)| = " << res_t.norm() / z.norm() <<
-                                  " - Minimun reached in " << hnls_t.iter << " iterations " << def << endl <<
-                      endl;
+                             " - Minimun reached in " << hnls_t.iter << " iterations " << def << endl <<
+                 endl;
         }
         else
         {
             Info << red << "|F_t(x)| = " << res_t.norm() / z.norm() <<
-                                " - Minimun reached in " << hnls_t.iter << " iterations " << def << endl <<
-                      endl;
+                           " - Minimun reached in " << hnls_t.iter << " iterations " << def << endl <<
+                 endl;
         }
 
         count_online_solve += 1;

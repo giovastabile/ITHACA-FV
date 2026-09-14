@@ -81,15 +81,15 @@ ReducedUnsteadyNSTurb::ReducedUnsteadyNSTurb(UnsteadyNSTurb& fomProblem)
     }
 
     newtonObjectSUP = newtonUnsteadyNSTurbSUP(Nphi_u + Nphi_p, Nphi_u + Nphi_p,
-                      fomProblem);
+        fomProblem);
     newtonObjectPPE = newtonUnsteadyNSTurbPPE(Nphi_u + Nphi_p, Nphi_u + Nphi_p,
-                      fomProblem);
+        fomProblem);
     newtonObjectSUPAve = newtonUnsteadyNSTurbSUPAve(Nphi_u + Nphi_p,
-                         Nphi_u + Nphi_p,
-                         fomProblem);
+        Nphi_u + Nphi_p,
+        fomProblem);
     newtonObjectPPEAve = newtonUnsteadyNSTurbPPEAve(Nphi_u + Nphi_p,
-                         Nphi_u + Nphi_p,
-                         fomProblem);
+        Nphi_u + Nphi_p,
+        fomProblem);
 }
 
 
@@ -142,7 +142,7 @@ int newtonUnsteadyNSTurbSUP::operator()(const Eigen::VectorXd& x,
     for (int i = 0; i < Nphi_u; i++)
     {
         cc = aTmp.transpose() * Eigen::SliceFromTensor(problem->C_tensor, 0,
-             i) * aTmp - gNut.transpose() *
+            i) * aTmp - gNut.transpose() *
              Eigen::SliceFromTensor(problem->cTotalTensor, 0, i) * aTmp;
         fvec(i) = - m5(i) + m1(i) - cc(0, 0) - m2(i);
 
@@ -225,7 +225,7 @@ int newtonUnsteadyNSTurbSUPAve::operator()(const Eigen::VectorXd& x,
     for (int i = 0; i < Nphi_u; i++)
     {
         cc = aTmp.transpose() * Eigen::SliceFromTensor(problem->C_tensor, 0,
-             i) * aTmp - gNut.transpose() *
+            i) * aTmp - gNut.transpose() *
              Eigen::SliceFromTensor(problem->cTotalTensor, 0,
                                     i) * aTmp - gNutAve.transpose() *
              Eigen::SliceFromTensor(problem->cTotalAveTensor, 0, i) * aTmp;
@@ -318,7 +318,7 @@ int newtonUnsteadyNSTurbPPE::operator()(const Eigen::VectorXd& x,
     for (int i = 0; i < Nphi_u; i++)
     {
         cc = aTmp.transpose() * Eigen::SliceFromTensor(problem->C_tensor, 0,
-             i) * aTmp - gNut.transpose() *
+            i) * aTmp - gNut.transpose() *
              Eigen::SliceFromTensor(problem->cTotalTensor, 0, i) * aTmp;
         fvec(i) = - m5(i) + m1(i) - cc(0, 0) - m2(i);
 
@@ -332,9 +332,9 @@ int newtonUnsteadyNSTurbPPE::operator()(const Eigen::VectorXd& x,
     {
         int k = j + Nphi_u;
         gg = aTmp.transpose() * Eigen::SliceFromTensor(problem->gTensor, 0,
-             j) * aTmp;
+            j) * aTmp;
         bb = aTmp.transpose() * Eigen::SliceFromTensor(problem->bc2Tensor, 0,
-             j) * aTmp;
+            j) * aTmp;
         //fvec(k) = m3(j, 0) - gg(0, 0) - m6(j, 0) + bb(0, 0);
         fvec(k) = m3(j, 0) + gg(0, 0) - m7(j, 0);
     }
@@ -414,7 +414,7 @@ int newtonUnsteadyNSTurbPPEAve::operator()(const Eigen::VectorXd& x,
     for (int i = 0; i < Nphi_u; i++)
     {
         cc = aTmp.transpose() * Eigen::SliceFromTensor(problem->C_tensor, 0,
-             i) * aTmp - gNut.transpose() *
+            i) * aTmp - gNut.transpose() *
              Eigen::SliceFromTensor(problem->cTotalTensor, 0,
                                     i) * aTmp - gNutAve.transpose() *
              Eigen::SliceFromTensor(problem->cTotalAveTensor, 0, i) * aTmp;
@@ -430,9 +430,9 @@ int newtonUnsteadyNSTurbPPEAve::operator()(const Eigen::VectorXd& x,
     {
         int k = j + Nphi_u;
         gg = aTmp.transpose() * Eigen::SliceFromTensor(problem->gTensor, 0,
-             j) * aTmp;
+            j) * aTmp;
         bb = aTmp.transpose() * Eigen::SliceFromTensor(problem->bc2Tensor, 0,
-             j) * aTmp;
+            j) * aTmp;
         nn = gNut.transpose() *
              Eigen::SliceFromTensor(problem->cTotalPPETensor, 0,
                                     j) * aTmp + gNutAve.transpose() *
@@ -494,11 +494,11 @@ void ReducedUnsteadyNSTurb::solveOnlineSUP(Eigen::MatrixXd vel)
     // y.head(Nphi_u) = initCond.col(0).head(Nphi_u);
     // y.tail(Nphi_p) = initCond.col(0).tail(Nphi_p);
     y.head(Nphi_u) = ITHACAutilities::getCoeffs(problem->Ufield[0],
-                     Umodes);
+        Umodes);
     y.tail(Nphi_p) = ITHACAutilities::getCoeffs(problem->Pfield[0],
-                     Pmodes);
+        Pmodes);
     nut0           = ITHACAutilities::getCoeffs(problem->nutFields[0],
-                     nutModes);
+        nutModes);
     int nextStore = 0;
     int counter2 = 0;
 
@@ -623,19 +623,19 @@ void ReducedUnsteadyNSTurb::solveOnlineSUP(Eigen::MatrixXd vel)
         newtonObjectSUP.yOldOld = newtonObjectSUP.y_old;
         newtonObjectSUP.y_old = y;
         Info << "################## Online solve N° " << count_online_solve <<
-                  " ##################" << endl;
+             " ##################" << endl;
         Info << "Time = " << time << endl;
         Info << "Solving for the parameter: " << vel_now << endl;
 
         if (res.norm() < 1e-5)
         {
             Info << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
         else
         {
             Info << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
 
         count_online_solve += 1;
@@ -824,19 +824,19 @@ void ReducedUnsteadyNSTurb::solveOnlineSUPAve(Eigen::MatrixXd vel)
         newtonObjectSUPAve.yOldOld = newtonObjectSUPAve.y_old;
         newtonObjectSUPAve.y_old = y;
         Info << "################## Online solve N° " << count_online_solve <<
-                  " ##################" << endl;
+             " ##################" << endl;
         Info << "Time = " << time << endl;
         Info << "Solving for the parameter: " << vel_now << endl;
 
         if (res.norm() < 1e-5)
         {
             Info << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
         else
         {
             Info << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
 
         count_online_solve += 1;
@@ -1016,19 +1016,19 @@ void ReducedUnsteadyNSTurb::solveOnlinePPE(Eigen::MatrixXd vel)
         newtonObjectPPE.yOldOld = newtonObjectPPE.y_old;
         newtonObjectPPE.y_old = y;
         Info << "################## Online solve N° " << count_online_solve <<
-                  " ##################" << endl;
+             " ##################" << endl;
         Info << "Time = " << time << endl;
         Info << "Solving for the parameter: " << vel_now << endl;
 
         if (res.norm() < 1e-5)
         {
             Info << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
         else
         {
             Info << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
 
         count_online_solve += 1;
@@ -1217,19 +1217,19 @@ void ReducedUnsteadyNSTurb::solveOnlinePPEAve(Eigen::MatrixXd vel)
         newtonObjectPPEAve.yOldOld = newtonObjectPPEAve.y_old;
         newtonObjectPPEAve.y_old = y;
         Info << "################## Online solve N° " << count_online_solve <<
-                  " ##################" << endl;
+             " ##################" << endl;
         Info << "Time = " << time << endl;
         Info << "Solving for the parameter: " << vel_now << endl;
 
         if (res.norm() < 1e-5)
         {
             Info << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
         else
         {
             Info << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                      hnls.iter << " iterations " << def << endl << endl;
+                 hnls.iter << " iterations " << def << endl << endl;
         }
 
         count_online_solve += 1;

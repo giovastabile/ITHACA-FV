@@ -121,7 +121,7 @@ void laplacianProblem::project(label Nmodes)
             for (label k = 0; k < Nmodes; k++)
             {
                 A_matrices[i](j, k) = fvc::domainIntegrate( Tmodes[j] * fvc::laplacian(
-                                          nu_list[i], Tmodes[k])).value();
+                        nu_list[i], Tmodes[k])).value();
             }
         }
 

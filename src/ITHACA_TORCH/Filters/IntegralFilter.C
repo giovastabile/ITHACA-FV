@@ -28,7 +28,7 @@ List<scalarList> Foam::IntegralFilter::apply(const List<labelList>& cells,
         for (label j = 0; j < cells[i].size(); j++)
         {
             scalar factori = mesh.V()[cells[i][j]] * mag(convPoints[i] -
-                             mesh.C()[cells[i][j]]);
+                mesh.C()[cells[i][j]]);
             weightsi[j] = factori;
             factor += factori;
         }

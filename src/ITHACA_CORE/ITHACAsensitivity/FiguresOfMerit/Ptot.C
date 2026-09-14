@@ -39,6 +39,6 @@ void Ptot::buildMO(std::string dir)
     else
     {
         Foam::Info << "Outputs of the model are not computed yet, programm aborted" <<
-                  Foam::endl;
+                   Foam::endl;
     }
 }

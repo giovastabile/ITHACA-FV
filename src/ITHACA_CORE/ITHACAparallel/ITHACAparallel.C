@@ -77,7 +77,7 @@ ITHACAparallel::ITHACAparallel(fvMesh& mesh, Time& localTime)
     // BF construction
     Gsize_BF = autoPtr<labelList>(new labelList (N_BF, label(0)));
     IndFaceLocal = autoPtr< List<labelList >> (new List<labelList> (N_BF,
-                   labelList(label(0), label(0))));
+        labelList(label(0), label(0))));
 
     for (label i = 0; i < N_BF; i++)
     {

@@ -24,5 +24,5 @@
 \*---------------------------------------------------------------------------*/
 Foam::Info << "Create time\n" << Foam::endl;
 _runTime = autoPtr<Foam::Time>( new Foam::Time( Foam::Time::controlDictName,
-                                args ) );
+    args ) );
 Foam::Time& runTime = _runTime();

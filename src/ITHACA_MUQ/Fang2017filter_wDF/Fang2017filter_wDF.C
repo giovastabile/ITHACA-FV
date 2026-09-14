@@ -141,9 +141,11 @@ void Fang2017filter_wDF::setObservationTime(int _observationStart,
     M_Assert(_observationStart > 0, "First observation timestep can't be 0");
     observationStart = _observationStart;
     observationDelta = _observationDelta;
-    Foam::Info << "First observation at time = " << timeVector(observationStart) << " s"
-         << Foam::endl;
-    Foam::Info << "Observations taken every " << observationDelta << " timesteps" << Foam::endl;
+    Foam::Info << "First observation at time = " << timeVector(
+                   observationStart) << " s"
+               << Foam::endl;
+    Foam::Info << "Observations taken every " << observationDelta << " timesteps" <<
+               Foam::endl;
     observationBoolVec = Eigen::VectorXi::Zero(timeVector.size() - 1);
 
     for (int i = observationStart - 1; i < Ntimes; i += observationDelta)
@@ -172,7 +174,7 @@ void Fang2017filter_wDF::setModelError(double cov, bool univariate)
     }
 
     modelErrorDensity = std::make_shared<muq::Modeling::Gaussian>(modelError_mu,
-                        modelError_cov);
+        modelError_cov);
     modelErrorFlag = 1;
 }
 
@@ -184,9 +186,9 @@ void Fang2017filter_wDF::setMeasNoise(double cov)
              "Read measurements before setting up the measurement noise");
     Eigen::VectorXd measNoise_mu = Eigen::VectorXd::Zero(observationSize);
     Eigen::MatrixXd measNoise_cov = Eigen::MatrixXd::Identity(observationSize,
-                                    observationSize) * cov;
+        observationSize) * cov;
     measNoiseDensity = std::make_shared<muq::Modeling::Gaussian>(measNoise_mu,
-                       measNoise_cov);
+        measNoise_cov);
     measurementNoiseFlag = 1;
 }
 
@@ -257,7 +259,8 @@ void Fang2017filter_wDF::sampleInitialState()
         stateEns.assignSamples(ensembleFromDensity(initialStateDensity));
     }
 
-    Foam::Info << "debug: State ensamble size = " << stateEns.getSize() << Foam::endl;
+    Foam::Info << "debug: State ensamble size = " << stateEns.getSize() <<
+               Foam::endl;
 }
 
 //--------------------------------------------------------------------------
@@ -431,7 +434,8 @@ void Fang2017filter_wDF::run(int innerLoopMax, word outputFolder)
         if (timeStepI == 0)
         {
             setParameterPriorDensity(parameterPriorMean, parameterPriorCov);
-            Foam::Info << "debugInside: parameterPriorMean = " << parameterPriorMean << Foam::endl;
+            Foam::Info << "debugInside: parameterPriorMean = " << parameterPriorMean <<
+                       Foam::endl;
             sampleParameterDist();
         }
         else
@@ -457,7 +461,7 @@ void Fang2017filter_wDF::run(int innerLoopMax, word outputFolder)
                     setParameterPriorDensity(parameterMean.col(timeStepI), parameterPriorCov);
                     sampleParameterDist();
                     Foam::Info << "\ndebug : parameterMean after loop =\n" << parameterMean.col(
-                                  timeStepI) << Foam::endl;
+                                   timeStepI) << Foam::endl;
                 }
 
                 buildJointEns();

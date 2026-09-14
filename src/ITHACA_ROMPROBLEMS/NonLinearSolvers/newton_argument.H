@@ -82,7 +82,7 @@ class newton_argument
         {
             Info <<
             "This is a virtual method, it needs to be overriden with a suitable residual function"
-                      << endl;
+                 << endl;
             return 0;
         }
 
@@ -97,7 +97,7 @@ class newton_argument
         {
             Info <<
             "This is a virtual method, it needs to be overriden with a suitable jacobian function"
-                      << endl;
+                 << endl;
             return 0;
         }
 

@@ -199,7 +199,7 @@ Eigen::Tensor<double, 3> UnsteadyNSTurbIntrusive::turbulenceTensor1(
             for (label k = 0; k < nModes; k++)
             {
                 ct1Tensor(i, j, k) = fvc::domainIntegrate(Umodes[i] & fvc::laplacian(
-                                         nutModes[j], Umodes[k])).value();
+                        nutModes[j], Umodes[k])).value();
             }
         }
     }
@@ -228,7 +228,7 @@ Eigen::Tensor<double, 3> UnsteadyNSTurbIntrusive::turbulenceTensor2(
             for (label k = 0; k < nModes; k++)
             {
                 ct2Tensor(i, j, k) = fvc::domainIntegrate(Umodes[i] & (fvc::div(
-                                         nutModes[j] * dev((fvc::grad(Umodes[k]))().T())))).value();
+                        nutModes[j] * dev((fvc::grad(Umodes[k]))().T())))).value();
             }
         }
     }
@@ -730,8 +730,8 @@ Eigen::Tensor<double, 3> UnsteadyNSTurbIntrusive::convectiveTerm(label nModes)
             for (label k = 0; k < nModes; k++)
             {
                 convTensor(i, j, k) = fvc::domainIntegrate(Umodes[i] & fvc::div(
-                                          linearInterpolate(Umodes[j]) & Umodes[j].mesh().Sf(),
-                                          Umodes[k])).value();
+                        linearInterpolate(Umodes[j]) & Umodes[j].mesh().Sf(),
+                        Umodes[k])).value();
             }
         }
     }
@@ -866,7 +866,7 @@ Eigen::MatrixXd UnsteadyNSTurbIntrusive::pressureBC1(label nUModes,
         for (label j = 0; j < P_BC2size; j++)
         {
             surfaceScalarField lpl((fvc::interpolate(fvc::laplacian(
-                                        Umodes[j])) & mesh.Sf()) * fvc::interpolate(Pmodes[i]));
+                    Umodes[j])) & mesh.Sf()) * fvc::interpolate(Pmodes[i]));
             double s = 0;
 
             for (label k = 0; k < lpl.boundaryField().size(); k++)
@@ -904,8 +904,8 @@ Eigen::Tensor<double, 3 > UnsteadyNSTurbIntrusive::pressureBC2(label nUModes,
             for (label k = 0; k < pressureBC2Size; k++)
             {
                 surfaceScalarField div_m(fvc::interpolate(fvc::div(fvc::interpolate(
-                                             Umodes[j]) & mesh.Sf(),
-                                         Umodes[k])) & mesh.Sf() * fvc::interpolate(Pmodes[i]));
+                        Umodes[j]) & mesh.Sf(),
+                    Umodes[k])) & mesh.Sf() * fvc::interpolate(Pmodes[i]));
                 double s = 0;
 
                 for (label k = 0; k < div_m.boundaryField().size(); k++)
@@ -1073,8 +1073,8 @@ Eigen::Tensor<double, 3> UnsteadyNSTurbIntrusive::turbulencePPETensor1(
             for (label k = 0; k < nUModes; k++)
             {
                 ct1PPETensor(i, j, k) = fvc::domainIntegrate(fvc::grad(Pmodes[i]) & (
-                                            fvc::laplacian(
-                                                nutModes[j], Umodes[k]))).value();
+                        fvc::laplacian(
+                            nutModes[j], Umodes[k]))).value();
             }
         }
     }
@@ -1103,7 +1103,7 @@ Eigen::Tensor<double, 3> UnsteadyNSTurbIntrusive::turbulencePPETensor2(
             for (label k = 0; k < nUModes; k++)
             {
                 ct2PPETensor(i, j, k) = fvc::domainIntegrate(fvc::grad(Pmodes[i]) & ((fvc::div(
-                                            nutModes[j] * dev2((fvc::grad(Umodes[k]))().T()))))).value();
+                        nutModes[j] * dev2((fvc::grad(Umodes[k]))().T()))))).value();
             }
         }
     }

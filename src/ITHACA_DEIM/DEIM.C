@@ -283,7 +283,7 @@ DEIM<T>::DEIM (PtrList<T>& s, label MaxModesA, label MaxModesB,
         }
 
         Eigen::MatrixXd Aaux = EigenFunctions::innerProduct(PA,
-                               UA).fullPivLu().inverse();
+            UA).fullPivLu().inverse();
         MatrixOnlineA = EigenFunctions::MMproduct(UA, Aaux);
         Eigen::MatrixXd AB;
         Eigen::VectorXd bB;
@@ -292,7 +292,7 @@ DEIM<T>::DEIM (PtrList<T>& s, label MaxModesA, label MaxModesB,
         Eigen::VectorXd rhoB(1);
         label ind_rowB, xyz_rowB, c1;
         double maxB = std::get<1>(Matrix_Modes)[0].cwiseAbs().maxCoeff(& ind_rowB,
-                      & c1);
+            & c1);
         label ind_rowBOF = ind_rowB;
         check3DIndices(ind_rowBOF, xyz_rowB);
         rhoB(0) = maxB;
@@ -504,7 +504,7 @@ S DEIM<T>::generateSubmeshMatrix(label layers, const fvMesh& mesh, S field,
     {
         indices = ITHACAutilities::getIndices(mesh, magicPointsArow()[i], layers);
         indices.append(ITHACAutilities::getIndices(mesh, magicPointsAcol()[i],
-                       layers));
+                layers));
         totalMagicPointsA().append(indices);
     }
 

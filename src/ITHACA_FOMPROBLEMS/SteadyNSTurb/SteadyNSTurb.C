@@ -160,7 +160,7 @@ List < Eigen::MatrixXd > SteadyNSTurb::turbulenceTerm1(label NUmodes,
             for (label k = 0; k < cSize; k++)
             {
                 ct1Matrix[i](j, k) = fvc::domainIntegrate(L_U_SUPmodes[i] & fvc::laplacian(
-                                         nutModes[j], L_U_SUPmodes[k])).value();
+                        nutModes[j], L_U_SUPmodes[k])).value();
             }
         }
     }
@@ -189,7 +189,7 @@ Eigen::Tensor<double, 3> SteadyNSTurb::turbulenceTensor1(label NUmodes,
             for (label k = 0; k < cSize; k++)
             {
                 ct1Tensor(i, j, k) = fvc::domainIntegrate(L_U_SUPmodes[i] & fvc::laplacian(
-                                         nutModes[j], L_U_SUPmodes[k])).value();
+                        nutModes[j], L_U_SUPmodes[k])).value();
             }
         }
     }
@@ -260,7 +260,7 @@ List < Eigen::MatrixXd > SteadyNSTurb::turbulenceTerm2(label NUmodes,
             for (label k = 0; k < cSize; k++)
             {
                 ct2Matrix[i](j, k) = fvc::domainIntegrate(L_U_SUPmodes[i] & (fvc::div(
-                                         nutModes[j] * dev((fvc::grad(L_U_SUPmodes[k]))().T())))).value();
+                        nutModes[j] * dev((fvc::grad(L_U_SUPmodes[k]))().T())))).value();
             }
         }
     }
@@ -289,7 +289,7 @@ Eigen::Tensor<double, 3> SteadyNSTurb::turbulenceTensor2(label NUmodes,
             for (label k = 0; k < cSize; k++)
             {
                 ct2Tensor(i, j, k) = fvc::domainIntegrate(L_U_SUPmodes[i] & (fvc::div(
-                                         nutModes[j] * dev((fvc::grad(L_U_SUPmodes[k]))().T())))).value();
+                        nutModes[j] * dev((fvc::grad(L_U_SUPmodes[k]))().T())))).value();
             }
         }
     }
@@ -323,7 +323,7 @@ Eigen::Tensor<double, 3> SteadyNSTurb::turbulenceTensor2_cache(label NUmodes,
             {
                 const volVectorField& divRowField = divRow[k]();
                 ct2Tensor(i, j, k) = fvc::domainIntegrate(L_U_SUPmodes[i] &
-                                     divRowField).value();
+                    divRowField).value();
             }
         }
     }
@@ -358,8 +358,8 @@ Eigen::Tensor<double, 3> SteadyNSTurb::turbulencePPETensor1(label NUmodes,
                 //     fvc::laplacian(
                 //         nutModes[j], L_U_SUPmodes[k])))).value();
                 ct1PPETensor(i, j, k) = fvc::domainIntegrate(fvc::grad(Pmodes[i]) & (
-                                            fvc::laplacian(
-                                                nutModes[j], L_U_SUPmodes[k]))).value();
+                        fvc::laplacian(
+                            nutModes[j], L_U_SUPmodes[k]))).value();
             }
         }
     }
@@ -435,7 +435,7 @@ Eigen::Tensor<double, 3> SteadyNSTurb::turbulencePPETensor2(label NUmodes,
                 // ct2PPETensor(i, j, k) = fvc::domainIntegrate(Pmodes[i] * ((fvc::div(fvc::div(
                 //     nutModes[j] * dev2((fvc::grad(L_U_SUPmodes[k]))().T())))))).value();
                 ct2PPETensor(i, j, k) = fvc::domainIntegrate(fvc::grad(Pmodes[i]) & ((fvc::div(
-                                            nutModes[j] * dev2((fvc::grad(L_U_SUPmodes[k]))().T()))))).value();
+                        nutModes[j] * dev2((fvc::grad(L_U_SUPmodes[k]))().T()))))).value();
             }
         }
     }
@@ -831,24 +831,22 @@ void SteadyNSTurb::projectPPE(fileName folder, label NU, label NP, label NSUP,
     // Export the matrix
     ITHACAstream::SaveDenseMatrix(coeffL2, "./ITHACAoutput/Matrices/",
                                   "coeffL2_nut_" + name(nNutModes));
-    
     // Create RBF interpolators for nut coefficient interpolation
     rbfSplines.resize(nNutModes);
+
     for (label i = 0; i < nNutModes; i++)
     {
         // Create ithacaInterpolator instance
         rbfSplines[i] = std::make_shared<ithacaInterpolator>(viscDict);
-        
         // Prepare training data: X is parameter matrix (transposed), y is coefficient vector
         Eigen::MatrixXd X = mu.transpose();  // Now each row is a parameter sample
-        Eigen::VectorXd y = coeffL2.row(i).transpose();  // Coefficient vector for this mode
-        
+        Eigen::VectorXd y = coeffL2.row(
+                                i).transpose();  // Coefficient vector for this mode
         rbfSplines[i]->fit(X, y);
-        
         Info << "Constructing ithacaInterpolator for mode " << i + 1 << endl;
     }
 
-    Info<< "Info on interpolators for nut coefficients: "<< endl;
+    Info << "Info on interpolators for nut coefficients: " << endl;
     rbfSplines[0]->printInfo();
 }
 
@@ -1096,22 +1094,21 @@ void SteadyNSTurb::projectSUP(fileName folder, label NU, label NP, label NSUP,
     // Export the matrix
     ITHACAstream::SaveDenseMatrix(coeffL2, "./ITHACAoutput/Matrices/",
                                   "coeffL2_nut_" + name(nNutModes));
-    
     // Create RBF interpolators for nut coefficient interpolation
     rbfSplines.resize(nNutModes);
+
     for (label i = 0; i < nNutModes; i++)
     {
         // Create ithacaInterpolator instance
         rbfSplines[i] = std::make_shared<ithacaInterpolator>(viscDict);
-        
         // Prepare training data: X is parameter matrix (transposed), y is coefficient vector
         Eigen::MatrixXd X = mu.transpose();  // Now each row is a parameter sample
-        Eigen::VectorXd y = coeffL2.row(i).transpose();  // Coefficient vector for this mode
-        
+        Eigen::VectorXd y = coeffL2.row(
+                                i).transpose();  // Coefficient vector for this mode
         rbfSplines[i]->fit(X, y);
-        
         Info << "Constructing ithacaInterpolator for mode " << i + 1 << endl;
     }
-    Info<< "Info on interpolators for nut coefficients: "<< endl;
+
+    Info << "Info on interpolators for nut coefficients: " << endl;
     rbfSplines[0]->printInfo();
 }

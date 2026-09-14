@@ -407,7 +407,7 @@ void assignMixedBC(GeometricField<Type, fvPatchField, volMesh>& field,
 //------------------------------------------------------------------------------
 /// @brief      Set a field of type vol[Scalar|Vector|Tensor]Field to 0
 ///
-/// @param      f1 field to set to 0 
+/// @param      f1 field to set to 0
 ///
 template<typename T>
 void setToZero(T& f1);

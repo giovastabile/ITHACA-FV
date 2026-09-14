@@ -46,6 +46,6 @@ void Ptot_time::buildMO(std::string dir, label t)
     else
     {
         Foam::Info << "Outputs of the model are not computed yet, programm aborted" <<
-                  Foam::endl;
+                   Foam::endl;
     }
 }

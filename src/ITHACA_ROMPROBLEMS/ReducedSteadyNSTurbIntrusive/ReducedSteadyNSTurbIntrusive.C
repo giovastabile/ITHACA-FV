@@ -51,7 +51,7 @@ ReducedSteadyNSTurbIntrusive::ReducedSteadyNSTurbIntrusive(
     }
 
     newtonObject = newtonSteadyNSTurbIntrusive(Nphi_u, Nphi_u,
-                   fomProblem);
+        fomProblem);
 }
 
 int newtonSteadyNSTurbIntrusive::operator()(const Eigen::VectorXd& x,
@@ -81,7 +81,7 @@ int newtonSteadyNSTurbIntrusive::operator()(const Eigen::VectorXd& x,
     for (int i = 0; i < Nphi_u; i++)
     {
         cc = aTmp.transpose() * Eigen::SliceFromTensor(problem->cTotalTensor, 0,
-             i) * aTmp;
+            i) * aTmp;
         fvec(i) = m1(i) - cc(0, 0) - m2(i);
 
         if (problem->bcMethod == "penalty")
@@ -153,18 +153,18 @@ void ReducedSteadyNSTurbIntrusive::solveOnline(Eigen::MatrixXd vel)
     Eigen::VectorXd res(y);
     newtonObject.operator()(y, res);
     Info << "################## Online solve N° " << count_online_solve <<
-              " ##################" << endl;
+         " ##################" << endl;
     Info << "Solving for the parameter: " << vel_now << endl;
 
     if (res.norm() < 1e-5)
     {
         Info << green << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                  hnls.iter << " iterations " << def << endl << endl;
+             hnls.iter << " iterations " << def << endl << endl;
     }
     else
     {
         Info << red << "|F(x)| = " << res.norm() << " - Minimun reached in " <<
-                  hnls.iter << " iterations " << def << endl << endl;
+             hnls.iter << " iterations " << def << endl << endl;
     }
 
     count_online_solve += 1;

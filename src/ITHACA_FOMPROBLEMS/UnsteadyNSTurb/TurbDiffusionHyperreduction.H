@@ -47,83 +47,84 @@ SourceFiles
 template<typename volF, typename T, typename S>
 class TurbDiffusionHyperreduction
 {
-  protected :
-    /// Parameter object containing main information
-    StoredParameters* m_parameters;
+    protected :
+        /// Parameter object containing main information
+        StoredParameters* m_parameters;
 
-    /// Parameter object to evaluate interpolated functions
-    autoPtr<UnsteadyNSTurb> ithacaUnsteadyNSTurb;
+        /// Parameter object to evaluate interpolated functions
+        autoPtr<UnsteadyNSTurb> ithacaUnsteadyNSTurb;
 
-    /// Hyperreduction objects to choose magic points
-    autoPtr<HyperReduction<PtrList<S>>> ithacaHyperreduction;
+        /// Hyperreduction objects to choose magic points
+        autoPtr<HyperReduction<PtrList<S>>> ithacaHyperreduction;
 
-    /// Number of snapshot, also number of time step
-    label l_nSnapshot;
+        /// Number of snapshot, also number of time step
+        label l_nSnapshot;
 
-    /// start time of the POD decomposition
-    label l_startTime;
+        /// start time of the POD decomposition
+        label l_startTime;
 
-    /// Number of Simulation snapshot, also number of time steps
-    label l_nSnapshotSimulation;
+        /// Number of Simulation snapshot, also number of time steps
+        label l_nSnapshotSimulation;
 
-    /// Path to snapshots, number, start and end time indices for each HR POD. If -1, set automatically by the POD class.
-    word snapshotsFolder;
-    label POD_nSnapshot = -1;
-    label POD_startTime = -1;
-    label POD_endTime = -1;
+        /// Path to snapshots, number, start and end time indices for each HR POD. If -1, set automatically by the POD class.
+        word snapshotsFolder;
+        label POD_nSnapshot = -1;
+        label POD_startTime = -1;
+        label POD_endTime = -1;
 
-    /// Interpolated field template
-    T template_HRInterpField;
+        /// Interpolated field template
+        T template_HRInterpField;
 
-    /// Snapshots field template
-    S template_HRSnapshotsField;
+        /// Snapshots field template
+        S template_HRSnapshotsField;
 
-    /// Pointer list of POD Modes of U
-    PtrList<volF> f_spatialModesU; // TO DO : need to be duplicated (local => global) if //
+        /// Pointer list of POD Modes of U
+        PtrList<volF>
+        f_spatialModesU; // TO DO : need to be duplicated (local => global) if //
 
-    /// Pointer of mean of U
-    volF* f_meanU; // TO DO : need to be duplicated (local => global) if //
+        /// Pointer of mean of U
+        volF* f_meanU; // TO DO : need to be duplicated (local => global) if //
 
-    // Spatial POD-HR modes
-    PtrList<S> f_spatialModesHR;
+        // Spatial POD-HR modes
+        PtrList<S> f_spatialModesHR;
 
-    // Temporal modes of HR field
-    Eigen::MatrixXd m_temporalModesHR;
+        // Temporal modes of HR field
+        Eigen::MatrixXd m_temporalModesHR;
 
-    // Test temporal modes of HR field
-    Eigen::MatrixXd m_temporalModesHRSimulation;
+        // Test temporal modes of HR field
+        Eigen::MatrixXd m_temporalModesHRSimulation;
 
-    // Covariance matrix the resolved modes of HR field
-    Eigen::MatrixXd covMatrixHR;
+        // Covariance matrix the resolved modes of HR field
+        Eigen::MatrixXd covMatrixHR;
 
-    /// Export folder for HR operators
-    word folder_HR;
+        /// Export folder for HR operators
+        word folder_HR;
 
-    /// Dummy Foam::Time object for mesh and submesh management
-    Foam::Time runTime2;
+        /// Dummy Foam::Time object for mesh and submesh management
+        Foam::Time runTime2;
 
-    /// Boolean to include or not magic points' neighbourhood in the submesh
-    ///  0 if only magicPoints and 1 if include magicNeighborhoods
-    bool mgPoints_0_Neighborhoods_1;
+        /// Boolean to include or not magic points' neighbourhood in the submesh
+        ///  0 if only magicPoints and 1 if include magicNeighborhoods
+        bool mgPoints_0_Neighborhoods_1;
 
-    // Name of the HR method: DEIM or ECP
-    word HRMethod;
+        // Name of the HR method: DEIM or ECP
+        word HRMethod;
 
-    // Name of the interpolated field: fullStressFunction or nut or their reduced version
-    word HRInterpField;
+        // Name of the interpolated field: fullStressFunction or nut or their reduced version
+        word HRInterpField;
 
-    // Name of the snapshots' field if ECP
-    word HRSnapshotsField;
+        // Name of the snapshots' field if ECP
+        word HRSnapshotsField;
 
-    // Name of the algorithm choice if ECP: Global or EachMode
-    word ECPAlgo;
+        // Name of the algorithm choice if ECP: Global or EachMode
+        word ECPAlgo;
 
-    // Centered field to perform the hyperreduction
-    bool interpFieldCenteredOrNot;
+        // Centered field to perform the hyperreduction
+        bool interpFieldCenteredOrNot;
 
 
 
-  public :
+    public :
 
         //--------------------------------------------------------------------------
         /// @brief      Class TurbDiffusionHyperreduction Constructor
@@ -135,7 +136,8 @@ class TurbDiffusionHyperreduction
         /// @param[in]  template_HRInterpField volScalarField or volVectorField  Template of the snapshots field
         /// @param[in]  meanU volVectorField  Mean of the velocity field
         /// @param[in]  spatialModesU PtrList<volVectorField>  POD modes of the velocity field
-        TurbDiffusionHyperreduction(Parameters* myParameters, bool mgPoints_0_Neighborhoods_1,
+        TurbDiffusionHyperreduction(Parameters* myParameters,
+                                    bool mgPoints_0_Neighborhoods_1,
                                     T& template_HRInterpField, S& template_HRSnapshotsField,
                                     volF*& meanU, PtrList<volF>& spatialModesU);
 
@@ -164,7 +166,7 @@ class TurbDiffusionHyperreduction
         /// @details Saves the result in the StoredParameters object
         ///
         void common_MeanHRInterpField();
-       
+
         //--------------------------------------------------------------------------
         /// @brief   Compute the hyperreduction by callng other methods
         /// @details Generic function working to hyperreduce any of the possible fields
