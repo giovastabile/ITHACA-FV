@@ -8,19 +8,19 @@
 FoamFile
 {
     format      ascii;
-    class       volScalarField;
-    object      T;
+    class       volVectorField;
+    object      U;
 }
 
 dimensions      [0 0 0 0 0 0 0];
 
-internalField   uniform 0;
+internalField   uniform (0 0 0);
 
 boundaryField
 {
     walls
     {
         type            fixedValue;
-        value           uniform 0;
+        value           uniform (0 0 0);
     }
 }

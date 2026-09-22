@@ -19,7 +19,13 @@ solvers
     T PCG
     {
         preconditioner   DIC;
-        tolerance        1e-06;
+        tolerance        1e-13;
+        relTol           0;
+    };
+        U PCG
+    {
+        preconditioner   DIC;
+        tolerance        1e-13;
         relTol           0;
     };
 }
