@@ -34,6 +34,32 @@ License
 
 #include "Modes.H"
 
+class projectableFvScalarMatrix
+:
+    public Foam::fvScalarMatrix
+{
+public:
+
+    projectableFvScalarMatrix(const Foam::fvScalarMatrix& A)
+    :
+        Foam::fvScalarMatrix(A)
+    {}
+
+    void addBoundaryDiagPublic()
+    {
+        addBoundaryDiag(diag(), 0);
+    }
+
+    void addBoundarySourcePublic
+    (
+        Foam::scalarField& source,
+        const bool couples = true
+    )
+    {
+        addBoundarySource(source, couples);
+    }
+};
+
 template<class Type, template<class> class PatchField, class GeoMesh>
 List<Eigen::MatrixXd> Modes<Type, PatchField, GeoMesh>::toEigen()
 {
@@ -487,6 +513,156 @@ void Modes<Type, PatchField, GeoMesh>::operator=(const
     {
         (* this).set(i, modes[i].clone());
     }
+}
+
+List<Eigen::MatrixXd>
+projectScalarParallel
+(
+    fvScalarMatrix& Af,
+    const PtrList<volScalarField>& modes,
+    label numberOfModes = 0
+)
+{
+    if (numberOfModes == 0)
+    {
+        numberOfModes = modes.size();
+    }
+
+    M_Assert
+    (
+        numberOfModes <= modes.size(),
+        "Requested number of modes exceeds available modes"
+    );
+
+    const label r = numberOfModes;
+
+    List<Eigen::MatrixXd> LinSys(2);
+
+    Eigen::MatrixXd Ar =
+        Eigen::MatrixXd::Zero(r, r);
+
+    Eigen::VectorXd br =
+        Eigen::VectorXd::Zero(r);
+
+
+    // ============================================================
+    // Prepare A exactly once
+    // ============================================================
+
+    projectableFvScalarMatrix Awork(Af);
+
+    // Add physical boundary diagonal contributions
+    Awork.addBoundaryDiagPublic();
+
+
+    // Interface machinery: processor, cyclic, etc.
+    lduInterfaceFieldPtrsList interfaces
+    (
+        Af.psi().boundaryField().scalarInterfaces()
+    );
+
+
+    // ============================================================
+    // Ar = V^T A V
+    // ============================================================
+
+    for (label j = 0; j < r; ++j)
+    {
+        scalarField x
+        (
+            modes[j].primitiveField()
+        );
+
+        scalarField Ax
+        (
+            x.size(),
+            0.0
+        );
+
+
+        Awork.Amul
+        (
+            Ax,
+            x,
+            Awork.boundaryCoeffs(),
+            interfaces,
+            0
+        );
+
+
+        // Local contributions only
+        for (label i = 0; i < r; ++i)
+        {
+            const scalarField& phiI =
+                modes[i].primitiveField();
+
+            scalar localValue = 0.0;
+
+            forAll(Ax, celli)
+            {
+                localValue += phiI[celli]*Ax[celli];
+            }
+
+            Ar(i,j) = localValue;
+        }
+    }
+
+
+    // ============================================================
+    // Reduce Ar over MPI
+    // ============================================================
+
+    for (label i = 0; i < r; ++i)
+    {
+        for (label j = 0; j < r; ++j)
+        {
+            scalar value = Ar(i,j);
+
+            reduce(value, sumOp<scalar>());
+
+            Ar(i,j) = value;
+        }
+    }
+
+
+    // ============================================================
+    // Build algebraic RHS
+    // ============================================================
+
+    scalarField rhs(Af.source());
+
+    // Incorporate boundary-source terms
+    //
+    // This is important for non-homogeneous BCs.
+    Awork.addBoundarySourcePublic(rhs);
+
+
+    // ============================================================
+    // br = V^T b
+    // ============================================================
+
+    for (label i = 0; i < r; ++i)
+    {
+        const scalarField& phiI =
+            modes[i].primitiveField();
+
+        scalar localValue = 0.0;
+
+        forAll(rhs, celli)
+        {
+            localValue += phiI[celli]*rhs[celli];
+        }
+
+        reduce(localValue, sumOp<scalar>());
+
+        br(i) = localValue;
+    }
+
+
+    LinSys[0] = Ar;
+    LinSys[1] = br;
+
+    return LinSys;
 }
 
 

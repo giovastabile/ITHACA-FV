@@ -154,6 +154,8 @@ class Modes : public PtrList<GeometricField<Type, PatchField, GeoMesh >>
         Eigen::MatrixXd project(PtrList<GeometricField<Type, PatchField, GeoMesh >>&
                                 fields,
                                 label numberOfModes = 0, word projType = "G", fvMatrix<Type>* Af = NULL);
+        List<Eigen::MatrixXd> projectScalarParallel(GeometricField<Type, PatchField, GeoMesh>& field,
+                                label numberOfModes = 0, word projType = "G", fvMatrix<Type>* Af = NULL);
 
         //----------------------------------------------------------------------
         /// @brief      A function that project and reconstruct a snapshot on the modes
