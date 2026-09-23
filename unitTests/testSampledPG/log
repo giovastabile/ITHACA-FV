@@ -1,0 +1,158 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2606                                  |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+Build  : _481094fdf3-20260618 OPENFOAM=2606 version=v2606
+Arch   : "LSB;label=32;scalar=64"
+Exec   : testSampledPG -parallel
+Date   : Sep 23 2026
+Time   : 15:49:50
+Host   : giova-sssa
+PID    : 3095123
+I/O    : uncollated
+Case   : /home/giova/OpenFOAM/ITHACA-FV/unitTests/testSampledPG
+nProcs : 4
+Hosts  :
+(
+    (giova-sssa 4)
+)
+Pstream initialized with:
+    node communication : off [type=host] (4 ranks, 1 nodes)
+    topology controls  : none
+    consensus exchange : 0 (tuning: 0)
+    exchange algorithm : 0
+    commsType          : nonBlocking
+    polling iterations : 0
+trapFpe: Floating point exception trapping enabled (FOAM_SIGFPE).
+memory pool : not available
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 5, maxFileModificationPolls 20)
+
+--> FOAM Warning : allowSystemOperations : Allowing user-supplied system call operations.
+                   This can be a security risk if running untrusted cases
+                   through e.g. 'coded' on-the-fly-compilation functionality.
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// using new solver syntax:
+T
+{
+    solver          PCG;
+    preconditioner  DIC;
+    tolerance       1e-13;
+    relTol          0;
+}
+
+// using new solver syntax:
+U
+{
+    solver          PCG;
+    preconditioner  DIC;
+    tolerance       1e-13;
+    relTol          0;
+}
+
+
+========================================
+ SAMPLED PG / SUBMESH TEST
+ MPI ranks = 4
+========================================
+
+Uncoupled 21 faces on coupled patches. (processorPolyPatch, cyclicPolyPatch)
+// using new solver syntax:
+T
+{
+    solver          PCG;
+    preconditioner  DIC;
+    tolerance       1e-13;
+    relTol          0;
+}
+
+// using new solver syntax:
+U
+{
+    solver          PCG;
+    preconditioner  DIC;
+    tolerance       1e-13;
+    relTol          0;
+}
+
+Samples        : 4
+Stencil layers : 1
+Selected cells : 28
+
+
+========================================
+ SCALAR SAMPLED PG
+========================================
+rel diff P_S A V : 3.651283724169354e-15
+rel diff P_S b   : 0
+rel diff Ar      : 4.156275564627754e-15
+rel diff br      : 3.844332233099155e-15
+rel diff coeff   : 4.187668941667979e-14
+Result           : PASS
+
+Ar(full sampled) =
+ 0.0001785809640490559  0.0003759329736456054 -0.0004719259479367749
+ 0.0003759329736456054   0.001599779100115983   0.001162484776771748
+-0.0004719259479367749   0.001162484776771748   0.008123565537878586
+
+Ar(subset) =
+ 0.0001785809640490548  0.0003759329736456145 -0.0004719259479367529
+ 0.0003759329736456145   0.001599779100115993   0.001162484776771747
+-0.0004719259479367529   0.001162484776771747   0.008123565537878585
+
+br(full sampled) =
+ 0.03597700272525999
+ 0.07953750620257237
+-0.07929341019043301
+
+br(subset) =
+ 0.0359770027252599
+ 0.0795375062025728
+-0.0792934101904329
+
+
+========================================
+ VECTOR SAMPLED PG
+========================================
+rel diff P_S A V : 3.887262864273774e-15
+rel diff P_S b   : 0
+rel diff Ar      : 2.352515110108302e-15
+rel diff br      : 4.10954227553606e-15
+rel diff coeff   : 2.263578037199442e-15
+Result           : PASS
+
+Ar(full sampled) =
+ 0.0001725688695849934   0.000340309770552606 -0.0004865975143426713
+  0.000340309770552606   0.002247111006873196    0.00290264302169058
+-0.0004865975143426713    0.00290264302169058    0.01263758834964188
+
+Ar(subset) =
+ 0.0001725688695849914  0.0003403097705526101 -0.0004865975143426524
+ 0.0003403097705526101   0.002247111006873193    0.00290264302169057
+-0.0004865975143426524    0.00290264302169057    0.01263758834964189
+
+br(full sampled) =
+0.09004212445361857
+ 0.1837601240279945
+-0.1104624320642613
+
+br(subset) =
+0.09004212445361834
+ 0.1837601240279953
+-0.1104624320642609
+
+
+========================================
+ FINAL RESULT
+========================================
+Execution : PARALLEL
+MPI ranks : 4
+Scalar PG : PASS
+Vector PG : PASS
+Overall   : PASS
+========================================
+
+Finalising parallel run

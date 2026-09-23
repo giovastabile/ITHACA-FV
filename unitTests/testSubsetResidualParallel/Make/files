@@ -1,0 +1,3 @@
+testSubsetResidualParallel.C
+
+EXE = $(FOAM_USER_APPBIN)/testSubsetResidualParallel

@@ -1,0 +1,242 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2606                                  |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+Build  : _481094fdf3-20260618 OPENFOAM=2606 version=v2606
+Arch   : "LSB;label=32;scalar=64"
+Exec   : testSubsetResidualParallel -parallel
+Date   : Sep 23 2026
+Time   : 15:33:04
+Host   : giova-sssa
+PID    : 3080266
+I/O    : uncollated
+Case   : /home/giova/OpenFOAM/ITHACA-FV/unitTests/testSubsetResidualParallel
+nProcs : 4
+Hosts  :
+(
+    (giova-sssa 4)
+)
+Pstream initialized with:
+    node communication : off [type=host] (4 ranks, 1 nodes)
+    topology controls  : none
+    consensus exchange : 0 (tuning: 0)
+    exchange algorithm : 0
+    commsType          : nonBlocking
+    polling iterations : 0
+trapFpe: Floating point exception trapping enabled (FOAM_SIGFPE).
+memory pool : not available
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 5, maxFileModificationPolls 20)
+
+--> FOAM Warning : allowSystemOperations : Allowing user-supplied system call operations.
+                   This can be a security risk if running untrusted cases
+                   through e.g. 'coded' on-the-fly-compilation functionality.
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// using new solver syntax:
+T
+{
+    solver          PCG;
+    preconditioner  DIC;
+    tolerance       1e-13;
+    relTol          0;
+}
+
+// using new solver syntax:
+U
+{
+    solver          PCG;
+    preconditioner  DIC;
+    tolerance       1e-13;
+    relTol          0;
+}
+
+
+========================================
+ PARALLEL fvMeshSubset residual test
+ MPI ranks = 4
+========================================
+
+Sample ownership:
+  sample 0 -> processor 0
+  sample 1 -> processor 1
+  sample 2 -> processor 3
+  sample 3 -> processor 3
+
+Uncoupled 5 faces on coupled patches. (processorPolyPatch, cyclicPolyPatch)
+// using new solver syntax:
+T
+{
+    solver          PCG;
+    preconditioner  DIC;
+    tolerance       1e-13;
+    relTol          0;
+}
+
+// using new solver syntax:
+U
+{
+    solver          PCG;
+    preconditioner  DIC;
+    tolerance       1e-13;
+    relTol          0;
+}
+
+[0] layers=0 sample=0 fullCell=207 subCell=0 rFull=-1.21707725940841 rSub=-1.240836940828214 diff=-0.023759681419804
+[3] layers=0 sample=2 fullCell=96 subCell=0 rFull=-1.37492 rSub=-1.39437 diff=-0.0194511
+[3] layers=0 sample=3 fullCell=122 subCell=1 rFull=-1.45245 rSub=-1.45916 diff=-0.00671776
+[1] layers=0 sample=1 fullCell=23 subCell=0 rFull=-1.28047 rSub=-1.30563 diff=-0.0251558
+
+----------------------------------------
+ layers                    : 0
+ global selected cells     : 4
+ samples compared          : 4
+ max |rSub-rFull|          : 0.02515577945457936
+ relative sampled L2 diff  : 0.01508685230587468
+ result                    : FAIL
+----------------------------------------
+
+Uncoupled 21 faces on coupled patches. (processorPolyPatch, cyclicPolyPatch)
+// using new solver syntax:
+T
+{
+    solver          PCG;
+    preconditioner  DIC;
+    tolerance       1e-13;
+    relTol          0;
+}
+
+// using new solver syntax:
+U
+{
+    solver          PCG;
+    preconditioner  DIC;
+    tolerance       1e-13;
+    relTol          0;
+}
+
+[0] layers=1 sample=0 fullCell=207 subCell=4 rFull=-1.21707725940841 rSub=-1.21707725940841 diff=0
+
+----------------------------------------
+[3] layers=1 sample=2 fullCell=96 subCell=3 rFull=-1.37492 rSub=-1.37492 diff=0
+[3] layers=1 sample=3 fullCell=122 subCell=7 rFull=-1.45245 rSub=-1.45245 diff=0
+[1] layers=1 sample=1 fullCell=23 subCell=2 rFull=-1.28047 rSub=-1.28047 diff=2.22045e-16
+ layers                    : 1
+ global selected cells     : 28
+ samples compared          : 4
+ max |rSub-rFull|          : 2.220446049250313e-16
+ relative sampled L2 diff  : 8.320952690891182e-17
+ result                    : PASS
+----------------------------------------
+
+Uncoupled 30 faces on coupled patches. (processorPolyPatch, cyclicPolyPatch)
+// using new solver syntax:
+T
+{
+    solver          PCG;
+    preconditioner  DIC;
+    tolerance       1e-13;
+    relTol          0;
+}
+
+// using new solver syntax:
+U
+{
+    solver          PCG;
+    preconditioner  DIC;
+    tolerance       1e-13;
+    relTol          0;
+}
+
+[0] layers=2 sample=0 fullCell=207 subCell=16 rFull=-1.21707725940841 rSub=-1.21707725940841 diff=0
+[3] layers=2 sample=2 fullCell=96 subCell=10 rFull=-1.37492 rSub=-1.37492 diff=0
+[3] layers=2 sample=3 fullCell=122 subCell=18 rFull=-1.45245 rSub=-1.45245 diff=0
+[1] layers=2 sample=1 fullCell=23 subCell=5 rFull=-1.28047 rSub=-1.28047 diff=0
+
+----------------------------------------
+ layers                    : 2
+ global selected cells     : 92
+ samples compared          : 4
+ max |rSub-rFull|          : 0
+ relative sampled L2 diff  : 0
+ result                    : PASS
+----------------------------------------
+
+Uncoupled 37 faces on coupled patches. (processorPolyPatch, cyclicPolyPatch)
+// using new solver syntax:
+T
+{
+    solver          PCG;
+    preconditioner  DIC;
+    tolerance       1e-13;
+    relTol          0;
+}
+
+// using new solver syntax:
+U
+{
+    solver          PCG;
+    preconditioner  DIC;
+    tolerance       1e-13;
+    relTol          0;
+}
+
+[1] layers=3 sample=1 fullCell=23 subCell=9 rFull=-1.28047 rSub=-1.28047 diff=0
+[0] layers=3 sample=0 fullCell=207 subCell=41 rFull=-1.21707725940841 rSub=-1.21707725940841 diff=0
+
+----------------------------------------
+ layers                    : 3
+[3] layers=3 sample=2 fullCell=96 subCell=21 rFull=-1.37492 rSub=-1.37492 diff=0
+[3] layers=3 sample=3 fullCell=122 subCell=33 rFull=-1.45245 rSub=-1.45245 diff=0
+ global selected cells     : 198
+ samples compared          : 4
+ max |rSub-rFull|          : 0
+ relative sampled L2 diff  : 0
+ result                    : PASS
+----------------------------------------
+
+Uncoupled 37 faces on coupled patches. (processorPolyPatch, cyclicPolyPatch)
+// using new solver syntax:
+T
+{
+    solver          PCG;
+    preconditioner  DIC;
+    tolerance       1e-13;
+    relTol          0;
+}
+
+// using new solver syntax:
+U
+{
+    solver          PCG;
+    preconditioner  DIC;
+    tolerance       1e-13;
+    relTol          0;
+}
+
+[0] layers=4 sample=0 fullCell=207 subCell=76 rFull=-1.21707725940841 rSub=-1.21707725940841 diff=0
+[3] layers=4 sample=2 fullCell=96 subCell=36 rFull=-1.37492 rSub=-1.37492 diff=0
+[3] layers=4 sample=3 fullCell=122 subCell=52 rFull=-1.45245 rSub=-1.45245 diff=0
+[1] layers=4 sample=1 fullCell=23 subCell=13 rFull=-1.28047 rSub=-1.28047 diff=0
+
+----------------------------------------
+ layers                    : 4
+ global selected cells     : 344
+ samples compared          : 4
+ max |rSub-rFull|          : 0
+ relative sampled L2 diff  : 0
+ result                    : PASS
+----------------------------------------
+
+
+========================================
+ SUMMARY
+========================================
+MPI ranks                 : 4
+Tolerance                 : 1e-10
+First passing halo depth  : 1
+========================================
+
+Finalising parallel run
