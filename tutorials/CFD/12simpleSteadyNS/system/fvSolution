@@ -99,12 +99,12 @@ relaxationFactors
 {
     fields
     {
-        p               0.3;
+        p               0.05;
     }
     equations
     {
-        U               0.7;
-        nuTilda         0.7;
+        U               0.1;
+        nuTilda         0.3;
     }
 }
 

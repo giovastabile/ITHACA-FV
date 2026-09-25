@@ -18,35 +18,11 @@ FoamFile
 EigenSolver eigen;
 
 // Number of modes to output and to use for projection
-NmodesUout 15;
-NmodesUproj 10;
-NmodePUout 15;
-NmodesPproj 10;
-NmodesSUPout 15;
-NmodesSUPproj 10;
+NmodesTout 500;
+NmodesTproj 10;
 
 // Output format to save market vectors.
 OutPrecision 20;
 OutType fixed;
 
-// Specific problem of a stationary case
-tolerance 1e-5;
-
-// Reduced simple cicle parameters
-residualJumpLim 1e-5;
-normalizedResidualLim 1e-5;
-debug                   true;
-
-// Inlet boundary conditions velocities.
-online_velocities vel.txt;
-
-// Do not export middle fields for this case
-middleExport false;
-
-// Hyper-reduced SIMPLE
-// Residual sample cells are read from constant/polyMesh/sets/hrSamples
-// (or processor*/constant/polyMesh/sets/hrSamples after decomposition).
-hrSampleSet hrSamples;
-
-// Number of face-neighbour layers around each residual sample.
-hrLayers 2;
+POD_T Frobenius;

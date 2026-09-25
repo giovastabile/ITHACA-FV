@@ -29,6 +29,7 @@ License
 \*---------------------------------------------------------------------------*/
 
 #include "DEIM.H"
+#include "SampledMesh.H"
 // Template function constructor
 template<typename T>
 DEIM<T>::DEIM (PtrList<T>& s, label MaxModes, word FunctionName,
@@ -412,22 +413,23 @@ S DEIM<T>::generateSubmesh(label layers, const fvMesh& mesh, S field,
 
         for (label i = 0; i < magicPoints().size(); i++)
         {
-            indices = ITHACAutilities::getIndices(mesh, magicPoints()[i], layers);
+            labelList seeds(1);
+            seeds[0] = magicPoints()[i];
+
+            indices = SampledMesh::cellLabels(mesh, seeds, layers);
             totalMagicPoints().append(indices);
         }
 
         uniqueMagicPoints() = ITHACAutilities::combineList(totalMagicPoints());
     }
 
-#if OPENFOAM >= 1812
-    submesh->setCellSubset(uniqueMagicPoints());
-#else
-    submesh->setLargeCellSubset(uniqueMagicPoints());
-#endif
-    submesh->subMesh().fvSchemes::readOpt() = mesh.fvSchemes::readOpt();
-    submesh->subMesh().fvSolution::readOpt() = mesh.fvSolution::readOpt();
-    submesh->subMesh().fvSchemes::read();
-    submesh->subMesh().fvSolution::read();
+    SampledMesh::setSubset
+    (
+        submesh(),
+        mesh,
+        uniqueMagicPoints(),
+        true
+    );
     std::cout.clear();
     S f = submesh->interpolate(field).ref();
     scalar zerodot25 = 0.25;
@@ -437,7 +439,12 @@ S DEIM<T>::generateSubmesh(label layers, const fvMesh& mesh, S field,
 
     if (!secondTime)
     {
-        localMagicPoints = global2local(magicPoints(), submesh());
+        localMagicPoints = SampledMesh::mapToSubmesh
+        (
+            magicPoints(),
+            submesh(),
+            true
+        );
         ITHACAstream::exportSolution(Indici, "1", "./ITHACAoutput/DEIM/" + FunctionName
                                     );
     }
@@ -502,22 +509,22 @@ S DEIM<T>::generateSubmeshMatrix(label layers, const fvMesh& mesh, S field,
 
     for (label i = 0; i < magicPointsArow().size(); i++)
     {
-        indices = ITHACAutilities::getIndices(mesh, magicPointsArow()[i], layers);
-        indices.append(ITHACAutilities::getIndices(mesh, magicPointsAcol()[i],
-                layers));
+        labelList seeds(2);
+        seeds[0] = magicPointsArow()[i];
+        seeds[1] = magicPointsAcol()[i];
+
+        indices = SampledMesh::cellLabels(mesh, seeds, layers);
         totalMagicPointsA().append(indices);
     }
 
     uniqueMagicPointsA() = ITHACAutilities::combineList(totalMagicPointsA());
-#if OPENFOAM >= 1812
-    submeshA->setCellSubset(uniqueMagicPointsA());
-#else
-    submeshA->setLargeCellSubset(uniqueMagicPointsA());
-#endif
-    submeshA->subMesh().fvSchemes::readOpt() = mesh.fvSchemes::readOpt();
-    submeshA->subMesh().fvSolution::readOpt() = mesh.fvSolution::readOpt();
-    submeshA->subMesh().fvSchemes::read();
-    submeshA->subMesh().fvSolution::read();
+    SampledMesh::setSubset
+    (
+        submeshA(),
+        mesh,
+        uniqueMagicPointsA(),
+        true
+    );
     std::cout.clear();
     S f = submeshA->interpolate(field).ref();
     scalar zerodot25 = 0.25;
@@ -528,8 +535,19 @@ S DEIM<T>::generateSubmeshMatrix(label layers, const fvMesh& mesh, S field,
 
     if (!secondTime)
     {
-        localMagicPointsArow = global2local(magicPointsArow(), submeshA());
-        localMagicPointsAcol = global2local(magicPointsAcol(), submeshA());
+        localMagicPointsArow = SampledMesh::mapToSubmesh
+        (
+            magicPointsArow(),
+            submeshA(),
+            true
+        );
+
+        localMagicPointsAcol = SampledMesh::mapToSubmesh
+        (
+            magicPointsAcol(),
+            submeshA(),
+            true
+        );
         ITHACAstream::exportSolution(Indici, "1", "./ITHACAoutput/DEIM/" + MatrixName
                                     );
         totalMagicPointsA().write();
@@ -595,7 +613,10 @@ S DEIM<T>::generateSubmeshVector(label layers, const fvMesh& mesh, S field,
 
     for (label i = 0; i < magicPointsB().size(); i++)
     {
-        indices = ITHACAutilities::getIndices(mesh, magicPointsB()[i], layers);
+        labelList seeds(1);
+        seeds[0] = magicPointsB()[i];
+
+        indices = SampledMesh::cellLabels(mesh, seeds, layers);
         totalMagicPointsB().append(indices);
 
         if (!secondTime)
@@ -606,15 +627,13 @@ S DEIM<T>::generateSubmeshVector(label layers, const fvMesh& mesh, S field,
 
     uniqueMagicPointsB() = ITHACAutilities::combineList(totalMagicPointsB());
     std::cout.setstate(std::ios_base::failbit);
-#if OPENFOAM >= 1812
-    submeshB->setCellSubset(uniqueMagicPointsB());
-#else
-    submeshB->setLargeCellSubset(uniqueMagicPointsB());
-#endif
-    submeshB->subMesh().fvSchemes::readOpt() = mesh.fvSchemes::readOpt();
-    submeshB->subMesh().fvSolution::readOpt() = mesh.fvSolution::readOpt();
-    submeshB->subMesh().fvSchemes::read();
-    submeshB->subMesh().fvSolution::read();
+    SampledMesh::setSubset
+    (
+        submeshB(),
+        mesh,
+        uniqueMagicPointsB(),
+        true
+    );
     std::cout.clear();
     S f = submeshB->interpolate(field).ref();
     scalar zerodot25 = 0.25;
@@ -624,7 +643,12 @@ S DEIM<T>::generateSubmeshVector(label layers, const fvMesh& mesh, S field,
 
     if (!secondTime)
     {
-        localMagicPointsB = global2local(magicPointsB(), submeshB());
+        localMagicPointsB = SampledMesh::mapToSubmesh
+        (
+            magicPointsB(),
+            submeshB(),
+            true
+        );
         ITHACAstream::exportSolution(Indici, "1", "./ITHACAoutput/DEIM/" + MatrixName
                                     );
         totalMagicPointsB().write();

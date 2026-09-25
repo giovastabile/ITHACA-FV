@@ -33,6 +33,8 @@ SourceFiles
 #include "ReducedSimpleSteadyNS.H"
 #include "forces.H"
 #include "IOmanip.H"
+#include "SampledMesh.H"
+#include "cellSet.H"
 
 
 class tutorial12 : public SteadyNSSimple
@@ -117,6 +119,55 @@ int main(int argc, char* argv[])
                         NmodesPout);
     // Create the reduced object
     reducedSimpleSteadyNS reduced(example);
+
+    // ------------------------------------------------------------
+    // Hyper-reduction setup.
+    //
+    // hrSamples is a cellSet containing the residual sampling cells.
+    // SampledMesh expands these cells by hrLayers face-neighbour layers,
+    // including processor boundaries in parallel.
+    //
+    // The submesh and all POD modes mapped onto it are built ONCE here.
+    // ------------------------------------------------------------
+    word hrSampleSetName =
+        para->ITHACAdict->lookupOrDefault<word>
+        (
+            "hrSampleSet",
+            "hrSamples"
+        );
+
+    label hrLayers =
+        para->ITHACAdict->lookupOrDefault<label>
+        (
+            "hrLayers",
+            2
+        );
+
+    cellSet hrSampleSet
+    (
+        example._mesh(),
+        hrSampleSetName
+    );
+
+    labelList sampledCells
+    (
+        hrSampleSet.toc()
+    );
+
+    SampledMesh sampledMesh
+    (
+        example._mesh(),
+        sampledCells,
+        hrLayers
+    );
+
+    reduced.setupSampled
+    (
+        sampledMesh,
+        NmodesUproj,
+        NmodesPproj
+    );
+
     PtrList<volVectorField> U_rec_list;
     PtrList<volScalarField> P_rec_list;
     // Reads inlet volocities boundary conditions.
@@ -129,7 +180,15 @@ int main(int argc, char* argv[])
         scalar mu_now = example.mu(0, k);
         example.change_viscosity(mu_now);
         reduced.setOnlineVelocity(vel);
-        reduced.solveOnline_Simple(mu_now, NmodesUproj, NmodesPproj);
+
+        // Assemble and project the SIMPLE operators only on sampledMesh.
+        reduced.solveOnline_SimpleSampled
+        (
+            mu_now,
+            0,
+            "./ITHACAoutput/ReconstructHR/",
+            "PG"
+        );
     }
 
     return 0;

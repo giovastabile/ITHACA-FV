@@ -47,8 +47,6 @@ Modes.C
 #include "Foam2Eigen.H"
 #include "ITHACAutilities.H"
 #include "ITHACAstream.H"
-#include "fvMeshSubset.H"
-#include "SampledModes.H"
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -114,56 +112,6 @@ class Modes : public PtrList<GeometricField<Type, PatchField, GeoMesh >>
     ///             the linear system.
     ///
     List<Eigen::MatrixXd> project(fvMatrix<Type>& Af, label numberOfModes = 0, word projType = "G");
-
-
-    //----------------------------------------------------------------------
-    /// @brief      Project an fvMatrix assembled on an fvMeshSubset using
-    ///             only the selected sample cells.
-    ///
-    /// @details    The modes stored in this object live on the original mesh.
-    ///             They are mapped to the supplied fvMeshSubset and the
-    ///             operator action is evaluated only on the subset. Reduced
-    ///             products are accumulated exclusively over sampledCells.
-    ///             In parallel sampledCells contains the local cell labels
-    ///             owned by the current processor; global reduced products
-    ///             are obtained with MPI reductions.
-    ///
-    ///             G :  (P_S V)^T (P_S A V)
-    ///                  and (P_S V)^T (P_S b)
-    ///
-    ///             PG:  (P_S A V)^T (P_S A V)
-    ///                  and (P_S A V)^T (P_S b)
-    ///
-    /// @param[in]  AfSub          fvMatrix assembled on subset.subMesh().
-    /// @param[in]  subset         Mapping between original mesh and submesh.
-    /// @param[in]  sampledCells   Sampled cell labels on the original local
-    ///                            mesh. In parallel each rank supplies only
-    ///                            the samples it owns.
-    /// @param[in]  numberOfModes  Number of modes. Zero means all modes.
-    /// @param[in]  projType       "G" or "PG".
-    ///
-    /// @return     [reduced matrix, reduced rhs].
-    ///
-    // Convenience wrapper. It builds a temporary SampledModes cache and is
-    // therefore appropriate for one-off calls/tests. For repeated online
-    // projections prefer the overload taking SampledModes directly.
-    List<Eigen::MatrixXd> projectSampled
-    (
-        fvMatrix<Type>& AfSub,
-        const fvMeshSubset& subset,
-        const labelList& sampledCells,
-        label numberOfModes = 0,
-        word projType = "PG"
-    );
-
-    // Optimized sampled projection. The modes have already been mapped to
-    // the submesh, so this call performs ZERO subset.interpolate() calls.
-    List<Eigen::MatrixXd> projectSampled
-    (
-        fvMatrix<Type>& AfSub,
-        const SampledModes<Type, PatchField, GeoMesh>& sampledModes,
-        word projType = "PG"
-    );
 //----------------------------------------------------------------------
     /// @brief      A function that project a field on the modes
     ///

@@ -1,0 +1,26 @@
+EXE_INC = \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/sampling/lnInclude \
+    -I$(FOAM_USER_LIBBIN) \
+    -I$(LIB_ITHACA_SRC)/ITHACA_CORE/lnInclude \
+    -I$(LIB_ITHACA_SRC)/ITHACA_ROMPROBLEMS/lnInclude \
+    -I$(LIB_ITHACA_SRC)/thirdparty/Eigen \
+    -w
+
+EXE_LIBS = \
+    -lturbulenceModels \
+    -lfiniteVolume \
+    -lmeshTools \
+    -lfvOptions \
+    -lsampling \
+    -lfluidThermophysicalModels \
+    -lradiationModels \
+    -ldynamicMesh \
+    -ldynamicFvMesh \
+    -lsixDoFRigidBodyMotion\
+    -lspecie \
+    -lforces \
+    -lfileFormats \
+    -lITHACA_CORE \
+    -L$(FOAM_USER_LIBBIN)
