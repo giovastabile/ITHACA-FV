@@ -5,6 +5,7 @@
 
 #include "SampledMesh.H"
 #include "PstreamReduceOps.H"
+#include <algorithm>
 
 namespace Foam
 {
@@ -62,6 +63,63 @@ label SampledMesh::globalSubMeshSize() const
     label n = subset_->subMesh().nCells();
     reduce(n, sumOp<label>());
     return n;
+}
+
+
+void SampledMesh::writeMask
+(
+    const word& fieldName
+) const
+{
+    volScalarField hrMask
+    (
+        IOobject
+        (
+            fieldName,
+            mesh_.time().timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::NO_WRITE
+        ),
+        mesh_,
+        dimensionedScalar("zero", dimless, 0.0)
+    );
+
+    // First mark the entire retained submesh (sampled cells + halo)
+    // as 0.5.
+    for (label celli = 0; celli < mesh_.nCells(); ++celli)
+    {
+        if (selectedCells_.test(celli))
+        {
+            hrMask[celli] = 0.5;
+        }
+    }
+
+    // Then overwrite the true sampled/collocation cells with 1.0.
+    forAll(sampledCells_, sampleI)
+    {
+        const label celli = sampledCells_[sampleI];
+
+        if (celli >= 0 && celli < mesh_.nCells())
+        {
+            hrMask[celli] = 1.0;
+        }
+    }
+
+    hrMask.write();
+
+    label nSamples = sampledCells_.size();
+    label nSubmesh = selectedCells_.count();
+
+    reduce(nSamples, sumOp<label>());
+    reduce(nSubmesh, sumOp<label>());
+
+    Info<< "SampledMesh: wrote diagnostic mask '" << fieldName << "'" << nl
+        << "    0.0 = outside sampled submesh" << nl
+        << "    0.5 = halo/submesh cell" << nl
+        << "    1.0 = true sampled cell" << nl
+        << "    global sampled cells = " << nSamples << nl
+        << "    global submesh cells = " << nSubmesh << endl;
 }
 
 
@@ -331,6 +389,173 @@ void SampledMesh::setSubset
         selected,
         readDictionaries
     );
+}
+
+
+
+labelList SampledMesh::residualBasedSamples
+(
+    const scalarField& indicator,
+    const fvMesh& mesh,
+    const scalar fraction,
+    const label exclusionLayers
+)
+{
+    if (indicator.size() != mesh.nCells())
+    {
+        FatalErrorInFunction
+            << "Indicator size (" << indicator.size()
+            << ") differs from mesh size (" << mesh.nCells() << ")"
+            << exit(FatalError);
+    }
+
+    if (fraction <= 0.0 || fraction > 1.0)
+    {
+        FatalErrorInFunction
+            << "Sampling fraction must be in (0,1], got "
+            << fraction
+            << exit(FatalError);
+    }
+
+    if (exclusionLayers < 0)
+    {
+        FatalErrorInFunction
+            << "exclusionLayers must be non-negative, got "
+            << exclusionLayers
+            << exit(FatalError);
+    }
+
+    if (Pstream::parRun() && exclusionLayers > 0)
+    {
+        FatalErrorInFunction
+            << "The residual-based greedy spacing selector currently "
+            << "supports exclusionLayers > 0 only in serial. "
+            << "Use exclusionLayers=0 in parallel."
+            << exit(FatalError);
+    }
+
+    List<label> order(mesh.nCells());
+
+    forAll(order, i)
+    {
+        order[i] = i;
+    }
+
+    std::sort
+    (
+        order.begin(),
+        order.end(),
+        [&indicator](const label a, const label b)
+        {
+            return indicator[a] > indicator[b];
+        }
+    );
+
+const label target =
+    std::max<label>
+    (
+        1,
+        std::min<label>
+        (
+            mesh.nCells(),
+            label(fraction*mesh.nCells() + 0.5)
+        )
+    );
+
+    DynamicList<label> selected(target);
+    bitSet blocked(mesh.nCells());
+
+    forAll(order, rankI)
+    {
+        if (selected.size() >= target)
+        {
+            break;
+        }
+
+        const label celli = order[rankI];
+
+        if (blocked.test(celli))
+        {
+            continue;
+        }
+
+        selected.append(celli);
+
+        if (exclusionLayers == 0)
+        {
+            blocked.set(celli);
+        }
+        else
+        {
+            labelList seed(1);
+            seed[0] = celli;
+
+            const bitSet exclusion =
+                cellSelection(mesh, seed, exclusionLayers);
+
+            blocked |= exclusion;
+        }
+    }
+
+    selected.shrink();
+
+    Info<< "Residual-based sampling selected "
+        << selected.size() << " cells from "
+        << mesh.nCells() << " local cells"
+        << " (requested fraction = " << fraction
+        << ", exclusionLayers = " << exclusionLayers << ")"
+        << endl;
+
+    return labelList(selected);
+}
+
+
+labelList SampledMesh::addPhysicalBoundaryCells
+(
+    const fvMesh& mesh,
+    const labelList& sampledCells
+)
+{
+    labelHashSet selected(2*sampledCells.size() + 128);
+
+    forAll(sampledCells, i)
+    {
+        selected.insert(sampledCells[i]);
+    }
+
+    const polyBoundaryMesh& patches = mesh.boundaryMesh();
+
+    forAll(patches, patchI)
+    {
+        const polyPatch& pp = patches[patchI];
+
+        // Processor/cyclic/etc. are not physical boundaries.
+        if (pp.coupled())
+        {
+            continue;
+        }
+
+        // Do not sample the front/back of a 2-D case.
+        if (pp.type() == "empty")
+        {
+            continue;
+        }
+
+        const labelUList& faceCells = pp.faceCells();
+
+        forAll(faceCells, faceI)
+        {
+            selected.insert(faceCells[faceI]);
+        }
+    }
+
+    labelList result(selected.toc());
+    Foam::sort(result);
+
+    Info<< "After adding physical-boundary cells: "
+        << result.size() << " local sampled cells" << endl;
+
+    return result;
 }
 
 

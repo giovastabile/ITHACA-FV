@@ -99,6 +99,15 @@ public:
 
     label globalSubMeshSize() const;
 
+    // Write one diagnostic scalar mask on the original mesh:
+    //  - 0.0 outside the sampled submesh
+    //  - 0.5 on halo/submesh cells
+    //  - 1.0 on the true sampled/collocation cells
+    void writeMask
+    (
+        const word& fieldName = "hrMask"
+    ) const;
+
 
     // ---------------------------------------------------------------------
     // Static utilities.
@@ -158,6 +167,29 @@ public:
         const fvMesh& mesh,
         const labelList& selectedCells,
         const bool readDictionaries = true
+    );
+
+
+    // Select the cells with the largest residual indicator.
+    //
+    // fraction is applied to the local mesh. For the current tutorial this
+    // is intended for serial use. If exclusionLayers > 0, already selected
+    // cells and their face-neighbour layers are excluded from subsequent
+    // picks to avoid strongly clustered samples.
+    static labelList residualBasedSamples
+    (
+        const scalarField& indicator,
+        const fvMesh& mesh,
+        const scalar fraction,
+        const label exclusionLayers = 0
+    );
+
+    // Add cells adjacent to all physical, non-empty boundaries.
+    // Coupled processor/cyclic patches and empty patches are excluded.
+    static labelList addPhysicalBoundaryCells
+    (
+        const fvMesh& mesh,
+        const labelList& sampledCells
     );
 
     // Original-local cell labels -> subset-local cell labels.

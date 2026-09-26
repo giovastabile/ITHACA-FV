@@ -47,6 +47,15 @@ class reducedSimpleSteadyNS: public reducedProblem
 
         bool sampledReady_ = false;
 
+        // Sampled Galerkin projection of the pressure-mode gradients.
+        // Rows correspond to sampled velocity test modes, columns to pressure modes.
+        Eigen::MatrixXd sampledProjGradModP_;
+
+        // Optional full-ROM residual indicator used to generate HR samples.
+        bool collectResidualIndicator_ = false;
+        scalarField residualIndicator_;
+
+
     public:
 
         reducedSimpleSteadyNS();
@@ -91,9 +100,27 @@ class reducedSimpleSteadyNS: public reducedProblem
             scalar mu_now,
             int NmodesNut = 0,
             word Folder = "./ITHACAoutput/ReconstructHR/",
-            word projType = "PG"
+            word projType = "G"
         );
 
+
+
+        // Enable/disable accumulation of a normalized cell-wise residual
+        // indicator during the standard full-mesh SIMPLE ROM.
+        void setCollectResidualIndicator(const bool enable = true)
+        {
+            collectResidualIndicator_ = enable;
+        }
+
+        const scalarField& residualIndicator() const
+        {
+            return residualIndicator_;
+        }
+
+        void writeResidualIndicator
+        (
+            const word& fieldName = "hrResidualIndicator"
+        ) const;
 
         /// Set inlet velocity for the online solve.
         void setOnlineVelocity(Eigen::MatrixXd vel);

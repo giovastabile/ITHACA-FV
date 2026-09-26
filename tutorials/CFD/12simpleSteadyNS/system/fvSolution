@@ -99,12 +99,14 @@ relaxationFactors
 {
     fields
     {
-        p               0.05;
+        p               0.3;
+        pFullHRDiag 0.3;
     }
     equations
     {
-        U               0.1;
-        nuTilda         0.3;
+        U               0.7;
+        UFullHRDiag 0.7;
+        nuTilda         0.7;
     }
 }
 

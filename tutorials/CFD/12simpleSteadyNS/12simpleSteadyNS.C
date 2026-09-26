@@ -120,46 +120,175 @@ int main(int argc, char* argv[])
     // Create the reduced object
     reducedSimpleSteadyNS reduced(example);
 
+    PtrList<volVectorField> U_rec_list;
+    PtrList<volScalarField> P_rec_list;
+
+    // Read inlet velocities boundary conditions.
+    word vel_file(para->ITHACAdict->lookup("online_velocities"));
+    Eigen::MatrixXd vel = ITHACAstream::readMatrix(vel_file);
+
     // ------------------------------------------------------------
-    // Hyper-reduction setup.
-    //
-    // hrSamples is a cellSet containing the residual sampling cells.
-    // SampledMesh expands these cells by hrLayers face-neighbour layers,
-    // including processor boundaries in parallel.
-    //
-    // The submesh and all POD modes mapped onto it are built ONCE here.
+    // Hyper-reduction sampling parameters.
     // ------------------------------------------------------------
-    word hrSampleSetName =
-        para->ITHACAdict->lookupOrDefault<word>
+    const Switch useResidualSampling =
+        para->ITHACAdict->lookupOrDefault<Switch>
         (
-            "hrSampleSet",
-            "hrSamples"
+            "useResidualSampling",
+            true
         );
 
-    label hrLayers =
+    const scalar hrSampleFraction =
+        para->ITHACAdict->lookupOrDefault<scalar>
+        (
+            "hrSampleFraction",
+            0.10
+        );
+
+    const label hrSpacingLayers =
+        para->ITHACAdict->lookupOrDefault<label>
+        (
+            "hrSpacingLayers",
+            1
+        );
+
+    const label hrLayers =
         para->ITHACAdict->lookupOrDefault<label>
         (
             "hrLayers",
-            2
+            1
         );
 
-    cellSet hrSampleSet
-    (
-        example._mesh(),
-        hrSampleSetName
-    );
+    labelList sampledCells;
 
-    labelList sampledCells
-    (
-        hrSampleSet.toc()
-    );
+    if (useResidualSampling)
+    {
+        // --------------------------------------------------------
+        // Training solve:
+        // run the standard/full ROM for one parameter value while
+        // accumulating a normalized cell-wise residual indicator.
+        // --------------------------------------------------------
+        const label trainingParameter =
+            para->ITHACAdict->lookupOrDefault<label>
+            (
+                "hrTrainingParameter",
+                0
+            );
 
+        M_Assert
+        (
+            trainingParameter >= 0
+         && trainingParameter < example.mu.cols(),
+            "hrTrainingParameter is outside the parameter matrix"
+        );
+
+        const scalar muTrain =
+            example.mu(0, trainingParameter);
+
+        Info<< nl
+            << "========================================" << nl
+            << " Building residual-based HR sample set" << nl
+            << " training parameter index = "
+            << trainingParameter << nl
+            << " mu = " << muTrain << nl
+            << "========================================"
+            << nl << endl;
+
+        example.change_viscosity(muTrain);
+        reduced.setOnlineVelocity(vel);
+
+        reduced.setCollectResidualIndicator(true);
+
+        reduced.solveOnline_Simple
+        (
+            muTrain,
+            NmodesUproj,
+            NmodesPproj,
+            0,
+            0,
+            "./ITHACAoutput/ResidualTraining/"
+        );
+
+        // Pick the cells with the largest full-ROM residual indicator.
+        sampledCells =
+            SampledMesh::residualBasedSamples
+            (
+                reduced.residualIndicator(),
+                example._mesh(),
+                hrSampleFraction,
+                hrSpacingLayers
+            );
+
+        // Always retain cells adjacent to physical boundaries.
+        sampledCells =
+            SampledMesh::addPhysicalBoundaryCells
+            (
+                example._mesh(),
+                sampledCells
+            );
+
+        // --------------------------------------------------------
+        // Write/overwrite the actual residual-based sampling set.
+        //
+        // This keeps constant/polyMesh/sets/hrSamples consistent
+        // with the cells actually used by the hyper-reduced solver.
+        // --------------------------------------------------------
+        cellSet writtenSampleSet
+        (
+            example._mesh(),
+            "hrSamples",
+            sampledCells.size()
+        );
+
+        forAll(sampledCells, i)
+        {
+            writtenSampleSet.insert(sampledCells[i]);
+        }
+
+        writtenSampleSet.write();
+
+        Info<< "Written residual-based cellSet hrSamples with "
+            << sampledCells.size()
+            << " cells"
+            << endl;
+
+        // Write the accumulated indicator as a field for ParaView.
+        reduced.writeResidualIndicator("hrResidualIndicator");
+
+        reduced.setCollectResidualIndicator(false);
+    }
+    else
+    {
+        // --------------------------------------------------------
+        // Legacy/manual path: read an existing cellSet.
+        // --------------------------------------------------------
+        const word hrSampleSetName =
+            para->ITHACAdict->lookupOrDefault<word>
+            (
+                "hrSampleSet",
+                "hrSamples"
+            );
+
+        cellSet hrSampleSet
+        (
+            example._mesh(),
+            hrSampleSetName
+        );
+
+        sampledCells = hrSampleSet.toc();
+    }
+
+    // ------------------------------------------------------------
+    // Build the actual assembly submesh:
+    // sampled cells + hrLayers face-neighbour halo.
+    // ------------------------------------------------------------
     SampledMesh sampledMesh
     (
         example._mesh(),
         sampledCells,
         hrLayers
     );
+
+    sampledMesh.writeMask("hrMask");
 
     reduced.setupSampled
     (
@@ -168,26 +297,24 @@ int main(int argc, char* argv[])
         NmodesPproj
     );
 
-    PtrList<volVectorField> U_rec_list;
-    PtrList<volScalarField> P_rec_list;
-    // Reads inlet volocities boundary conditions.
-    word vel_file(para->ITHACAdict->lookup("online_velocities"));
-    Eigen::MatrixXd vel = ITHACAstream::readMatrix(vel_file);
-
-    //Perform the online solutions
-    for (label k = 0; k < (example.mu).size(); k++)
+    // ------------------------------------------------------------
+    // Hyper-reduced online solutions.
+    // Galerkin is intentionally used here to remain algebraically
+    // consistent with the original solveOnline_Simple().
+    // ------------------------------------------------------------
+    for (label k = 0; k < example.mu.cols(); ++k)
     {
-        scalar mu_now = example.mu(0, k);
+        const scalar mu_now = example.mu(0, k);
+
         example.change_viscosity(mu_now);
         reduced.setOnlineVelocity(vel);
 
-        // Assemble and project the SIMPLE operators only on sampledMesh.
         reduced.solveOnline_SimpleSampled
         (
             mu_now,
             0,
             "./ITHACAoutput/ReconstructHR/",
-            "PG"
+            "G"
         );
     }
 

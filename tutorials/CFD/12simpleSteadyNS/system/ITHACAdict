@@ -35,6 +35,7 @@ tolerance 1e-5;
 // Reduced simple cicle parameters
 residualJumpLim 1e-5;
 normalizedResidualLim 1e-5;
+maxIterOn 1000;
 debug                   true;
 
 // Inlet boundary conditions velocities.
@@ -46,7 +47,38 @@ middleExport false;
 // Hyper-reduced SIMPLE
 // Residual sample cells are read from constant/polyMesh/sets/hrSamples
 // (or processor*/constant/polyMesh/sets/hrSamples after decomposition).
-hrSampleSet hrSamples;
+// hrSampleSet hrSamples;
 
-// Number of face-neighbour layers around each residual sample.
+// Add these entries to system/ITHACAdict
+
+
+
+// Fraction used by residual-based greedy sampling before boundary cells
+// are added.
+
+
+// Exclude immediate face-neighbours from subsequent greedy picks.
+// Use 0 for no spacing. Current implementation supports >0 in serial.
+
+
+// Halo used to assemble finite-volume stencils around sampled cells.
+hrLayers             2;
+
+// Parameter column used for the full-ROM training solve.
+hrTrainingParameter  0;
+
+// Used only when useResidualSampling=false.
+// hrSampleSet          hrSamples;
+hrCompareFullSampled true;
+
+// Keep the existing equivalence diagnostics on
+hrEquivalenceTests true;
+hrTestMode 0;
+
+// Sparse test
+useResidualSampling true;
+hrSampleFraction 0.5;
+hrSpacingLayers 1;
 hrLayers 2;
+
+
