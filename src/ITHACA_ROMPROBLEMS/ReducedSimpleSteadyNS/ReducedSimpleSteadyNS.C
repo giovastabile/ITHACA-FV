@@ -534,10 +534,24 @@ void reducedSimpleSteadyNS::setupSampled
     SampledMesh& sampledMesh,
     int NmodesUproj,
     int NmodesPproj,
-    int NmodesSup
+    int NmodesSup,
+    const Eigen::VectorXd* cubatureWeights
 )
 {
     sampledMeshPtr_ = &sampledMesh;
+
+    cubatureWeights_.resize(0);
+
+    if (cubatureWeights)
+    {
+        M_Assert
+        (
+            cubatureWeights->size() == sampledMesh.sampledCells().size(),
+            "Cubature weights must match SampledMesh::sampledCells()"
+        );
+
+        cubatureWeights_ = *cubatureWeights;
+    }
 
     // Build exactly the same velocity basis ordering used by the standard
     // SIMPLE ROM: lift functions first, then velocity POD modes and,
@@ -635,7 +649,15 @@ void reducedSimpleSteadyNS::setupSampled
             forAll(sampledSubCells, sampleI)
             {
                 const label celli = sampledSubCells[sampleI];
-                value += Vsub[celli]*(uMode[celli] & gradP[celli]);
+                const scalar weight =
+                    cubatureWeights_.size()
+                  ? cubatureWeights_(sampleI)
+                  : 1.0;
+
+                value +=
+                    weight
+                   *Vsub[celli]
+                   *(uMode[celli] & gradP[celli]);
             }
 
             reduce(value, sumOp<scalar>());
@@ -1385,7 +1407,8 @@ void reducedSimpleSteadyNS::solveOnline_SimpleSampled
             (
                 UEqnSub,
                 sampledUmodes_(),
-                projType
+                projType,
+                cubatureWeights_.size() ? &cubatureWeights_ : nullptr
             );
 
         // Same split used by solveOnline_Simple():
@@ -1602,7 +1625,8 @@ void reducedSimpleSteadyNS::solveOnline_SimpleSampled
                 (
                     pEqnSub,
                     sampledPmodes_(),
-                    projType
+                    projType,
+                    cubatureWeights_.size() ? &cubatureWeights_ : nullptr
                 );
 
             // TEST 5: pressure reduced system.

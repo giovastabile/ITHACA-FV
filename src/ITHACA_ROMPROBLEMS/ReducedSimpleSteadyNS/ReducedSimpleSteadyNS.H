@@ -51,6 +51,9 @@ class reducedSimpleSteadyNS: public reducedProblem
         // Rows correspond to sampled velocity test modes, columns to pressure modes.
         Eigen::MatrixXd sampledProjGradModP_;
 
+        // Optional weights aligned with SampledMesh::sampledCells().
+        Eigen::VectorXd cubatureWeights_;
+
         // Optional full-ROM residual indicator used to generate HR samples.
         bool collectResidualIndicator_ = false;
         scalarField residualIndicator_;
@@ -92,7 +95,8 @@ class reducedSimpleSteadyNS: public reducedProblem
             SampledMesh& sampledMesh,
             int NmodesUproj,
             int NmodesPproj,
-            int NmodesSup = 0
+            int NmodesSup = 0,
+            const Eigen::VectorXd* cubatureWeights = nullptr
         );
 
         void solveOnline_SimpleSampled

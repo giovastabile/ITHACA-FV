@@ -162,7 +162,8 @@ class Modes : public PtrList<GeometricField<Type, PatchField, GeoMesh >>
     (
         fvMatrix<Type>& AfSub,
         const SampledModes<Type, PatchField, GeoMesh>& sampledModes,
-        word projType = "PG"
+        word projType = "PG",
+        const Eigen::VectorXd* cubatureWeights = nullptr
     );
 //----------------------------------------------------------------------
     /// @brief      A function that project a field on the modes

@@ -849,7 +849,8 @@ Modes<scalar, fvPatchField, volMesh>::projectSampled
 (
     fvMatrix<scalar>& AfSub,
     const SampledModes<scalar, fvPatchField, volMesh>& sampledModes,
-    word projType
+    word projType,
+    const Eigen::VectorXd* cubatureWeights
 );
 
 template<>
@@ -858,7 +859,8 @@ Modes<vector, fvPatchField, volMesh>::projectSampled
 (
     fvMatrix<vector>& AfSub,
     const SampledModes<vector, fvPatchField, volMesh>& sampledModes,
-    word projType
+    word projType,
+    const Eigen::VectorXd* cubatureWeights
 );
 
 
@@ -942,7 +944,8 @@ Modes<Type, PatchField, GeoMesh>::projectSampled
 (
     fvMatrix<Type>& AfSub,
     const SampledModes<Type, PatchField, GeoMesh>& sampledModes,
-    word projType
+    word projType,
+    const Eigen::VectorXd* cubatureWeights
 )
 {
     FatalErrorInFunction
@@ -960,7 +963,8 @@ Modes<scalar, fvPatchField, volMesh>::projectSampled
 (
     fvMatrix<scalar>& AfSub,
     const SampledModes<scalar, fvPatchField, volMesh>& cached,
-    word projType
+    word projType,
+    const Eigen::VectorXd* cubatureWeights
 )
 {
     M_Assert
@@ -972,6 +976,12 @@ Modes<scalar, fvPatchField, volMesh>::projectSampled
     const label nModes = cached.size();
     const labelList& sampledSubCells = cached.sampledSubCells();
     const PtrList<volScalarField>& subModes = cached.subModes();
+
+    M_Assert
+    (
+        !cubatureWeights || cubatureWeights->size() == sampledSubCells.size(),
+        "Cubature weights must match the sampled-cell ordering"
+    );
 
     M_Assert
     (
@@ -1041,17 +1051,22 @@ Modes<scalar, fvPatchField, volMesh>::projectSampled
 
             forAll(sampledSubCells, sampleI)
             {
+                const scalar weight =
+                    cubatureWeights ? (*cubatureWeights)(sampleI) : 1.0;
+
                 if (projType == "G")
                 {
                     value +=
                         modeI[sampledSubCells[sampleI]]
-                       *sampledAmodes[j][sampleI];
+                       *sampledAmodes[j][sampleI]
+                       *weight;
                 }
                 else
                 {
                     value +=
                         sampledAmodes[i][sampleI]
-                       *sampledAmodes[j][sampleI];
+                       *sampledAmodes[j][sampleI]
+                       *weight;
                 }
             }
 
@@ -1072,14 +1087,16 @@ Modes<scalar, fvPatchField, volMesh>::projectSampled
         forAll(sampledSubCells, sampleI)
         {
             const label celli = sampledSubCells[sampleI];
+            const scalar weight =
+                cubatureWeights ? (*cubatureWeights)(sampleI) : 1.0;
 
             if (projType == "G")
             {
-                value += modeI[celli]*rhs[celli];
+                value += modeI[celli]*rhs[celli]*weight;
             }
             else
             {
-                value += sampledAmodes[i][sampleI]*rhs[celli];
+                value += sampledAmodes[i][sampleI]*rhs[celli]*weight;
             }
         }
 
@@ -1097,7 +1114,8 @@ Modes<vector, fvPatchField, volMesh>::projectSampled
 (
     fvMatrix<vector>& AfSub,
     const SampledModes<vector, fvPatchField, volMesh>& cached,
-    word projType
+    word projType,
+    const Eigen::VectorXd* cubatureWeights
 )
 {
     M_Assert
@@ -1109,6 +1127,12 @@ Modes<vector, fvPatchField, volMesh>::projectSampled
     const label nModes = cached.size();
     const labelList& sampledSubCells = cached.sampledSubCells();
     const PtrList<volVectorField>& subModes = cached.subModes();
+
+    M_Assert
+    (
+        !cubatureWeights || cubatureWeights->size() == sampledSubCells.size(),
+        "Cubature weights must match the sampled-cell ordering"
+    );
 
     M_Assert
     (
@@ -1204,17 +1228,22 @@ Modes<vector, fvPatchField, volMesh>::projectSampled
 
             forAll(sampledSubCells, sampleI)
             {
+                                const scalar weight =
+                                        cubatureWeights ? (*cubatureWeights)(sampleI) : 1.0;
+
                 if (projType == "G")
                 {
                     value +=
                         modeI[sampledSubCells[sampleI]]
-                      & sampledAmodes[j][sampleI];
+                                            & sampledAmodes[j][sampleI]
+                                             *weight;
                 }
                 else
                 {
                     value +=
                         sampledAmodes[i][sampleI]
-                      & sampledAmodes[j][sampleI];
+                                            & sampledAmodes[j][sampleI]
+                                             *weight;
                 }
             }
 
@@ -1235,14 +1264,16 @@ Modes<vector, fvPatchField, volMesh>::projectSampled
         forAll(sampledSubCells, sampleI)
         {
             const label celli = sampledSubCells[sampleI];
+            const scalar weight =
+                cubatureWeights ? (*cubatureWeights)(sampleI) : 1.0;
 
             if (projType == "G")
             {
-                value += modeI[celli] & rhs[celli];
+                value += (modeI[celli] & rhs[celli])*weight;
             }
             else
             {
-                value += sampledAmodes[i][sampleI] & rhs[celli];
+                value += (sampledAmodes[i][sampleI] & rhs[celli])*weight;
             }
         }
 
