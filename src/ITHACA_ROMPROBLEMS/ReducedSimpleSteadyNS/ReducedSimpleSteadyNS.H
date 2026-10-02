@@ -150,6 +150,9 @@ class reducedSimpleSteadyNS: public reducedProblem
 
         int UprojN;
         int PprojN;
+
+        /// True only when the most recent online solve met both tolerances.
+        bool lastSolveConverged = false;
 };
 
 #endif

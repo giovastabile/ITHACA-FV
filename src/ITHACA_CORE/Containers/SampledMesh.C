@@ -341,6 +341,15 @@ void SampledMesh::setSubset
     subset.setLargeCellSubset(selectedSet);
 #endif
 
+    // fvMeshSubset puts exposed internal faces on an artificial empty
+    // patch. Its normals must not redefine the physical solution directions:
+    // fvMatrix::H() otherwise zeros valid velocity components on the subset.
+    // Keep the parent mesh's dimensionality; the stencil halo isolates the
+    // sampled equations from the artificial boundary conditions.
+    fvMesh& sampled = subset.subMesh();
+    const_cast<Vector<label>&>(sampled.geometricD()) = mesh.geometricD();
+    const_cast<Vector<label>&>(sampled.solutionD()) = mesh.solutionD();
+
     if (readDictionaries)
     {
         fvMesh& subMesh = subset.subMesh();

@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")"
+: "${LIB_ITHACA_SRC:?Source ITHACA-FV/etc/bashrc first}"
+: "${FOAM_USER_APPBIN:?Source the OpenFOAM environment first}"
+wmake libso "$LIB_ITHACA_SRC/ITHACA_CORE"
+wmake libso "$LIB_ITHACA_SRC/ITHACA_ROMPROBLEMS"
+wmake
+exec "$FOAM_USER_APPBIN/12simpleSteadyNS_ECP"

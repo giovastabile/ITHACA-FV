@@ -1,0 +1,953 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2606                                  |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+Build  : _481094fdf3-20260618 OPENFOAM=2606 version=v2606
+Arch   : "LSB;label=32;scalar=64"
+Exec   : 12simpleSteadyNS
+Date   : Sep 25 2026
+Time   : 15:38:07
+Host   : giova-sssa
+PID    : 722791
+I/O    : uncollated
+Case   : /home/giova/OpenFOAM/ITHACA-FV/tutorials/CFD/12simpleSteadyNS
+nProcs : 1
+trapFpe: Floating point exception trapping enabled (FOAM_SIGFPE).
+memory pool : not available
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 5, maxFileModificationPolls 20)
+
+--> FOAM Warning : allowSystemOperations : Allowing user-supplied system call operations.
+                   This can be a security risk if running untrusted cases
+                   through e.g. 'coded' on-the-fly-compilation functionality.
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Reading field p
+
+Create time
+
+Reading field p
+
+Create mesh for time = 0
+
+
+SIMPLE: convergence criteria
+    field p	 tolerance 1e-09
+    field U	 tolerance 1e-09
+    field nuTilda	 tolerance 1e-06
+
+Reading field p
+
+0
+Reading field U
+
+Reading/calculating face flux field phi
+
+Selecting incompressible transport model Newtonian
+Selecting turbulence model type laminar
+Selecting laminar stress model Stokes
+No MRF models present
+
+Offline data already exist, reading existing data
+POD data already exist, reading existing modes
+Supremizer data already exist, reading existing data
+1
+######### Reading the Data for U #########
+  5% [|||                                                         ]  7% [||||                                                        ]  9% [|||||                                                       ] 11% [||||||                                                      ] 13% [||||||||                                                    ] 15% [|||||||||                                                   ] 17% [||||||||||                                                  ] 19% [|||||||||||                                                 ] 21% [||||||||||||                                                ] 23% [|||||||||||||                                               ] 25% [|||||||||||||||                                             ] 26% [||||||||||||||||                                            ] 28% [|||||||||||||||||                                           ] 30% [||||||||||||||||||                                          ] 32% [|||||||||||||||||||                                         ] 34% [||||||||||||||||||||                                        ] 36% [|||||||||||||||||||||                                       ] 38% [|||||||||||||||||||||||                                     ] 40% [||||||||||||||||||||||||                                    ] 42% [|||||||||||||||||||||||||                                   ] 44% [||||||||||||||||||||||||||                                  ] 46% [|||||||||||||||||||||||||||                                 ] 48% [||||||||||||||||||||||||||||                                ] 50% [||||||||||||||||||||||||||||||                              ] 51% [|||||||||||||||||||||||||||||||                             ] 53% [||||||||||||||||||||||||||||||||                            ] 55% [|||||||||||||||||||||||||||||||||                           ] 57% [||||||||||||||||||||||||||||||||||                          ] 59% [|||||||||||||||||||||||||||||||||||                         ] 61% [||||||||||||||||||||||||||||||||||||                        ] 63% [||||||||||||||||||||||||||||||||||||||                      ] 65% [|||||||||||||||||||||||||||||||||||||||                     ] 67% [||||||||||||||||||||||||||||||||||||||||                    ] 69% [|||||||||||||||||||||||||||||||||||||||||                   ] 71% [||||||||||||||||||||||||||||||||||||||||||                  ] 73% [|||||||||||||||||||||||||||||||||||||||||||                 ] 75% [|||||||||||||||||||||||||||||||||||||||||||||               ] 76% [||||||||||||||||||||||||||||||||||||||||||||||              ] 78% [|||||||||||||||||||||||||||||||||||||||||||||||             ] 80% [||||||||||||||||||||||||||||||||||||||||||||||||            ] 82% [|||||||||||||||||||||||||||||||||||||||||||||||||           ] 84% [||||||||||||||||||||||||||||||||||||||||||||||||||          ] 86% [|||||||||||||||||||||||||||||||||||||||||||||||||||         ] 88% [|||||||||||||||||||||||||||||||||||||||||||||||||||||       ] 90% [||||||||||||||||||||||||||||||||||||||||||||||||||||||      ] 92% [|||||||||||||||||||||||||||||||||||||||||||||||||||||||     ] 94% [||||||||||||||||||||||||||||||||||||||||||||||||||||||||    ] 96% [|||||||||||||||||||||||||||||||||||||||||||||||||||||||||   ] 98% [||||||||||||||||||||||||||||||||||||||||||||||||||||||||||  ]100% [||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||]
+######### Reading the Data for p #########
+  5% [|||                                                         ]  7% [||||                                                        ]  9% [|||||                                                       ] 11% [||||||                                                      ] 13% [||||||||                                                    ] 15% [|||||||||                                                   ] 17% [||||||||||                                                  ] 19% [|||||||||||                                                 ] 21% [||||||||||||                                                ] 23% [|||||||||||||                                               ] 25% [|||||||||||||||                                             ] 26% [||||||||||||||||                                            ] 28% [|||||||||||||||||                                           ] 30% [||||||||||||||||||                                          ] 32% [|||||||||||||||||||                                         ] 34% [||||||||||||||||||||                                        ] 36% [|||||||||||||||||||||                                       ] 38% [|||||||||||||||||||||||                                     ] 40% [||||||||||||||||||||||||                                    ] 42% [|||||||||||||||||||||||||                                   ] 44% [||||||||||||||||||||||||||                                  ] 46% [|||||||||||||||||||||||||||                                 ] 48% [||||||||||||||||||||||||||||                                ] 50% [||||||||||||||||||||||||||||||                              ] 51% [|||||||||||||||||||||||||||||||                             ] 53% [||||||||||||||||||||||||||||||||                            ] 55% [|||||||||||||||||||||||||||||||||                           ] 57% [||||||||||||||||||||||||||||||||||                          ] 59% [|||||||||||||||||||||||||||||||||||                         ] 61% [||||||||||||||||||||||||||||||||||||                        ] 63% [||||||||||||||||||||||||||||||||||||||                      ] 65% [|||||||||||||||||||||||||||||||||||||||                     ] 67% [||||||||||||||||||||||||||||||||||||||||                    ] 69% [|||||||||||||||||||||||||||||||||||||||||                   ] 71% [||||||||||||||||||||||||||||||||||||||||||                  ] 73% [|||||||||||||||||||||||||||||||||||||||||||                 ] 75% [|||||||||||||||||||||||||||||||||||||||||||||               ] 76% [||||||||||||||||||||||||||||||||||||||||||||||              ] 78% [|||||||||||||||||||||||||||||||||||||||||||||||             ] 80% [||||||||||||||||||||||||||||||||||||||||||||||||            ] 82% [|||||||||||||||||||||||||||||||||||||||||||||||||           ] 84% [||||||||||||||||||||||||||||||||||||||||||||||||||          ] 86% [|||||||||||||||||||||||||||||||||||||||||||||||||||         ] 88% [|||||||||||||||||||||||||||||||||||||||||||||||||||||       ] 90% [||||||||||||||||||||||||||||||||||||||||||||||||||||||      ] 92% [|||||||||||||||||||||||||||||||||||||||||||||||||||||||     ] 94% [||||||||||||||||||||||||||||||||||||||||||||||||||||||||    ] 96% [|||||||||||||||||||||||||||||||||||||||||||||||||||||||||   ] 98% [||||||||||||||||||||||||||||||||||||||||||||||||||||||||||  ]100% [||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||]
+######### Reading the Data for U #########
+100% [||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||]
+Performing POD for U using the L2 norm
+Reading the existing modes
+######### Reading the Data for U #########
+ 17% [||||||||||                                                  ] 23% [||||||||||||||                                              ] 29% [|||||||||||||||||                                           ] 35% [|||||||||||||||||||||                                       ] 41% [||||||||||||||||||||||||                                    ] 47% [||||||||||||||||||||||||||||                                ] 52% [|||||||||||||||||||||||||||||||                             ] 58% [|||||||||||||||||||||||||||||||||||                         ] 64% [||||||||||||||||||||||||||||||||||||||                      ] 70% [||||||||||||||||||||||||||||||||||||||||||                  ] 76% [|||||||||||||||||||||||||||||||||||||||||||||               ] 82% [|||||||||||||||||||||||||||||||||||||||||||||||||           ] 88% [||||||||||||||||||||||||||||||||||||||||||||||||||||        ] 94% [||||||||||||||||||||||||||||||||||||||||||||||||||||||||    ]100% [||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||]
+Performing POD for p using the L2 norm
+Reading the existing modes
+######### Reading the Data for p #########
+ 17% [||||||||||                                                  ] 23% [||||||||||||||                                              ] 29% [|||||||||||||||||                                           ] 35% [|||||||||||||||||||||                                       ] 41% [||||||||||||||||||||||||                                    ] 47% [||||||||||||||||||||||||||||                                ] 52% [|||||||||||||||||||||||||||||||                             ] 58% [|||||||||||||||||||||||||||||||||||                         ] 64% [||||||||||||||||||||||||||||||||||||||                      ] 70% [||||||||||||||||||||||||||||||||||||||||||                  ] 76% [|||||||||||||||||||||||||||||||||||||||||||||               ] 82% [|||||||||||||||||||||||||||||||||||||||||||||||||           ] 88% [||||||||||||||||||||||||||||||||||||||||||||||||||||        ] 94% [||||||||||||||||||||||||||||||||||||||||||||||||||||||||    ]100% [||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||]
+
+========================================
+ Building residual-based HR sample set
+ training parameter index = 0
+ mu = 1
+========================================
+
+Iteration 1
+Residual jump = 5.04731
+Normalized residual = 1
+Iteration 2
+Residual jump = 4.04018
+Normalized residual = 0.127642
+Iteration 3
+Residual jump = 0.877824
+Normalized residual = 0.00864105
+Iteration 4
+Residual jump = 0.230565
+Normalized residual = 0.0359178
+Iteration 5
+Residual jump = 0.0316779
+Normalized residual = 0.0327575
+Iteration 6
+Residual jump = 0.024652
+Normalized residual = 0.0233965
+Iteration 7
+Residual jump = 0.0275528
+Normalized residual = 0.0150725
+Iteration 8
+Residual jump = 0.0203095
+Normalized residual = 0.00919561
+Iteration 9
+Residual jump = 0.0130653
+Normalized residual = 0.00543688
+Iteration 10
+Residual jump = 0.00793862
+Normalized residual = 0.00315488
+Iteration 11
+Residual jump = 0.00467194
+Normalized residual = 0.00181026
+Iteration 12
+Residual jump = 0.00275092
+Normalized residual = 0.00103193
+Iteration 13
+Residual jump = 0.0016483
+Normalized residual = 0.000586135
+Iteration 14
+Residual jump = 0.00102247
+Normalized residual = 0.000332352
+Iteration 15
+Residual jump = 0.000670874
+Normalized residual = 0.000190789
+Iteration 16
+Residual jump = 0.00047332
+Normalized residual = 0.000110335
+Iteration 17
+Residual jump = 0.000361023
+Normalized residual = 6.41184e-05
+Iteration 18
+Residual jump = 0.000295511
+Normalized residual = 3.74579e-05
+Iteration 19
+Residual jump = 0.000255589
+Normalized residual = 2.20008e-05
+Iteration 20
+Residual jump = 0.000229691
+Normalized residual = 1.29892e-05
+Iteration 21
+Residual jump = 0.000211547
+Normalized residual = 7.70433e-06
+Iteration 22
+Residual jump = 0.00019777
+Normalized residual = 4.58665e-06
+Iteration 23
+Residual jump = 0.000186526
+Normalized residual = 2.73684e-06
+Iteration 24
+Residual jump = 0.000176824
+Normalized residual = 2.26211e-06
+Iteration 25
+Residual jump = 0.000168122
+Normalized residual = 2.17113e-06
+Iteration 26
+Residual jump = 0.000160122
+Normalized residual = 2.08408e-06
+Iteration 27
+Residual jump = 0.000152655
+Normalized residual = 2.00088e-06
+Iteration 28
+Residual jump = 0.000145622
+Normalized residual = 1.92138e-06
+Iteration 29
+Residual jump = 0.000138964
+Normalized residual = 1.84544e-06
+Iteration 30
+Residual jump = 0.000132641
+Normalized residual = 1.77291e-06
+Iteration 31
+Residual jump = 0.000126626
+Normalized residual = 1.70363e-06
+Iteration 32
+Residual jump = 0.000120899
+Normalized residual = 1.63748e-06
+Iteration 33
+Residual jump = 0.000115441
+Normalized residual = 1.57429e-06
+Iteration 34
+Residual jump = 0.000110238
+Normalized residual = 1.51393e-06
+Iteration 35
+Residual jump = 0.000105277
+Normalized residual = 1.45627e-06
+Iteration 36
+Residual jump = 0.000100547
+Normalized residual = 1.4012e-06
+Iteration 37
+Residual jump = 9.60351e-05
+Normalized residual = 1.34859e-06
+Iteration 38
+Residual jump = 9.17317e-05
+Normalized residual = 1.29949e-06
+Iteration 39
+Residual jump = 8.76266e-05
+Normalized residual = 1.25596e-06
+Iteration 40
+Residual jump = 8.37106e-05
+Normalized residual = 1.21429e-06
+Iteration 41
+Residual jump = 7.99745e-05
+Normalized residual = 1.17441e-06
+Iteration 42
+Residual jump = 7.64101e-05
+Normalized residual = 1.13622e-06
+Iteration 43
+Residual jump = 7.30091e-05
+Normalized residual = 1.09966e-06
+Iteration 44
+Residual jump = 6.97639e-05
+Normalized residual = 1.06465e-06
+Iteration 45
+Residual jump = 6.66671e-05
+Normalized residual = 1.03112e-06
+Iteration 46
+Residual jump = 6.37119e-05
+Normalized residual = 9.99004e-07
+Iteration 47
+Residual jump = 6.08915e-05
+Normalized residual = 9.68236e-07
+Iteration 48
+Residual jump = 5.81997e-05
+Normalized residual = 9.38758e-07
+Iteration 49
+Residual jump = 5.56304e-05
+Normalized residual = 9.1051e-07
+Iteration 50
+Residual jump = 5.3178e-05
+Normalized residual = 8.83439e-07
+Iteration 51
+Residual jump = 5.08369e-05
+Normalized residual = 8.57492e-07
+Iteration 52
+Residual jump = 4.8602e-05
+Normalized residual = 8.32619e-07
+Iteration 53
+Residual jump = 4.64684e-05
+Normalized residual = 8.08772e-07
+Iteration 54
+Residual jump = 4.44313e-05
+Normalized residual = 7.85905e-07
+Iteration 55
+Residual jump = 4.24862e-05
+Normalized residual = 7.63976e-07
+Iteration 56
+Residual jump = 4.06288e-05
+Normalized residual = 7.42942e-07
+Iteration 57
+Residual jump = 3.88552e-05
+Normalized residual = 7.2477e-07
+Iteration 58
+Residual jump = 3.71613e-05
+Normalized residual = 7.08869e-07
+Iteration 59
+Residual jump = 3.55436e-05
+Normalized residual = 6.93491e-07
+Iteration 60
+Residual jump = 3.39985e-05
+Normalized residual = 6.78618e-07
+Iteration 61
+Residual jump = 3.25226e-05
+Normalized residual = 6.64232e-07
+Iteration 62
+Residual jump = 3.11128e-05
+Normalized residual = 6.50315e-07
+Iteration 63
+Residual jump = 2.9766e-05
+Normalized residual = 6.3685e-07
+Iteration 64
+Residual jump = 2.84793e-05
+Normalized residual = 6.23822e-07
+Iteration 65
+Residual jump = 2.72499e-05
+Normalized residual = 6.11213e-07
+Iteration 66
+Residual jump = 2.60753e-05
+Normalized residual = 5.9901e-07
+Iteration 67
+Residual jump = 2.49528e-05
+Normalized residual = 5.87199e-07
+Iteration 68
+Residual jump = 2.38802e-05
+Normalized residual = 5.75764e-07
+Iteration 69
+Residual jump = 2.28551e-05
+Normalized residual = 5.64693e-07
+Iteration 70
+Residual jump = 2.18753e-05
+Normalized residual = 5.53974e-07
+Iteration 71
+Residual jump = 2.09389e-05
+Normalized residual = 5.43593e-07
+Iteration 72
+Residual jump = 2.00437e-05
+Normalized residual = 5.3354e-07
+Iteration 73
+Residual jump = 1.9188e-05
+Normalized residual = 5.25146e-07
+Iteration 74
+Residual jump = 1.8401e-05
+Normalized residual = 5.17071e-07
+Iteration 75
+Residual jump = 1.76921e-05
+Normalized residual = 5.09202e-07
+Iteration 76
+Residual jump = 1.70131e-05
+Normalized residual = 5.01532e-07
+Iteration 77
+Residual jump = 1.63626e-05
+Normalized residual = 4.94056e-07
+Iteration 78
+Residual jump = 1.57396e-05
+Normalized residual = 4.86769e-07
+Iteration 79
+Residual jump = 1.51425e-05
+Normalized residual = 4.79666e-07
+Iteration 80
+Residual jump = 1.45705e-05
+Normalized residual = 4.72742e-07
+Iteration 81
+Residual jump = 1.40222e-05
+Normalized residual = 4.65992e-07
+Iteration 82
+Residual jump = 1.34967e-05
+Normalized residual = 4.59413e-07
+Iteration 83
+Residual jump = 1.29929e-05
+Normalized residual = 4.52999e-07
+Iteration 84
+Residual jump = 1.251e-05
+Normalized residual = 4.46746e-07
+Iteration 85
+Residual jump = 1.20485e-05
+Normalized residual = 4.4065e-07
+Iteration 86
+Residual jump = 1.16798e-05
+Normalized residual = 4.34706e-07
+Iteration 87
+Residual jump = 1.13236e-05
+Normalized residual = 4.28912e-07
+Iteration 88
+Residual jump = 1.09795e-05
+Normalized residual = 4.23262e-07
+Iteration 89
+Residual jump = 1.06469e-05
+Normalized residual = 4.17754e-07
+Iteration 90
+Residual jump = 1.03256e-05
+Normalized residual = 4.12383e-07
+Iteration 91
+Residual jump = 1.00149e-05
+Normalized residual = 4.07146e-07
+Iteration 92
+Residual jump = 9.71464e-06
+Normalized residual = 4.02039e-07
+Solution 1 converged in 92 iterations.
+Final normalized residual for velocity: 4.02039e-07
+Final normalized residual for pressure: 5.95499e-08
+Written residual sampling indicator 'hrResidualIndicator' (global max = 1)
+Residual-based sampling selected 9000 cells from 9000 local cells (requested fraction = 1, exclusionLayers = 0)
+After adding physical-boundary cells: 9000 local sampled cells
+Written residual-based cellSet hrSamples with 9000 cells
+Written residual sampling indicator 'hrResidualIndicator' (global max = 1)
+SampledMesh: wrote diagnostic mask 'hrMask'
+    0.0 = outside sampled submesh
+    0.5 = halo/submesh cell
+    1.0 = true sampled cell
+    global sampled cells = 9000
+    global submesh cells = 9000
+
+Hyper-reduced SIMPLE setup
+  velocity modes : 10
+  pressure modes : 10
+  sampled cells  : 9000 local on proc 0
+  submesh cells  : 9000 global
+
+HR iteration 1
+
+========================================
+ HR/FULL REDUCED SYSTEM DIAGNOSTIC
+ iteration = 1
+----------------------------------------
+ MOMENTUM
+ ||Ar_HR-Ar_full||F / ||Ar_full||F = 40.6115
+ ||br_HR-br_full||2 / ||br_full||2 = 232.475
+ ||Ar_full||F = 139.768
+ ||Ar_HR||F   = 5792.74
+ ||br_full||2 = 5.01598
+ ||br_HR||2   = 1170.93
+========================================
+
+
+----------------------------------------
+ PRESSURE
+ ||Ar_HR-Ar_full||F / ||Ar_full||F = 0.300003
+ ||br_HR-br_full||2 / ||br_full||2 = 0.24467
+ ||Ar_full||F = 0.0298161
+ ||Ar_HR||F   = 0.0208711
+ ||br_full||2 = 0.0330158
+ ||br_HR||2   = 0.0250031
+========================================
+
+HR residual jump = 5.04731
+HR normalized residual = 1
+HR iteration 2
+HR residual jump = 4.04018
+HR normalized residual = 0.127642
+HR iteration 3
+HR residual jump = 0.877824
+HR normalized residual = 0.00864105
+HR iteration 4
+HR residual jump = 0.230565
+HR normalized residual = 0.0359178
+HR iteration 5
+HR residual jump = 0.0316779
+HR normalized residual = 0.0327575
+HR iteration 6
+HR residual jump = 0.024652
+HR normalized residual = 0.0233965
+HR iteration 7
+HR residual jump = 0.0275528
+HR normalized residual = 0.0150725
+HR iteration 8
+HR residual jump = 0.0203095
+HR normalized residual = 0.00919561
+HR iteration 9
+HR residual jump = 0.0130653
+HR normalized residual = 0.00543688
+HR iteration 10
+HR residual jump = 0.00793862
+HR normalized residual = 0.00315488
+HR iteration 11
+HR residual jump = 0.00467194
+HR normalized residual = 0.00181026
+HR iteration 12
+HR residual jump = 0.00275092
+HR normalized residual = 0.00103193
+HR iteration 13
+HR residual jump = 0.0016483
+HR normalized residual = 0.000586135
+HR iteration 14
+HR residual jump = 0.00102247
+HR normalized residual = 0.000332352
+HR iteration 15
+HR residual jump = 0.000670874
+HR normalized residual = 0.000190789
+HR iteration 16
+HR residual jump = 0.00047332
+HR normalized residual = 0.000110335
+HR iteration 17
+HR residual jump = 0.000361023
+HR normalized residual = 6.41184e-05
+HR iteration 18
+HR residual jump = 0.000295511
+HR normalized residual = 3.74579e-05
+HR iteration 19
+HR residual jump = 0.000255589
+HR normalized residual = 2.20008e-05
+HR iteration 20
+HR residual jump = 0.000229691
+HR normalized residual = 1.29892e-05
+HR iteration 21
+HR residual jump = 0.000211547
+HR normalized residual = 7.70433e-06
+HR iteration 22
+HR residual jump = 0.00019777
+HR normalized residual = 4.58665e-06
+HR iteration 23
+HR residual jump = 0.000186526
+HR normalized residual = 2.73684e-06
+HR iteration 24
+HR residual jump = 0.000176824
+HR normalized residual = 2.26211e-06
+HR iteration 25
+HR residual jump = 0.000168122
+HR normalized residual = 2.17113e-06
+HR iteration 26
+HR residual jump = 0.000160122
+HR normalized residual = 2.08408e-06
+HR iteration 27
+HR residual jump = 0.000152655
+HR normalized residual = 2.00088e-06
+HR iteration 28
+HR residual jump = 0.000145622
+HR normalized residual = 1.92138e-06
+HR iteration 29
+HR residual jump = 0.000138964
+HR normalized residual = 1.84544e-06
+HR iteration 30
+HR residual jump = 0.000132641
+HR normalized residual = 1.77291e-06
+HR iteration 31
+HR residual jump = 0.000126626
+HR normalized residual = 1.70363e-06
+HR iteration 32
+HR residual jump = 0.000120899
+HR normalized residual = 1.63748e-06
+HR iteration 33
+HR residual jump = 0.000115441
+HR normalized residual = 1.57429e-06
+HR iteration 34
+HR residual jump = 0.000110238
+HR normalized residual = 1.51393e-06
+HR iteration 35
+HR residual jump = 0.000105277
+HR normalized residual = 1.45627e-06
+HR iteration 36
+HR residual jump = 0.000100547
+HR normalized residual = 1.4012e-06
+HR iteration 37
+HR residual jump = 9.60351e-05
+HR normalized residual = 1.34859e-06
+HR iteration 38
+HR residual jump = 9.17317e-05
+HR normalized residual = 1.29949e-06
+HR iteration 39
+HR residual jump = 8.76266e-05
+HR normalized residual = 1.25596e-06
+HR iteration 40
+HR residual jump = 8.37106e-05
+HR normalized residual = 1.21429e-06
+HR iteration 41
+HR residual jump = 7.99745e-05
+HR normalized residual = 1.17441e-06
+HR iteration 42
+HR residual jump = 7.64101e-05
+HR normalized residual = 1.13622e-06
+HR iteration 43
+HR residual jump = 7.30091e-05
+HR normalized residual = 1.09966e-06
+HR iteration 44
+HR residual jump = 6.97639e-05
+HR normalized residual = 1.06465e-06
+HR iteration 45
+HR residual jump = 6.66671e-05
+HR normalized residual = 1.03112e-06
+HR iteration 46
+HR residual jump = 6.37119e-05
+HR normalized residual = 9.99004e-07
+HR iteration 47
+HR residual jump = 6.08915e-05
+HR normalized residual = 9.68236e-07
+HR iteration 48
+HR residual jump = 5.81997e-05
+HR normalized residual = 9.38758e-07
+HR iteration 49
+HR residual jump = 5.56304e-05
+HR normalized residual = 9.1051e-07
+HR iteration 50
+HR residual jump = 5.3178e-05
+HR normalized residual = 8.83439e-07
+HR iteration 51
+HR residual jump = 5.08369e-05
+HR normalized residual = 8.57492e-07
+HR iteration 52
+HR residual jump = 4.8602e-05
+HR normalized residual = 8.32619e-07
+HR iteration 53
+HR residual jump = 4.64684e-05
+HR normalized residual = 8.08772e-07
+HR iteration 54
+HR residual jump = 4.44313e-05
+HR normalized residual = 7.85905e-07
+HR iteration 55
+HR residual jump = 4.24862e-05
+HR normalized residual = 7.63976e-07
+HR iteration 56
+HR residual jump = 4.06288e-05
+HR normalized residual = 7.42942e-07
+HR iteration 57
+HR residual jump = 3.88552e-05
+HR normalized residual = 7.2477e-07
+HR iteration 58
+HR residual jump = 3.71613e-05
+HR normalized residual = 7.08869e-07
+HR iteration 59
+HR residual jump = 3.55436e-05
+HR normalized residual = 6.93491e-07
+HR iteration 60
+HR residual jump = 3.39985e-05
+HR normalized residual = 6.78618e-07
+HR iteration 61
+HR residual jump = 3.25226e-05
+HR normalized residual = 6.64232e-07
+HR iteration 62
+HR residual jump = 3.11128e-05
+HR normalized residual = 6.50315e-07
+HR iteration 63
+HR residual jump = 2.9766e-05
+HR normalized residual = 6.3685e-07
+HR iteration 64
+HR residual jump = 2.84793e-05
+HR normalized residual = 6.23822e-07
+HR iteration 65
+HR residual jump = 2.72499e-05
+HR normalized residual = 6.11213e-07
+HR iteration 66
+HR residual jump = 2.60753e-05
+HR normalized residual = 5.9901e-07
+HR iteration 67
+HR residual jump = 2.49528e-05
+HR normalized residual = 5.87199e-07
+HR iteration 68
+HR residual jump = 2.38802e-05
+HR normalized residual = 5.75764e-07
+HR iteration 69
+HR residual jump = 2.28551e-05
+HR normalized residual = 5.64693e-07
+HR iteration 70
+HR residual jump = 2.18753e-05
+HR normalized residual = 5.53974e-07
+HR iteration 71
+HR residual jump = 2.09389e-05
+HR normalized residual = 5.43593e-07
+HR iteration 72
+HR residual jump = 2.00437e-05
+HR normalized residual = 5.3354e-07
+HR iteration 73
+HR residual jump = 1.9188e-05
+HR normalized residual = 5.25146e-07
+HR iteration 74
+HR residual jump = 1.8401e-05
+HR normalized residual = 5.17071e-07
+HR iteration 75
+HR residual jump = 1.76921e-05
+HR normalized residual = 5.09202e-07
+HR iteration 76
+HR residual jump = 1.70131e-05
+HR normalized residual = 5.01532e-07
+HR iteration 77
+HR residual jump = 1.63627e-05
+HR normalized residual = 4.94056e-07
+HR iteration 78
+HR residual jump = 1.57396e-05
+HR normalized residual = 4.86769e-07
+HR iteration 79
+HR residual jump = 1.51425e-05
+HR normalized residual = 4.79666e-07
+HR iteration 80
+HR residual jump = 1.45705e-05
+HR normalized residual = 4.72742e-07
+HR iteration 81
+HR residual jump = 1.40222e-05
+HR normalized residual = 4.65992e-07
+HR iteration 82
+HR residual jump = 1.34967e-05
+HR normalized residual = 4.59413e-07
+HR iteration 83
+HR residual jump = 1.29929e-05
+HR normalized residual = 4.52999e-07
+HR iteration 84
+HR residual jump = 1.251e-05
+HR normalized residual = 4.46746e-07
+HR iteration 85
+HR residual jump = 1.20485e-05
+HR normalized residual = 4.4065e-07
+HR iteration 86
+HR residual jump = 1.16798e-05
+HR normalized residual = 4.34706e-07
+HR iteration 87
+HR residual jump = 1.13236e-05
+HR normalized residual = 4.28912e-07
+HR iteration 88
+HR residual jump = 1.09795e-05
+HR normalized residual = 4.23262e-07
+HR iteration 89
+HR residual jump = 1.06469e-05
+HR normalized residual = 4.17754e-07
+HR iteration 90
+HR residual jump = 1.03256e-05
+HR normalized residual = 4.12383e-07
+HR iteration 91
+HR residual jump = 1.00149e-05
+HR normalized residual = 4.07146e-07
+HR iteration 92
+HR residual jump = 9.71464e-06
+HR normalized residual = 4.02039e-07
+HR solution 2 converged in 92 iterations.
+Final HR normalized residual for velocity: 4.02039e-07
+Final HR normalized residual for pressure: 5.95499e-08
+HR iteration 1
+
+========================================
+ HR/FULL REDUCED SYSTEM DIAGNOSTIC
+ iteration = 1
+----------------------------------------
+ MOMENTUM
+ ||Ar_HR-Ar_full||F / ||Ar_full||F = 40.3114
+ ||br_HR-br_full||2 / ||br_full||2 = 223.695
+ ||Ar_full||F = 46.9384
+ ||Ar_HR||F   = 1931.22
+ ||br_full||2 = 1.73774
+ ||br_HR||2   = 390.4
+========================================
+
+
+----------------------------------------
+ PRESSURE
+ ||Ar_HR-Ar_full||F / ||Ar_full||F = 0.30001
+ ||br_HR-br_full||2 / ||br_full||2 = 0.245287
+ ||Ar_full||F = 0.089349
+ ||Ar_HR||F   = 0.0625434
+ ||br_full||2 = 0.0333837
+ ||br_HR||2   = 0.0252598
+========================================
+
+HR residual jump = 1.93201
+HR normalized residual = 1
+HR iteration 2
+HR residual jump = 1.34708
+HR normalized residual = 0.128099
+HR iteration 3
+HR residual jump = 0.296755
+HR normalized residual = 0.00861338
+HR iteration 4
+HR residual jump = 0.0818666
+HR normalized residual = 0.0358842
+HR iteration 5
+HR residual jump = 0.0165732
+HR normalized residual = 0.0326976
+HR iteration 6
+HR residual jump = 0.0153823
+HR normalized residual = 0.0233151
+HR iteration 7
+HR residual jump = 0.0165801
+HR normalized residual = 0.0149829
+HR iteration 8
+HR residual jump = 0.0142061
+HR normalized residual = 0.00910661
+HR iteration 9
+HR residual jump = 0.0116834
+HR normalized residual = 0.00535238
+HR iteration 10
+HR residual jump = 0.00978396
+HR normalized residual = 0.00307582
+HR iteration 11
+HR residual jump = 0.00849875
+HR normalized residual = 0.00173628
+HR iteration 12
+HR residual jump = 0.00765472
+HR normalized residual = 0.000962288
+HR iteration 13
+HR residual jump = 0.00709247
+HR normalized residual = 0.000530998
+HR iteration 14
+HR residual jump = 0.00670034
+HR normalized residual = 0.000419746
+HR iteration 15
+HR residual jump = 0.00640819
+HR normalized residual = 0.000408823
+HR iteration 16
+HR residual jump = 0.00617441
+HR normalized residual = 0.000398298
+HR iteration 17
+HR residual jump = 0.00597515
+HR normalized residual = 0.000388114
+HR iteration 18
+HR residual jump = 0.00579694
+HR normalized residual = 0.000378233
+HR iteration 19
+HR residual jump = 0.00563232
+HR normalized residual = 0.000368634
+HR iteration 20
+HR residual jump = 0.0054771
+HR normalized residual = 0.0003593
+HR iteration 21
+HR residual jump = 0.00532896
+HR normalized residual = 0.000350219
+HR iteration 22
+HR residual jump = 0.00518656
+HR normalized residual = 0.000341381
+HR iteration 23
+HR residual jump = 0.00504911
+HR normalized residual = 0.000332778
+HR iteration 24
+HR residual jump = 0.00491612
+HR normalized residual = 0.000324402
+HR iteration 25
+HR residual jump = 0.00478726
+HR normalized residual = 0.000316247
+HR iteration 26
+HR residual jump = 0.00466231
+HR normalized residual = 0.000308305
+HR iteration 27
+HR residual jump = 0.00454107
+HR normalized residual = 0.00030057
+HR iteration 28
+HR residual jump = 0.00442339
+HR normalized residual = 0.000293036
+HR iteration 29
+HR residual jump = 0.00430913
+HR normalized residual = 0.000285698
+HR iteration 30
+HR residual jump = 0.00419818
+HR normalized residual = 0.000278549
+HR iteration 31
+HR residual jump = 0.0040904
+HR normalized residual = 0.000271584
+HR iteration 32
+HR residual jump = 0.0039857
+HR normalized residual = 0.000264798
+HR iteration 33
+HR residual jump = 0.00388398
+HR normalized residual = 0.000258187
+HR iteration 34
+HR residual jump = 0.00378512
+HR normalized residual = 0.000251744
+HR iteration 35
+HR residual jump = 0.00368904
+HR normalized residual = 0.000245465
+HR iteration 36
+HR residual jump = 0.00359565
+HR normalized residual = 0.000239345
+HR iteration 37
+HR residual jump = 0.00350485
+HR normalized residual = 0.000233381
+HR iteration 38
+HR residual jump = 0.00341657
+HR normalized residual = 0.000227568
+HR iteration 39
+HR residual jump = 0.00333072
+HR normalized residual = 0.000221901
+HR iteration 40
+HR residual jump = 0.00324723
+HR normalized residual = 0.000216377
+HR iteration 41
+HR residual jump = 0.00316602
+HR normalized residual = 0.000210992
+HR iteration 42
+HR residual jump = 0.00308702
+HR normalized residual = 0.000205741
+HR iteration 43
+HR residual jump = 0.00301015
+HR normalized residual = 0.000200622
+HR iteration 44
+HR residual jump = 0.00293536
+HR normalized residual = 0.00019563
+HR iteration 45
+HR residual jump = 0.00286258
+HR normalized residual = 0.000190763
+HR iteration 46
+HR residual jump = 0.00279174
+HR normalized residual = 0.000186017
+HR iteration 47
+HR residual jump = 0.00272279
+HR normalized residual = 0.000181388
+HR iteration 48
+HR residual jump = 0.00265567
+HR normalized residual = 0.000177128
+HR iteration 49
+HR residual jump = 0.00259032
+HR normalized residual = 0.000173133
+HR iteration 50
+HR residual jump = 0.00252669
+HR normalized residual = 0.000169227
+HR iteration 51
+HR residual jump = 0.00246473
+HR normalized residual = 0.000165406
+HR iteration 52
+HR residual jump = 0.00240439
+HR normalized residual = 0.000161669
+HR iteration 53
+HR residual jump = 0.00234562
+HR normalized residual = 0.000158015
+HR iteration 54
+HR residual jump = 0.00228837
+HR normalized residual = 0.000154469
+HR iteration 55
+HR residual jump = 0.0022326
+HR normalized residual = 0.000151293
+HR iteration 56
+HR residual jump = 0.00217827
+HR normalized residual = 0.000148181
+HR iteration 57
+HR residual jump = 0.00212534
+HR normalized residual = 0.000145129
+HR iteration 58
+HR residual jump = 0.00207375
+HR normalized residual = 0.000142139
+HR iteration 59
+HR residual jump = 0.00202349
+HR normalized residual = 0.000139208
+HR iteration 60
+HR residual jump = 0.0019745
+HR normalized residual = 0.000136336
+HR iteration 61
+HR residual jump = 0.00192675
+HR normalized residual = 0.000133521
+HR iteration 62
+HR residual jump = 0.00188021
+HR normalized residual = 0.000130762
+HR iteration 63
+HR residual jump = 0.00183484
+HR normalized residual = 0.000128058
+HR iteration 64
+HR residual jump = 0.00179061
+HR normalized residual = 0.000125409
+HR iteration 65
+HR residual jump = 0.00174748
+HR normalized residual = 0.000122813
+HR iteration 66
+HR residual jump = 0.00170544
+HR normalized residual = 0.000120269
+HR iteration 67
+HR residual jump = 0.00166444
+HR normalized residual = 0.000117777
+HR iteration 68
+HR residual jump = 0.00162446
+HR normalized residual = 0.000115334
+HR iteration 69
+HR residual jump = 0.00158547
+HR normalized residual = 0.000112941
+HR iteration 70
+HR residual jump = 0.00154744
+HR normalized residual = 0.000110597
+HR iteration 71
+HR residual jump = 0.00151035
+HR normalized residual = 0.0001083
+HR iteration 72
+HR residual jump = 0.00147417
+HR normalized residual = 0.000106049
+HR iteration 73
+HR residual jump = 0.00143888
+HR normalized residual = 0.000103844
+HR iteration 74
+HR residual jump = 0.00140445
+HR normalized residual = 0.000101684
+HR iteration 75
+HR residual jump = 0.00137087
+HR normalized residual = 9.97378e-05
+HR iteration 76
+HR residual jump = 0.0013381
+HR normalized residual = 9.80236e-05
+HR iteration 77
+HR residual jump = 0.00130613
+HR normalized residual = 9.63401e-05
+HR iteration 78
+HR residual jump = 0.00127494
+HR normalized residual = 9.46867e-05
+HR iteration 79
+HR residual jump = 0.0012445
+HR normalized residual = 9.30628e-05
+HR iteration 80
+HR residual jump = 0.00121479
+HR normalized residual = 9.14681e-05
+HR iteration 81
+HR residual jump = 0.00118581
+HR normalized residual = 8.99018e-05
+HR iteration 82
+HR residual jump = 0.00115752
+HR normalized residual = 8.83636e-05
+HR iteration 83
+HR residual jump = 0.00112991
+HR normalized residual = 8.68529e-05
+HR iteration 84

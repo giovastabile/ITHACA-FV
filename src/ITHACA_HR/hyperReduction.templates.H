@@ -32,6 +32,7 @@ License
 #define hyperReduction_templates_H
 
 #include "hyperReduction.H"
+#include <limits>
 
 // TODO increase modularity to avoid heavy compiling costs
 
@@ -698,6 +699,10 @@ void HyperReduction<SnapshotsLists...>::offlineECP(List<Eigen::MatrixXd>&
     Info << "####### Modes=" <<  n_subspaceModes
          << ", nodePoints=" << n_nodes << " #######"
          << endl;
+        Info << "ECP problem size: " << n_cells << " cells, "
+            << n_totalModes << " feature modes, " << n_nodes
+            << " requested points, " << n_subspaces << " subspaces"
+            << endl;
     nodePoints = autoPtr<IOList<label >> (new IOList<label>(
             IOobject("nodePoints", para->runTime.time().constant(), "../" + folderMethod,
                      para->mesh, IOobject::READ_IF_PRESENT, IOobject::NO_WRITE)));
@@ -819,17 +824,39 @@ void HyperReduction<SnapshotsLists...>::offlineECP(List<Eigen::MatrixXd>&
         int na = n_nodes - initialSeeds.rows();
         Eigen::SparseMatrix<double> reshapeMat;
         initReshapeMat(reshapeMat);
+        label selectionAttempts = 0;
 
         if (na > 0)
         {
-            label ind_max, r1;
+            label ind_max;
             double max;
 
             while (nodePoints->size() < n_nodes)
             {
-                max = ((b.transpose() * A * mp_not_mask(Eigen::seq(0, Eigen::indexing::last,
-                    vectorial_dim))
-                        .asDiagonal()).colwise().sum()).maxCoeff(& r1, & ind_max);
+                ++selectionAttempts;
+                Info << "ECP selection attempt " << selectionAttempts
+                     << "; currently retaining " << nodePoints->size()
+                     << "/" << n_nodes << " points; fitting NNLS weights"
+                     << endl;
+                // A zero mask can beat negative scores and select an old node
+                // again. Explicitly exclude every previously tried candidate.
+                Eigen::RowVectorXd scores = b.transpose()*A;
+                bool candidateAvailable = false;
+                for (label celli = 0; celli < n_cells; ++celli)
+                {
+                    if (mp_not_mask(celli*vectorial_dim) == 0)
+                    {
+                        scores(celli) = -std::numeric_limits<double>::infinity();
+                    }
+                    else
+                    {
+                        candidateAvailable = true;
+                    }
+                }
+                M_Assert(candidateAvailable,
+                    "ECP exhausted candidate cells before reaching the requested point count");
+                max = scores.maxCoeff(&ind_max);
+                M_Assert(std::isfinite(max), "ECP selection produced a non-finite score");
                 updateNodes(P, ind_max, mp_not_mask);
                 n_modesPrevious = 0;
 
@@ -855,6 +882,37 @@ void HyperReduction<SnapshotsLists...>::offlineECP(List<Eigen::MatrixXd>&
                     }
                 }
 
+                // A rank-deficient training space can be integrated before
+                // the requested point count is reached. Do not keep adding
+                // and removing zero-weight nodes after convergence.
+                const scalar ecpTolerance = para->ITHACAdict->lookupOrDefault<scalar>
+                    ("ecpTolerance", 0.0);
+                double fitError2 = 0.0, targetNorm2 = 0.0;
+                if (ecpTolerance > 0)
+                {
+                    for (label spaceI = 0; spaceI < n_subspaces; ++spaceI)
+                    {
+                        for (label cmpt = 0; cmpt < vectorial_dim; ++cmpt)
+                        {
+                            const label rows = n_subspaceModes[spaceI] + predictVolume;
+                            const Eigen::VectorXd target = q[spaceI].segment(cmpt*rows, rows);
+                            const Eigen::VectorXd fitted = Jwhole[spaceI]
+                                .middleRows(cmpt*rows, rows)(Eigen::indexing::all, nodes)
+                                *quadratureWeightsSubspaces[spaceI]
+                                    .segment(cmpt*nodePoints->size(), nodePoints->size());
+                            fitError2 += (target-fitted).squaredNorm();
+                            targetNorm2 += target.squaredNorm();
+                        }
+                    }
+                    if (fitError2 <= sqr(ecpTolerance)*std::max(targetNorm2, double(SMALL)))
+                    {
+                        n_nodes = nodePoints->size();
+                        Info << "ECP fitting tolerance reached with " << n_nodes
+                             << " points" << endl;
+                        break;
+                    }
+                }
+
                 if (NNLS)    // Removes nodes with weight 0 from set of nodes
                 {
                     Eigen::VectorXd maxQuadWeights = Eigen::VectorXd::Zero(nodePoints->size());
@@ -872,7 +930,11 @@ void HyperReduction<SnapshotsLists...>::offlineECP(List<Eigen::MatrixXd>&
                     updateNodesRemove(P, maxQuadWeights);
                 }
             }
-        }
+           }
+
+           Info << "ECP point selection complete after " << selectionAttempts
+               << " attempts: " << nodePoints->size()
+               << " points retained" << endl;
 
         if (cellVolumesInCubatureWeights)
         {
@@ -1082,7 +1144,8 @@ void HyperReduction<SnapshotsLists...>::computeLS(Eigen::MatrixXd& J,
     }
 
     b = q.segment(0, b.size()) - J.middleRows(0, b.size()) * quadratureWeights;
-    b = b / b.lpNorm<2>();
+    const double residualNorm = b.norm();
+    if (residualNorm > 0) b /= residualNorm;
 }
 
 template<typename... SnapshotsLists>

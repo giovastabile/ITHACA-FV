@@ -11,6 +11,7 @@
 \*---------------------------------------------------------------------------*/
 
 #include "ReducedSimpleSteadyNS.H"
+#include <chrono>
 
 
 namespace
@@ -118,6 +119,9 @@ void reducedSimpleSteadyNS::solveOnline_Simple
     word Folder
 )
 {
+    using TimingClock = std::chrono::steady_clock;
+    const auto timingStart = TimingClock::now();
+
     ULmodes.resize(0);
 
     for (int i = 0; i < problem->inletIndex.rows(); i++)
@@ -250,7 +254,10 @@ void reducedSimpleSteadyNS::solveOnline_Simple
     }
 
     projGradModP = ULmodes.project(gradModP, NmodesUproj);
+    for (Eigen::Index i = 0; i < projGradModP.size(); ++i)
+        reduce(projGradModP.data()[i], sumOp<scalar>());
 
+    const auto solveStart = TimingClock::now();
     while
     (
         (
@@ -319,6 +326,8 @@ void reducedSimpleSteadyNS::solveOnline_Simple
                 vel_now
             );
 
+        // The lift rows are replaced by imposed boundary coefficients.
+        uresidual.head(vel_now.size()).setZero();
         ULmodes.reconstruct(U, a, "U");
 
         volScalarField rAU(1.0 / UEqn.A());
@@ -447,9 +456,13 @@ void reducedSimpleSteadyNS::solveOnline_Simple
         }
     }
 
+    const auto solveEnd = TimingClock::now();
+    lastSolveConverged = std::isfinite(U_norm_res) && std::isfinite(P_norm_res)
+        && residual_jump <= residualJumpLim
+        && std::max(U_norm_res, P_norm_res) <= normalizedResidualLim;
     Info << "Solution " << counter
-         << " converged in " << iter
-         << " iterations." << endl;
+         << (lastSolveConverged ? " converged in " : " did not converge after ")
+         << iter << " iterations." << endl;
 
     Info << "Final normalized residual for velocity: "
          << U_norm_res << endl;
@@ -462,14 +475,27 @@ void reducedSimpleSteadyNS::solveOnline_Simple
         writeResidualIndicator();
     }
 
+    const auto reconstructStart = TimingClock::now();
     ULmodes.reconstruct(U, a, "Uaux");
 
     P.rename("Paux");
     problem->Pmodes.reconstruct(P, b, "Paux");
 
+    const auto exportStart = TimingClock::now();
     ITHACAstream::exportSolution(U, name(counter), Folder);
     ITHACAstream::exportSolution(P, name(counter), Folder);
 
+    const auto exportEnd = TimingClock::now();
+    auto seconds = [](auto begin, auto end)
+    {
+        return std::chrono::duration<double>(end - begin).count();
+    };
+    Info << "ROM_TIMING method=FullROM mu=" << mu_now
+         << " iterations=" << iter
+         << " setup_s=" << seconds(timingStart, solveStart)
+         << " solve_s=" << seconds(solveStart, solveEnd)
+         << " reconstruct_s=" << seconds(reconstructStart, exportStart)
+         << " export_s=" << seconds(exportStart, exportEnd) << endl;
     runTime.setTime(runTime.startTime(), 0);
 }
 
@@ -666,6 +692,8 @@ void reducedSimpleSteadyNS::setupSampled
     }
 
     sampledReady_ = true;
+    // This collective must run on every rank, not inside master-only output.
+    const label globalSubMeshCells = sampledMesh.globalSubMeshSize();
 
     if (Pstream::master())
     {
@@ -677,7 +705,7 @@ void reducedSimpleSteadyNS::setupSampled
              << sampledMesh.sampledCells().size() << " local on proc 0"
              << nl
              << "  submesh cells  : "
-             << sampledMesh.globalSubMeshSize() << " global"
+             << globalSubMeshCells << " global"
              << nl << endl;
     }
 }
@@ -693,6 +721,9 @@ void reducedSimpleSteadyNS::solveOnline_SimpleSampled
     word projType
 )
 {
+    using TimingClock = std::chrono::steady_clock;
+    const auto timingStart = TimingClock::now();
+
     M_Assert
     (
         sampledReady_ && sampledMeshPtr_,
@@ -752,7 +783,7 @@ void reducedSimpleSteadyNS::solveOnline_SimpleSampled
     // ============================================================
     // Diagnostics for checking full-mesh/submesh equivalence.
     // ============================================================
-    const Switch hrEquivalenceTests =
+    const Switch hrEquivalenceTests = !Pstream::parRun() &&
         problem->para->ITHACAdict->lookupOrDefault<Switch>
         (
             "hrEquivalenceTests",
@@ -911,6 +942,7 @@ void reducedSimpleSteadyNS::solveOnline_SimpleSampled
 
     List<Eigen::MatrixXd> RedLinSysP(2);
 
+    const auto solveStart = TimingClock::now();
     while
     (
         (
@@ -1373,7 +1405,8 @@ void reducedSimpleSteadyNS::solveOnline_SimpleSampled
                 (
                     UEqnSub,
                     sampledUmodes_(),
-                    "G"
+                    "G",
+                    cubatureWeights_.size() ? &cubatureWeights_ : nullptr
                 );
 
             const scalar postRelA =
@@ -1462,6 +1495,10 @@ void reducedSimpleSteadyNS::solveOnline_SimpleSampled
                 uresidual,
                 vel_now
             );
+
+        // Lift coefficients are imposed by replacing these momentum rows.
+        // Their original Galerkin residual is not a convergence equation.
+        uresidual.head(vel_now.size()).setZero();
 
         // Reconstruct U only on the submesh.
         USub *= 0.0;
@@ -1560,6 +1597,19 @@ void reducedSimpleSteadyNS::solveOnline_SimpleSampled
                 )
             );
 
+            scalar hError = 0, hNorm = 0, rError = 0, rNorm = 0;
+            const labelList& diagCells = sampledMesh.sampledCells();
+            const labelList& diagSubCells = sampledMesh.sampledSubCells();
+            forAll(diagCells, i)
+            {
+                hError += magSqr(HbyASub[diagSubCells[i]] - HbyAFullDiag[diagCells[i]]);
+                hNorm += magSqr(HbyAFullDiag[diagCells[i]]);
+                rError += sqr(rAUSub[diagSubCells[i]] - rAUFullDiag[diagCells[i]]);
+                rNorm += sqr(rAUFullDiag[diagCells[i]]);
+            }
+            Info << "Sampled HbyA relative error = " << Foam::sqrt(hError/(hNorm+SMALL))
+                 << "; rAU relative error = " << Foam::sqrt(rError/(rNorm+SMALL)) << endl;
+
             phiHbyAFullDiagPtr.reset
             (
                 new surfaceScalarField
@@ -1649,6 +1699,29 @@ void reducedSimpleSteadyNS::solveOnline_SimpleSampled
                         PprojN,
                         "G"
                     );
+
+                if (cubatureWeights_.size())
+                {
+                    Eigen::SparseMatrix<double> diagnosticA;
+                    Eigen::VectorXd diagnosticRhs;
+                    Foam2Eigen::fvMatrix2Eigen(pEqnFullDiag, diagnosticA, diagnosticRhs);
+                    Eigen::VectorXd weightedFullRhs = Eigen::VectorXd::Zero(PprojN);
+                    const labelList& cells = sampledMesh.sampledCells();
+                    forAll(cells, sampleI)
+                    {
+                        for (label i = 0; i < PprojN; ++i)
+                        {
+                            weightedFullRhs(i) += cubatureWeights_(sampleI)
+                                *problem->Pmodes[i][cells[sampleI]]
+                                *diagnosticRhs(cells[sampleI]);
+                        }
+                    }
+                    Info << "Pressure RHS cubature-only relative error = "
+                         << (weightedFullRhs-pFull[1]).norm()/(pFull[1].norm()+SMALL)
+                         << "; sampled assembly relative error = "
+                         << (RedLinSysP[1]-weightedFullRhs).norm()/(pFull[1].norm()+SMALL)
+                         << endl;
+                }
 
                 const scalar pRelA =
                     (RedLinSysP[0] - pFull[0]).norm()
@@ -1749,9 +1822,13 @@ void reducedSimpleSteadyNS::solveOnline_SimpleSampled
         }
     }
 
+    const auto solveEnd = TimingClock::now();
+    lastSolveConverged = std::isfinite(U_norm_res) && std::isfinite(P_norm_res)
+        && residual_jump <= residualJumpLim
+        && std::max(U_norm_res, P_norm_res) <= normalizedResidualLim;
     Info << "HR solution " << counter
-         << " converged in " << iter
-         << " iterations." << endl;
+         << (lastSolveConverged ? " converged in " : " did not converge after ")
+         << iter << " iterations." << endl;
 
     Info << "Final HR normalized residual for velocity: "
          << U_norm_res << endl;
@@ -1763,14 +1840,27 @@ void reducedSimpleSteadyNS::solveOnline_SimpleSampled
     volVectorField& U = problem->_U();
     volScalarField& P = problem->_p();
 
+    const auto reconstructStart = TimingClock::now();
     ULmodes.reconstruct(U, a, "Uaux");
 
     P.rename("Paux");
     problem->Pmodes.reconstruct(P, b, "Paux");
 
+    const auto exportStart = TimingClock::now();
     ITHACAstream::exportSolution(U, name(counter), Folder);
     ITHACAstream::exportSolution(P, name(counter), Folder);
 
+    const auto exportEnd = TimingClock::now();
+    auto seconds = [](auto begin, auto end)
+    {
+        return std::chrono::duration<double>(end - begin).count();
+    };
+    Info << "ROM_TIMING method=HR mu=" << mu_now
+         << " iterations=" << iter
+         << " setup_s=" << seconds(timingStart, solveStart)
+         << " solve_s=" << seconds(solveStart, solveEnd)
+         << " reconstruct_s=" << seconds(reconstructStart, exportStart)
+         << " export_s=" << seconds(exportStart, exportEnd) << endl;
     runTime.setTime(runTime.startTime(), 0);
 }
 

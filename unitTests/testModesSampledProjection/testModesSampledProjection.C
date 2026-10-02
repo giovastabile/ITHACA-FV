@@ -680,6 +680,14 @@ int main(int argc, char *argv[])
     const scalar vectorMethodArDiff = relativeDifference(vectorProjected[0], vectorArSub);
     const scalar vectorMethodBrDiff = relativeDifference(vectorProjected[1].col(0), vectorBrSub);
 
+    // H() filters inactive solution directions. Exposed subset faces must
+    // not turn valid physical velocity components into empty directions.
+    const scalar vectorHDiff = relativeDifference
+    (
+        sampleVectorField(vectorASub.H()().primitiveField(), sampleSubCell),
+        sampleVectorField(vectorAFull.H()().primitiveField(), sampleLocalCell)
+    );
+
     const scalar tolerance = 1e-10;
 
     const bool scalarPass =
@@ -698,7 +706,8 @@ int main(int argc, char *argv[])
         && vectorBrDiff    < tolerance
         && vectorCoeffDiff < tolerance
         && vectorMethodArDiff < tolerance
-        && vectorMethodBrDiff < tolerance;
+        && vectorMethodBrDiff < tolerance
+        && vectorHDiff < tolerance;
 
     if (Pstream::master())
     {
@@ -728,6 +737,7 @@ int main(int argc, char *argv[])
              << "========================================" << nl
              << " VECTOR SAMPLED PG" << nl
              << "========================================" << nl
+             << "rel diff P_S H   : " << vectorHDiff << nl
              << "rel diff P_S A V : " << vectorAVDiff << nl
              << "rel diff P_S b   : " << vectorBDiff << nl
              << "rel diff Ar      : " << vectorArDiff << nl

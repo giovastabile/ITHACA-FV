@@ -250,6 +250,8 @@ Modes<Type, PatchField, GeoMesh>::reconstruct(
         ITHACAutilities::assignBC(inputField, i, BF);
     }
 
+    if (Pstream::parRun()) inputField.correctBoundaryConditions();
+
     return inputField;
 }
 

@@ -46,5 +46,6 @@ EXE_LIBS = \
     -lITHACA_INTERPOLATOR \
     -lITHACA_THIRD_PARTY \
     -lITHACA_CORE \
+    -ltbb \
     -L$(FOAM_USER_LIBBIN) \
  

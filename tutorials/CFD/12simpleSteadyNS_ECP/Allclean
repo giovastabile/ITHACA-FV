@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+
+case_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+
+# Keep ITHACAoutput: it contains the offline snapshots and prepared ECP rule.
+rm -rf -- "$case_dir/benchmark-results"
