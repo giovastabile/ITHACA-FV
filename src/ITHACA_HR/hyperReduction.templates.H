@@ -127,7 +127,6 @@ HyperReduction<SnapshotsLists...>::HyperReduction(label n_modes,
          endl;
     para = ITHACAparameters::getInstance();
     folderProblem = problemName;
-    mkDir(folderProblem);
     Info << "Initial seeds length: " << initialSeeds.rows() << endl;
 }
 
